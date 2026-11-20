@@ -501,6 +501,16 @@
   .lv-svg .gilt { fill: var(--gilt); stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; }
   .lv-svg .rub { fill: var(--rubric); stroke: none; }
   .lv-svg .rubline { fill: none; stroke: var(--rubric); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+  .lv-svg .tl { stroke: var(--ink); stroke-width: 1.8; stroke-linejoin: round; }
+  .lv-svg .tl.ok { fill: oklch(0.8 0.1 150); }
+  .lv-svg .tl.pre { fill: oklch(0.88 0.09 85); }
+  .lv-svg .tl.abs { fill: oklch(0.86 0.02 70); }
+  .section-title .lv-svg { width: 1.75rem; height: 1.75rem; vertical-align: -0.3em; margin-right: var(--space-sm); }
+  .rowhead { display: flex; align-items: center; gap: var(--space-sm); }
+  .rowhead .lv-svg { flex: none; width: 1.5rem; height: 1.5rem; overflow: visible; }
+  .chip[aria-pressed="true"] .lv-svg .tl { stroke: var(--parchment); }
+  .chip[aria-pressed="true"] .lv-svg .rubline { stroke: oklch(0.92 0.05 80); }
+  .chip[aria-pressed="true"] .lv-svg .rub { fill: oklch(0.92 0.05 80); }
   .dpips { display: inline-flex; gap: 5px; margin: 0 var(--space-sm); padding: 2px; vertical-align: middle; }
   .dpips i { display: block; width: 7px; height: 7px; background: var(--gilt); transform: rotate(45deg); }
   .dpips i.off { background: transparent; box-shadow: inset 0 0 0 1px var(--hair); }
@@ -614,14 +624,30 @@
   .lives-side { flex: 1; min-width: 0; }
   .lives-label { margin: 0; font-size: var(--t-sm); font-style: italic; color: var(--ink-soft); }
   .lives .feedback { margin-top: var(--space-sm); }
-  .gibbet { flex: none; width: 9.5rem; height: auto; overflow: visible; }
-  .gibbet path, .gibbet circle { fill: none; stroke-linecap: round; stroke-linejoin: round; }
-  .gibbet .ink { stroke: var(--ink); stroke-width: 3.5; }
-  .gibbet .thin { stroke-width: 2; }
-  .gibbet .fig { stroke: var(--rubric); stroke-width: 3; }
-  .gibbet .gilt { fill: var(--gilt); stroke: var(--ink); stroke-width: 1; }
+  .gibbet { flex: none; width: 11rem; height: auto; overflow: visible; }
+  .gibbet path, .gibbet circle, .gibbet rect, .gibbet ellipse { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .gibbet .ink { stroke: var(--ink); stroke-width: 3; }
+  .gibbet .thin { stroke-width: 1.6; }
+  .gibbet .gilt { fill: var(--gilt); stroke: var(--ink); stroke-width: 1.4; }
+  .gibbet .stone { fill: var(--parchment-deep); stroke: var(--ink); stroke-width: 1.5; }
+  .gibbet .wood { fill: oklch(0.45 0.06 55); stroke: var(--ink); stroke-width: 1.5; }
+  .gibbet .grain { stroke: oklch(0.8 0.05 70); stroke-width: 1; opacity: 0.35; }
+  .gibbet .brace { stroke: oklch(0.45 0.06 55); stroke-width: 6; }
+  .gibbet .rope { stroke: oklch(0.56 0.09 70); stroke-width: 2.6; }
+  .gibbet .skin { fill: var(--parchment); stroke: var(--ink); stroke-width: 1.8; }
+  .gibbet .cloth { fill: var(--rubric); stroke: var(--ink); stroke-width: 1.5; }
+  .gibbet .belt { stroke: var(--gilt); stroke-width: 3; }
+  .gibbet .sleeve { stroke: var(--rubric); stroke-width: 7; }
+  .gibbet .hose { stroke: var(--ink); stroke-width: 6; }
+  .gibbet .boot { fill: var(--ink); stroke: none; }
+  .gibbet .crow * { fill: var(--ink); stroke: none; }
+  .gibbet .crow { opacity: 0; transform: translateY(-5px); transition: opacity 0.6s var(--ease) 0.4s, transform 0.6s var(--ease) 0.4s; }
+  .gibbet.dead .crow { opacity: 1; transform: none; }
+  .gibbet .hang { transform-origin: 104px 32px; }
+  .gibbet.dead .hang { animation: swing 3.4s ease-in-out 0.8s infinite alternate; }
+  @keyframes swing { from { transform: rotate(-2.6deg); } to { transform: rotate(2.6deg); } }
   /* Le dessin complet reste en filigrane, chaque erreur le trace pour de bon */
-  .gpart { opacity: 0.09; transition: opacity 0.3s var(--ease); }
+  .gpart { opacity: 0.1; transition: opacity 0.3s var(--ease); }
   .gpart.on { opacity: 1; }
   .gpart.on > * { animation: draw 0.5s var(--ease) both; }
   @keyframes draw {
@@ -655,7 +681,7 @@
 
   /* Page Records : tableau (aussi sélecteur) puis classement */
   .matrix { width: calc(100% + 12px); max-width: 38rem; margin: var(--space-sm) -6px 0; border-collapse: separate; border-spacing: 6px; table-layout: fixed; }
-  .matrix thead td, .matrix tbody th { width: 34%; }
+  .matrix thead td, .matrix tbody th { width: 38%; }
   .matrix th { font-weight: 400; text-align: left; }
   .matrix thead th {
     padding: 0 0 var(--space-xs);
@@ -1530,53 +1556,76 @@ function buildGibbet() {
     if (parent) parent.appendChild(n);
     return n;
   };
-  const svg = mk("svg", { viewBox: "0 0 120 140", role: "img", class: "gibbet" });
+  const svg = mk("svg", { viewBox: "0 0 140 170", role: "img", class: "gibbet" });
+  const fixed = mk("g", {}, svg);
+  // Le corbeau se pose sur la poutre quand la potence est achevée
+  const crow = mk("g", { class: "crow" }, svg);
+  mk("ellipse", { cx: 82, cy: 17, rx: 8, ry: 5 }, crow);
+  mk("circle", { cx: 90, cy: 12, r: 3.6 }, crow);
+  mk("path", { d: "M93 11 L99 13 L93 14.5 Z" }, crow);
+  mk("path", { d: "M75 15 L64 20 L76 21 Z" }, crow);
+  const hang = mk("g", { class: "hang" }, svg);
   const parts = [];
-  const part = (draw) => {
-    const g = mk("g", { class: "gpart" }, svg);
+  const part = (host, draw) => {
+    const g = mk("g", { class: "gpart" }, host);
     draw((tag, attrs) => mk(tag, Object.assign({ pathLength: 1 }, attrs), g));
     parts.push(g);
   };
-  // 1. socle à gradins
-  part((add) => {
-    add("path", { d: "M6 133 H84", class: "ink" });
-    add("path", { d: "M14 126 H76", class: "ink thin" });
+  // 1. socle de pierre à deux gradins
+  part(fixed, (add) => {
+    add("rect", { x: 8, y: 158, width: 104, height: 9, class: "stone" });
+    add("rect", { x: 20, y: 150, width: 80, height: 8, class: "stone" });
+    add("path", { d: "M36 158 V167 M62 158 V167 M88 158 V167 M50 150 V158 M76 150 V158", class: "ink thin" });
   });
-  // 2. poteau et fleuron doré
-  part((add) => {
-    add("path", { d: "M30 126 V16", class: "ink" });
-    add("path", { d: "M30 5 L36 12 L30 19 L24 12 Z", class: "gilt" });
+  // 2. poteau de bois, fleuron doré
+  part(fixed, (add) => {
+    add("rect", { x: 34, y: 22, width: 12, height: 128, class: "wood" });
+    add("path", { d: "M38 30 V144 M42 36 V138", class: "grain" });
+    add("rect", { x: 30, y: 144, width: 20, height: 6, class: "wood" });
+    add("path", { d: "M40 3 L47 11 L40 19 L33 11 Z", class: "gilt" });
   });
-  // 3. potence et arc brisé
-  part((add) => {
-    add("path", { d: "M30 16 H96", class: "ink" });
-    add("path", { d: "M30 54 Q54 46 62 16", class: "ink thin" });
-    add("path", { d: "M96 16 V22", class: "ink thin" });
+  // 3. poutre, arc brisé, pointe dorée
+  part(fixed, (add) => {
+    add("rect", { x: 34, y: 22, width: 90, height: 10, class: "wood" });
+    add("path", { d: "M38 26 H120", class: "grain" });
+    add("path", { d: "M46 68 Q64 62 74 32", class: "brace" });
+    add("circle", { cx: 124, cy: 27, r: 4.2, class: "gilt" });
   });
   // 4. corde et nœud coulant
-  part((add) => {
-    add("path", { d: "M88 16 V34", class: "ink thin" });
-    add("path", { d: "M82 34 Q88 42 94 34", class: "ink thin" });
+  part(hang, (add) => {
+    add("path", { d: "M104 32 V50", class: "rope" });
+    add("path", { d: "M96 66 Q104 77 112 66", class: "rope" });
   });
-  // 5. tête
-  part((add) => { add("circle", { cx: 88, cy: 46, r: 9, class: "fig" }); });
-  // 6. corps
-  part((add) => { add("path", { d: "M88 55 V92", class: "fig" }); });
-  // 7. bras
-  part((add) => {
-    add("path", { d: "M88 66 L72 82", class: "fig" });
-    add("path", { d: "M88 66 L104 82", class: "fig" });
+  // 5. tête coiffée d'un chaperon
+  part(hang, (add) => {
+    add("circle", { cx: 104, cy: 58, r: 9, class: "skin" });
+    add("path", { d: "M94.6 56 Q104 42 113.4 56 Q104 52 94.6 56 Z", class: "cloth" });
   });
-  // 8. jambes et yeux clos
-  part((add) => {
-    add("path", { d: "M88 92 L75 118", class: "fig" });
-    add("path", { d: "M88 92 L101 118", class: "fig" });
-    add("path", { d: "M83 42 L87 46 M87 42 L83 46 M89 42 L93 46 M93 42 L89 46", class: "fig thin" });
+  // 6. tunique à ceinture dorée
+  part(hang, (add) => {
+    add("path", { d: "M94 70 H114 L117 108 H91 Z", class: "cloth" });
+    add("path", { d: "M92.4 98 H115.6", class: "belt" });
+  });
+  // 7. manches et mains
+  part(hang, (add) => {
+    add("path", { d: "M95 74 L86 100", class: "sleeve" });
+    add("path", { d: "M113 74 L122 100", class: "sleeve" });
+    add("circle", { cx: 85.4, cy: 104, r: 3.4, class: "skin" });
+    add("circle", { cx: 122.6, cy: 104, r: 3.4, class: "skin" });
+  });
+  // 8. chausses, bottes et yeux clos
+  part(hang, (add) => {
+    add("path", { d: "M97 108 L95 135", class: "hose" });
+    add("path", { d: "M111 108 L113 135", class: "hose" });
+    add("ellipse", { cx: 94, cy: 139, rx: 6.5, ry: 3.4, class: "boot" });
+    add("ellipse", { cx: 114, cy: 139, rx: 6.5, ry: 3.4, class: "boot" });
+    add("path", { d: "M99.5 57 L102.5 60 M102.5 57 L99.5 60 M105.5 57 L108.5 60 M108.5 57 L105.5 60", class: "ink thin" });
   });
   return {
     svg,
     show(n) {
       parts.forEach((g, k) => g.classList.toggle("on", k < n));
+      svg.classList.toggle("dead", n >= GIBBET_STEPS);
       svg.setAttribute("aria-label", "Potence : " + n + " trait" + (n > 1 ? "s" : "") + " sur " + GIBBET_STEPS);
     },
   };
@@ -2213,7 +2262,9 @@ function renderPlay() {
     b.style.setProperty("--i", k);
     const left = el("span", "name");
     left.append(el("span", "level-name", m.name), el("span", "level-desc", m.blurb));
-    b.appendChild(left);
+    const icon = el("span", "lv-icon");
+    icon.appendChild(gameIcon(m.id));
+    b.append(icon, left);
     b.onclick = () => renderLevels(m);
     list.appendChild(b);
   });
@@ -2250,6 +2301,38 @@ function levelIcon(id) {
   }
   return svg;
 }
+// Emblème d'un jeu : bulle de dialogue (Qui a dit ça ?), potence (Le pendu), tuiles (Le mot juste)
+function gameIcon(id) {
+  const NS = "http://www.w3.org/2000/svg";
+  const mk = (tag, attrs, parent) => {
+    const n = document.createElementNS(NS, tag);
+    Object.keys(attrs).forEach((k) => n.setAttribute(k, attrs[k]));
+    parent.appendChild(n);
+    return n;
+  };
+  const svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("viewBox", "0 0 48 48");
+  svg.setAttribute("class", "lv-svg");
+  svg.setAttribute("aria-hidden", "true");
+  if (id === "qui") {
+    mk("path", { d: "M8 7 H40 Q42 7 42 9 V31 Q42 33 40 33 H27 L17 42 V33 H8 Q6 33 6 31 V9 Q6 7 8 7 Z", class: "ink" }, svg);
+    mk("path", { d: "M19 18 C19 11 29 11 29 18 C29 23 24 22.5 24 26", class: "rubline" }, svg);
+    mk("circle", { cx: 24, cy: 30, r: 1.9, class: "rub" }, svg);
+  } else if (id === "pendu") {
+    mk("path", { d: "M5 43 H29 M14 43 V9 M14 9 H35", class: "ink" }, svg);
+    mk("path", { d: "M14 19 Q22 16 25 9", class: "ink thin" }, svg);
+    mk("path", { d: "M14 3 L17.5 7 L14 11 L10.5 7 Z", class: "gilt" }, svg);
+    mk("path", { d: "M35 9 V15", class: "ink thin" }, svg);
+    mk("circle", { cx: 35, cy: 19, r: 4, class: "rubline" }, svg);
+    mk("path", { d: "M35 23 V32 M35 26 L30 30 M35 26 L40 30 M35 32 L31 39 M35 32 L39 39", class: "rubline" }, svg);
+  } else {
+    const grid = [["abs", "pre", "ok"], ["ok", "ok", "pre"], ["ok", "ok", "ok"]];
+    grid.forEach((row, r) => row.forEach((st, c) => {
+      mk("rect", { x: 7 + c * 12, y: 6 + r * 13, width: 11, height: 11, rx: 1.5, class: "tl " + st }, svg);
+    }));
+  }
+  return svg;
+}
 const LEVEL_RANK = { facile: 1, moyen: 2, difficile: 3 };
 const LEVEL_WORD = { facile: "facile", moyen: "moyen", difficile: "difficile" };
 function difficultyPips(id) {
@@ -2267,7 +2350,8 @@ function renderLevels(mode) {
   root.innerHTML = "";
   const back = el("button", "back", "← Changer de jeu");
   back.onclick = renderPlay;
-  const title = el("h2", "section-title", mode.name);
+  const title = el("h2", "section-title");
+  title.append(gameIcon(mode.id), document.createTextNode(mode.name));
   const intro = el("div", "state");
   intro.appendChild(el("p", "", mode.intro));
   const list = el("div", "levels");
@@ -2445,7 +2529,8 @@ function buildBoard() {
   modes.setAttribute("role", "group");
   modes.setAttribute("aria-label", "Jeu");
   Object.values(MODES).forEach((m) => {
-    const b = el("button", "chip", m.name);
+    const b = el("button", "chip");
+    b.append(gameIcon(m.id), document.createTextNode(m.name));
     b.type = "button";
     b.onclick = () => selectBoard(m.id + "-" + boardParts(rankBoard).lv.id);
     modeBtns[m.id] = b;
@@ -2498,8 +2583,11 @@ function buildMine(on) {
   const body = el("tbody");
   Object.values(MODES).forEach((m) => {
     const tr = el("tr");
-    const th = el("th", "", m.name);
+    const th = el("th");
     th.scope = "row";
+    const rowhead = el("span", "rowhead");
+    rowhead.append(gameIcon(m.id), document.createTextNode(m.name));
+    th.appendChild(rowhead);
     tr.appendChild(th);
     Object.values(levels).forEach((lv) => {
       const id = m.id + "-" + lv.id;
