@@ -341,6 +341,69 @@
     border-radius: 2px;
   }
 
+  /* Complète la réplique, menus, classement */
+  .speaker {
+    margin: 0 0 var(--space-md);
+    font-family: var(--font-display);
+    font-size: var(--t-md);
+    font-variant: small-caps;
+    letter-spacing: 0.06em;
+    color: var(--rubric);
+  }
+  .fill { color: var(--rubric); border-bottom: 1px solid var(--rubric); }
+  .back, .linklike {
+    min-height: 44px;
+    padding: 0;
+    font: inherit;
+    color: var(--ink-soft);
+    background: none;
+    border: 0;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .linklike { min-height: 0; color: var(--rubric); }
+  .back:hover, .linklike:hover { color: var(--ink); }
+  .section-title {
+    margin: 0 0 var(--space-md);
+    font-family: var(--font-display);
+    font-size: var(--t-lg);
+    font-weight: 400;
+    line-height: 1.2;
+  }
+  .publish { margin-top: var(--space-2xl); padding-top: var(--space-xl); border-top: 1px solid var(--hair); }
+  .publish label { display: block; font-size: var(--t-sm); color: var(--ink-soft); }
+  .publish .row { display: flex; flex-wrap: wrap; gap: var(--space-md); margin-top: var(--space-sm); }
+  .publish input {
+    flex: 1 1 12rem;
+    max-width: 18rem;
+    min-height: 48px;
+    padding: var(--space-sm) var(--space-md);
+    font: inherit;
+    color: var(--ink);
+    background: var(--parchment);
+    border: 1px solid var(--ink-soft);
+    border-radius: 2px;
+  }
+  .publish .btn { flex: none; }
+  .publish-msg { margin: var(--space-md) 0 0; min-height: 1.5em; color: var(--ink-soft); }
+  .note { max-width: 34em; margin: var(--space-xl) 0 0; color: var(--ink-soft); }
+  .note.error { color: var(--rubric); font-style: italic; }
+  .ranking { margin: var(--space-xl) 0 0; padding: 0; list-style: none; max-width: 34em; }
+  .ranking li {
+    display: grid;
+    grid-template-columns: 2.25rem 1fr auto;
+    align-items: baseline;
+    gap: var(--space-md);
+    padding: var(--space-md) 0;
+    border-bottom: 1px solid var(--hair);
+  }
+  .ranking .rank { font-family: var(--font-display); font-size: var(--t-lg); color: var(--ink-soft); }
+  .ranking li:first-child .rank { color: var(--rubric); }
+  .ranking .pts { font-variant-numeric: tabular-nums; color: var(--ink-soft); }
+  .mine { margin-top: var(--space-3xl); }
+  .records { margin: 0; padding: 0; list-style: none; color: var(--ink-soft); }
+  .records li { padding: var(--space-xs) 0; }
+
   /* Signature discrète */
   .credit {
     margin: var(--space-4xl) 0 0;
@@ -371,8 +434,9 @@
 
   <div class="tabs" role="tablist" aria-label="Sections">
     <button class="tab" role="tab" id="tab-quote" aria-selected="true" aria-controls="view-quote" tabindex="0">Citation</button>
-    <button class="tab" role="tab" id="tab-quiz" aria-selected="false" aria-controls="view-quiz" tabindex="-1">Qui a dit ça ?</button>
+    <button class="tab" role="tab" id="tab-play" aria-selected="false" aria-controls="view-play" tabindex="-1">Jouer</button>
     <button class="tab" role="tab" id="tab-daily" aria-selected="false" aria-controls="view-daily" tabindex="-1">Défi du jour</button>
+    <button class="tab" role="tab" id="tab-scores" aria-selected="false" aria-controls="view-scores" tabindex="-1">Scores</button>
   </div>
 
   <section class="panel" id="view-quote" role="tabpanel" aria-labelledby="tab-quote">
@@ -391,12 +455,16 @@
     </div>
   </section>
 
-  <section class="panel" id="view-quiz" role="tabpanel" aria-labelledby="tab-quiz" hidden>
-    <div id="quiz-root"></div>
+  <section class="panel" id="view-play" role="tabpanel" aria-labelledby="tab-play" hidden>
+    <div id="play-root"></div>
   </section>
 
   <section class="panel" id="view-daily" role="tabpanel" aria-labelledby="tab-daily" hidden>
     <div id="daily-root"></div>
+  </section>
+
+  <section class="panel" id="view-scores" role="tabpanel" aria-labelledby="tab-scores" hidden>
+    <div id="scores-root"></div>
   </section>
 
   <footer class="credit">made by A.CARTON</footer>
@@ -643,10 +711,37 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* ignoré */ } },
 };
 
+/* ===== Classement partagé (facultatif) =====
+   Colle ici l'URL du déploiement Apps Script (voir README, dossier apps-script).
+   Vide : pas de classement commun, seuls les records de l'appareil sont affichés. */
+const SCORES_URL = "";
+
+const board = {
+  enabled() { return Boolean(SCORES_URL); },
+  async rows(id) {
+    const r = await fetch(SCORES_URL + "?board=" + encodeURIComponent(id));
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error || "erreur");
+    return j.rows;
+  },
+  async post(id, name, score, n) {
+    const r = await fetch(SCORES_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ board: id, name, score, n }),
+    });
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error || "erreur");
+  },
+};
+
 /* ===== Onglets ===== */
-const TABS = ["quote", "quiz", "daily"];
+const TABS = ["quote", "play", "daily", "scores"];
 let gamesReady = false;
 let dailyRenderedKey = "";
+let scoresBuilt = false;
+let pendingBoard = null;
+let scoresReq = 0;
 
 function showTab(name) {
   TABS.forEach((t) => {
@@ -656,6 +751,7 @@ function showTab(name) {
     $("tab-" + t).tabIndex = on ? 0 : -1;
   });
   if (name === "daily" && gamesReady && dayKey(new Date()) !== dailyRenderedKey) renderDaily();
+  if (name === "scores" && gamesReady) onScoresShown();
 }
 TABS.forEach((name, idx) => {
   $("tab-" + name).onclick = () => showTab(name);
@@ -683,8 +779,38 @@ function mulberry32(a) {
 }
 function cmp(a, b) { return a < b ? -1 : a > b ? 1 : 0; }
 
-/* ===== Niveaux et questions ===== */
+/* ===== Niveaux, jeux et questions ===== */
 let levels = {};
+
+const COMPLETE_RULES = {
+  facile: { k: 3, sameSpeaker: false, showSpeaker: true },
+  moyen: { k: 4, sameSpeaker: true, showSpeaker: true },
+  difficile: { k: 5, sameSpeaker: true, showSpeaker: false },
+};
+const COMPLETE_DESC = {
+  facile: "Fin de 3 mots, fausses pistes prises au hasard",
+  moyen: "Fin de 4 mots, fausses pistes du même personnage",
+  difficile: "Fin de 5 mots, même personnage, sans savoir qui parle",
+};
+
+const MODES = {
+  qui: {
+    id: "qui",
+    name: "Qui a dit ça ?",
+    blurb: "Retrouve le personnage derrière la réplique.",
+    intro: "Dix répliques, quatre noms, un seul bon. Choisis ton niveau.",
+    desc: (lv) => lv.desc,
+    build: (lv, n, rnd) => buildQuestions(lv, n, rnd),
+  },
+  complete: {
+    id: "complete",
+    name: "Complète la réplique",
+    blurb: "Retrouve la fin de la phrase parmi quatre.",
+    intro: "Dix répliques à terminer, quatre fins possibles. Choisis ton niveau.",
+    desc: (lv) => COMPLETE_DESC[lv.id],
+    build: (lv, n, rnd) => buildCompleteQuestions(lv, n, rnd),
+  },
+};
 
 function initGames() {
   const counts = {};
@@ -697,18 +823,18 @@ function initGames() {
     difficile: { id: "difficile", name: "Roi", desc: "Les " + byCount.length + " personnages, seconds rôles compris", persos: byCount, uniform: true },
   };
   gamesReady = true;
-  renderQuizSetup();
+  renderPlay();
   renderDaily();
+  if (!$("view-scores").hidden) onScoresShown();
 }
 
-function buildQuestions(level, n, rnd) {
+function pickQuotes(level, n, rnd, ok, avoid) {
   const set = new Set(level.persos);
-  let pool = quotes.filter((q) => set.has(q.perso) && q.text.length <= 220);
-  if (pool.length < n) pool = quotes.filter((q) => set.has(q.perso));
+  const pool = quotes.filter((q) => set.has(q.perso) && ok(q) && !(avoid && avoid.has(q)));
   const byPerso = {};
   pool.forEach((q) => { (byPerso[q.perso] = byPerso[q.perso] || []).push(q); });
   const persos = Object.keys(byPerso).sort(cmp);
-  const cap = Math.ceil(n / persos.length) + 1;
+  const cap = Math.ceil(n / Math.max(persos.length, 1)) + 1;
   const used = {};
   const picked = [];
 
@@ -732,16 +858,72 @@ function buildQuestions(level, n, rnd) {
       used[q.perso] = (used[q.perso] || 0) + 1;
     }
   }
+  return picked;
+}
 
-  return picked.map((q) => {
+/* Qui a dit ça ? */
+function buildQuestions(level, n, rnd, avoid) {
+  return pickQuotes(level, n, rnd, (q) => q.text.length <= 220, avoid).map((q) => {
     const others = shuffle(level.persos.filter((p) => p !== q.perso), rnd).slice(0, 3);
-    return { quote: q, answer: q.perso, options: shuffle([q.perso, ...others], rnd) };
+    return { quote: q, text: q.text, answer: q.perso, options: shuffle([q.perso, ...others], rnd) };
+  });
+}
+
+/* Complète la réplique : on masque les k derniers mots */
+function completeParts(q, k) {
+  if (q.text.indexOf("\n") !== -1 || q.text.length < 60 || q.text.length > 200) return null;
+  const words = q.text.trim().split(/\s+/);
+  if (words.length < k + 5) return null;
+  const raw = words.slice(-k).join(" ");
+  const m = raw.match(/[\s.!?…»"”]+$/);
+  const ending = m ? raw.slice(0, m.index) : raw;
+  const tail = m ? m[0] : "";
+  const stem = words.slice(0, -k).join(" ");
+  if (!ending || /[()]/.test(raw)) return null;
+  const open = (stem.match(/\(/g) || []).length;
+  const close = (stem.match(/\)/g) || []).length;
+  if (open !== close) return null;
+  return { stem, ending, tail };
+}
+
+function buildCompleteQuestions(level, n, rnd, avoid) {
+  const rule = COMPLETE_RULES[level.id];
+  const chosen = pickQuotes(level, n, rnd, (q) => completeParts(q, rule.k) !== null, avoid);
+  const pool = quotes.map((q) => ({ q, p: completeParts(q, rule.k) })).filter((x) => x.p);
+
+  return chosen.map((q) => {
+    const p = completeParts(q, rule.k);
+    const same = [];
+    const other = [];
+    shuffle(pool, rnd).forEach((x) => {
+      if (x.q === q) return;
+      (x.q.perso === q.perso ? same : other).push(x.p.ending);
+    });
+    const cands = rule.sameSpeaker ? same.concat(other) : other.concat(same);
+    const seen = new Set([p.ending.toLowerCase()]);
+    const wrong = [];
+    for (const e of cands) {
+      const key = e.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      wrong.push(e);
+      if (wrong.length === 3) break;
+    }
+    return {
+      quote: q,
+      text: p.stem + " …",
+      speaker: rule.showSpeaker ? q.perso : "",
+      answer: p.ending,
+      options: shuffle([p.ending, ...wrong], rnd),
+      full: p,
+    };
   });
 }
 
 /* ===== Moteur d'une manche ===== */
 function playRound(root, questions, onFinish) {
   let i = 0, score = 0, answered = false;
+  let quoteEl = null;
   const marks = [];
 
   root.innerHTML = "";
@@ -767,14 +949,19 @@ function playRound(root, questions, onFinish) {
     sc.textContent = score + " sur " + i;
     stage.innerHTML = "";
 
-    const quote = el("p", "quote rise");
-    quote.style.setProperty("--i", 0);
-    setQuote(quote, qn.quote.text);
+    if (qn.speaker) {
+      const sp = el("p", "speaker rise", qn.speaker + " :");
+      sp.style.setProperty("--i", 0);
+      stage.appendChild(sp);
+    }
+    quoteEl = el("p", "quote rise");
+    quoteEl.style.setProperty("--i", 1);
+    setQuote(quoteEl, qn.text);
 
     const choices = el("div", "choices");
     qn.options.forEach((name, k) => {
       const b = el("button", "choice rise");
-      b.style.setProperty("--i", k + 1);
+      b.style.setProperty("--i", k + 2);
       b.dataset.name = name;
       const mark = el("span", "mark");
       mark.setAttribute("aria-hidden", "true");
@@ -782,7 +969,7 @@ function playRound(root, questions, onFinish) {
       b.onclick = () => answer(b, name);
       choices.appendChild(b);
     });
-    stage.append(quote, choices);
+    stage.append(quoteEl, choices);
     replay(stage);
   }
 
@@ -804,6 +991,16 @@ function playRound(root, questions, onFinish) {
     if (!good) {
       btn.classList.add("ko");
       btn.querySelector(".mark").textContent = "✗";
+    }
+
+    if (qn.full) {
+      // On dévoile la réplique complète, fin surlignée.
+      quoteEl.textContent = "";
+      quoteEl.append(
+        document.createTextNode(qn.full.stem + " "),
+        el("span", "fill", qn.full.ending),
+        document.createTextNode(qn.full.tail)
+      );
     }
 
     feedback.textContent = "";
@@ -847,35 +1044,97 @@ function marksRow(marks) {
   return row;
 }
 
-/* ===== Quiz : niveaux, manche, résultat ===== */
-function renderQuizSetup() {
-  const root = $("quiz-root");
+/* Publication du score dans le classement commun (si activé) */
+function publishBox(boardId, score, n, onPublished) {
+  if (!board.enabled()) return null;
+  const wrap = el("div", "publish");
+  const input = el("input");
+  input.type = "text";
+  input.maxLength = 20;
+  input.autocomplete = "nickname";
+  input.value = store.get("kmt-name") || "";
+  input.id = "pub-" + Math.random().toString(36).slice(2, 8);
+  const label = el("label", "", "Ton nom pour le classement");
+  label.htmlFor = input.id;
+  const btn = el("button", "btn", "Publier mon score");
+  const row = el("div", "row");
+  row.append(input, btn);
+  const msg = el("p", "publish-msg");
+  msg.setAttribute("aria-live", "polite");
+
+  btn.onclick = async () => {
+    const name = input.value.trim();
+    if (!name) { msg.textContent = "Écris un nom d'abord."; input.focus(); return; }
+    btn.disabled = true;
+    msg.textContent = "Envoi en cours…";
+    try {
+      await board.post(boardId, name, score, n);
+      store.set("kmt-name", name);
+      input.disabled = true;
+      msg.textContent = "Score publié. ";
+      const go = el("button", "linklike", "Voir le classement");
+      go.onclick = () => openScores(boardId);
+      msg.appendChild(go);
+      if (onPublished) onPublished();
+    } catch (e) {
+      btn.disabled = false;
+      msg.textContent = "Publication impossible (" + e.message + ").";
+    }
+  };
+  wrap.append(label, row, msg);
+  return wrap;
+}
+
+/* ===== Onglet Jouer : jeu, niveau, manche, résultat ===== */
+function renderPlay() {
+  const root = $("play-root");
   root.innerHTML = "";
   const intro = el("div", "state");
-  intro.appendChild(el("p", "", "Dix répliques, quatre noms, un seul bon. Choisis ton niveau."));
+  intro.appendChild(el("p", "", "Deux jeux, trois niveaux, dix questions par manche."));
   const list = el("div", "levels");
-  Object.values(levels).forEach((lv, k) => {
+  Object.values(MODES).forEach((m, k) => {
     const b = el("button", "choice level rise");
     b.style.setProperty("--i", k);
     const left = el("span", "name");
-    left.append(el("span", "level-name", lv.name + " · " + lv.id), el("span", "level-desc", lv.desc));
-    const best = store.get("kmt-best-" + lv.id);
-    b.append(left, el("span", "level-best", best !== null ? "Record " + best + "/10" : ""));
-    b.onclick = () => startQuiz(lv);
+    left.append(el("span", "level-name", m.name), el("span", "level-desc", m.blurb));
+    b.appendChild(left);
+    b.onclick = () => renderLevels(m);
     list.appendChild(b);
   });
   root.append(intro, list);
   replay(root);
 }
 
-function startQuiz(lv) {
-  const questions = buildQuestions(lv, 10, Math.random);
-  playRound($("quiz-root"), questions, (r) => finishQuiz(lv, r));
+function renderLevels(mode) {
+  const root = $("play-root");
+  root.innerHTML = "";
+  const back = el("button", "back", "← Changer de jeu");
+  back.onclick = renderPlay;
+  const title = el("h2", "section-title", mode.name);
+  const intro = el("div", "state");
+  intro.appendChild(el("p", "", mode.intro));
+  const list = el("div", "levels");
+  Object.values(levels).forEach((lv, k) => {
+    const b = el("button", "choice level rise");
+    b.style.setProperty("--i", k);
+    const left = el("span", "name");
+    left.append(el("span", "level-name", lv.name + " · " + lv.id), el("span", "level-desc", mode.desc(lv)));
+    const best = store.get("kmt-best-" + mode.id + "-" + lv.id);
+    b.append(left, el("span", "level-best", best !== null ? "Record " + best + "/10" : ""));
+    b.onclick = () => startRound(mode, lv);
+    list.appendChild(b);
+  });
+  root.append(back, title, intro, list);
+  replay(root);
 }
 
-function finishQuiz(lv, r) {
-  const root = $("quiz-root");
-  const key = "kmt-best-" + lv.id;
+function startRound(mode, lv) {
+  playRound($("play-root"), mode.build(lv, 10, Math.random), (r) => finishRound(mode, lv, r));
+}
+
+function finishRound(mode, lv, r) {
+  const root = $("play-root");
+  const key = "kmt-best-" + mode.id + "-" + lv.id;
   const prev = parseInt(store.get(key), 10);
   const isBest = isNaN(prev) || r.score > prev;
   if (isBest) store.set(key, String(r.score));
@@ -887,16 +1146,20 @@ function finishQuiz(lv, r) {
   title.tabIndex = -1;
   wrap.append(title, el("p", "", verdictLine(r.score, 10)), marksRow(r.marks));
   if (saved) {
+    const where = mode.name + ", niveau " + lv.name;
     const line = isBest
-      ? (isNaN(prev) ? "Premier score enregistré au niveau " + lv.name + "." : "Nouveau record au niveau " + lv.name + " !")
-      : "Record au niveau " + lv.name + " : " + prev + " sur 10.";
+      ? (isNaN(prev) ? "Premier score enregistré : " + where + "." : "Nouveau record : " + where + " !")
+      : "Record : " + where + ", " + prev + " sur 10.";
     wrap.appendChild(el("p", "", line));
   }
+  const pub = publishBox(mode.id + "-" + lv.id, r.score, 10);
+  if (pub) wrap.appendChild(pub);
+
   const actions = el("div", "actions");
   const again = el("button", "btn primary", "Rejouer");
-  again.onclick = () => startQuiz(lv);
+  again.onclick = () => startRound(mode, lv);
   const other = el("button", "btn", "Changer de niveau");
-  other.onclick = renderQuizSetup;
+  other.onclick = () => renderLevels(mode);
   actions.append(again, other);
   wrap.appendChild(actions);
   root.appendChild(wrap);
@@ -924,7 +1187,10 @@ function dailyStreak() {
   return n;
 }
 function dailyQuestions(key) {
-  return buildQuestions(levels.moyen, 5, mulberry32(hashStr("kaamelott-" + key)));
+  const rnd = mulberry32(hashStr("kaamelott-" + key));
+  const names = buildQuestions(levels.moyen, 3, rnd);
+  const endings = buildCompleteQuestions(levels.moyen, 2, rnd, new Set(names.map((x) => x.quote)));
+  return names.concat(endings);
 }
 
 function renderDaily() {
@@ -941,7 +1207,7 @@ function renderDaily() {
   const intro = el("div", "state");
   intro.append(
     el("p", "", "Défi n°" + dayNumber(now) + ", " + date + "."),
-    el("p", "", "Cinq répliques, les mêmes pour tout le monde aujourd'hui. Une tentative par jour, et un score à partager sans rien dévoiler.")
+    el("p", "", "Cinq répliques, les mêmes pour tout le monde aujourd'hui : trois noms à retrouver, deux fins à compléter. Une tentative par jour, et un score à partager sans rien dévoiler.")
   );
   const streak = dailyStreak();
   if (streak > 0) intro.appendChild(el("p", "", "Série en cours : " + streak + (streak > 1 ? " jours" : " jour") + "."));
@@ -965,6 +1231,7 @@ function renderDaily() {
 function renderDailyResult(root, res, now) {
   root.innerHTML = "";
   const n = res.marks.length;
+  const key = dayKey(now);
   const text = "Kaamelott, défi n°" + dayNumber(now) + " : " + res.score + "/" + n + "\n" + res.marks.map((m) => (m ? "🟩" : "🟥")).join("");
 
   const wrap = el("div", "result");
@@ -990,9 +1257,130 @@ function renderDailyResult(root, res, now) {
   };
   actions.appendChild(copy);
   wrap.appendChild(actions);
+
+  if (board.enabled()) {
+    if (res.published) {
+      const done = el("p", "publish-msg", "Score publié. ");
+      const go = el("button", "linklike", "Voir le classement");
+      go.onclick = () => openScores("daily-" + key);
+      done.appendChild(go);
+      const box = el("div", "publish");
+      box.appendChild(done);
+      wrap.appendChild(box);
+    } else {
+      wrap.appendChild(publishBox("daily-" + key, res.score, n, () => {
+        res.published = true;
+        store.set("kmt-daily-" + key, JSON.stringify(res));
+      }));
+    }
+  }
+
   root.appendChild(wrap);
   replay(root);
   title.focus({ preventScroll: true });
+}
+
+/* ===== Onglet Scores ===== */
+function openScores(id) {
+  pendingBoard = id.indexOf("daily-") === 0 ? "daily" : id;
+  showTab("scores");
+}
+
+function onScoresShown() {
+  if (!scoresBuilt) renderScores();
+  const sel = $("score-select");
+  if (pendingBoard) { sel.value = pendingBoard; pendingBoard = null; }
+  renderLocalRecords();
+  loadScores();
+}
+
+function renderScores() {
+  scoresBuilt = true;
+  const root = $("scores-root");
+  root.innerHTML = "";
+
+  const lede = el("p", "lede");
+  const sel = el("select");
+  sel.id = "score-select";
+  sel.setAttribute("aria-label", "Classement");
+  sel.appendChild(new Option("Défi du jour (aujourd'hui)", "daily"));
+  Object.values(MODES).forEach((m) => {
+    Object.values(levels).forEach((lv) => sel.appendChild(new Option(m.name + " · " + lv.name, m.id + "-" + lv.id)));
+  });
+  sel.onchange = loadScores;
+  lede.append(el("span", "", "Classement :"), sel);
+
+  const ranking = el("div", "ranking-box");
+  ranking.id = "ranking";
+  ranking.setAttribute("aria-live", "polite");
+
+  const refresh = el("button", "btn", "Actualiser");
+  refresh.onclick = loadScores;
+  const actions = el("div", "actions");
+  actions.appendChild(refresh);
+  actions.id = "scores-actions";
+
+  const mine = el("div", "mine");
+  mine.id = "local-records";
+
+  root.append(lede, ranking, actions, mine);
+}
+
+async function loadScores() {
+  const box = $("ranking");
+  const sel = $("score-select");
+  $("scores-actions").hidden = !board.enabled();
+  if (!board.enabled()) {
+    box.replaceChildren(el("p", "note", "Le classement commun n'est pas encore activé. Tes records sur cet appareil sont affichés plus bas."));
+    return;
+  }
+  const req = ++scoresReq;
+  const id = sel.value === "daily" ? "daily-" + dayKey(new Date()) : sel.value;
+  box.replaceChildren(el("p", "note", "Le scribe consulte le registre…"));
+  try {
+    const rows = await board.rows(id);
+    if (req !== scoresReq) return;
+    if (!rows.length) {
+      box.replaceChildren(el("p", "note", "Personne n'a encore publié ici. Sois le premier."));
+      return;
+    }
+    const me = (store.get("kmt-name") || "").trim().toLowerCase();
+    const list = el("ol", "ranking");
+    rows.forEach((r, k) => {
+      const li = el("li");
+      const isMe = me && String(r.name).toLowerCase() === me;
+      li.append(
+        el("span", "rank", String(k + 1)),
+        el("span", "nick", String(r.name) + (isMe ? " · toi" : "")),
+        el("span", "pts", r.score + "/" + r.n)
+      );
+      list.appendChild(li);
+    });
+    box.replaceChildren(list);
+  } catch (e) {
+    if (req !== scoresReq) return;
+    box.replaceChildren(el("p", "note error", "Le registre est injoignable (" + e.message + ")."));
+  }
+}
+
+function renderLocalRecords() {
+  const mine = $("local-records");
+  mine.innerHTML = "";
+  const lines = [];
+  Object.values(MODES).forEach((m) => {
+    Object.values(levels).forEach((lv) => {
+      const v = store.get("kmt-best-" + m.id + "-" + lv.id);
+      if (v !== null) lines.push(m.name + " · " + lv.name + " : " + v + "/10");
+    });
+  });
+  mine.appendChild(el("h2", "section-title", "Mes records"));
+  if (!lines.length) {
+    mine.appendChild(el("p", "note", "Aucun record pour l'instant. Joue une manche depuis l'onglet Jouer."));
+    return;
+  }
+  const ul = el("ul", "records");
+  lines.forEach((l) => ul.appendChild(el("li", "", l)));
+  mine.appendChild(ul);
 }
 
 load();
