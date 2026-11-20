@@ -1,0 +1,16 @@
+{
+  "name": "Kaamelott, répliques et jeux",
+  "short_name": "Kaamelott",
+  "description": "Répliques de Kaamelott, recherche, pendu, mot juste et quiz en série.",
+  "lang": "fr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5ecd8",
+  "theme_color": "#f5ecd8",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

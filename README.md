@@ -12,7 +12,7 @@ Petit recueil de répliques de Kaamelott et jeux de quiz, en une seule page HTML
 
 Les 765 citations viennent de l'API https://kaamelott.chaudie.re/api (projet sin0light/api-kaamelott) et sont embarquées dans `index.html` : la page fonctionne hors ligne et sans appel réseau.
 
-Utilisation en local : ouvrir `index.html` dans un navigateur.
+Utilisation en local : ouvrir `index.html` dans un navigateur. Publiée sur GitHub Pages, la page peut s'installer sur l'écran d'accueil (manifeste `manifest.webmanifest`) et fonctionne hors ligne après une première visite (`sw.js`). Les icônes sont dans `icon.svg` et les `icon-*.png`, l'aperçu de partage dans `og-image.jpg`.
 
 ## Classement commun (optionnel, Supabase)
 
