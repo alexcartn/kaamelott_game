@@ -622,26 +622,14 @@
   button.cell-btn { cursor: pointer; }
   button.cell-btn:hover:not([aria-pressed="true"]) { background: var(--parchment-deep); border-color: var(--ink-soft); }
   .cell-btn .val { font-family: var(--font-display); font-size: var(--t-lg); line-height: 1; }
-  .cell-btn .max { font-size: 0.75rem; color: var(--ink-soft); }
   .cell-btn.empty { color: var(--ink-soft); }
   .cell-btn.empty .val { opacity: 0.5; }
-  .cell-btn.perfect::after {
-    content: "";
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    width: 6px;
-    height: 6px;
-    background: var(--gilt);
-    transform: rotate(45deg);
-  }
   .cell-btn[aria-pressed="true"] {
     color: var(--parchment);
     background: var(--rubric);
     border-color: var(--rubric-deep);
     box-shadow: inset 0 0 0 2px var(--rubric), inset 0 0 0 3px var(--gilt);
   }
-  .cell-btn[aria-pressed="true"] .max { color: oklch(0.9 0.05 80); }
   .records-hint { max-width: 34em; margin: var(--space-md) 0 0; font-size: var(--t-sm); font-style: italic; color: var(--ink-soft); }
 
   .board { margin-top: var(--space-3xl); max-width: 38rem; }
@@ -987,16 +975,16 @@ const board = {
   enabled() { return Boolean(SUPABASE_URL && SUPABASE_KEY); },
   base() { return SUPABASE_URL.replace(/\/+$/, "") + "/rest/v1/"; },
   async rows(id) {
-    const q = "best_scores?select=name,score,n&board=eq." + encodeURIComponent(id) + "&order=score.desc,created_at.asc&limit=20";
+    const q = "best_scores?select=name,score&board=eq." + encodeURIComponent(id) + "&order=score.desc,created_at.asc&limit=20";
     const r = await fetch(this.base() + q, { headers: { apikey: SUPABASE_KEY } });
     if (!r.ok) throw new Error("HTTP " + r.status);
     return r.json();
   },
-  async post(id, name, score, n) {
+  async post(id, name, score) {
     const r = await fetch(this.base() + "scores", {
       method: "POST",
       headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json", Prefer: "return=minimal" },
-      body: JSON.stringify({ board: id, name, score, n }),
+      body: JSON.stringify({ board: id, name, score }),
     });
     if (!r.ok) throw new Error("HTTP " + r.status);
   },
@@ -1171,30 +1159,28 @@ const MODES = {
   qui: {
     id: "qui",
     name: "Qui a dit ça ?",
-    blurb: "Retrouve le personnage derrière la réplique.",
-    intro: "Dix répliques, quatre noms, un seul bon. Choisis ton niveau.",
+    blurb: "Retrouve le personnage derrière la réplique. Une erreur et c'est fini.",
+    intro: "Une réplique, quatre noms, un seul bon. Tu enchaînes jusqu'à la première erreur : vise la plus longue série.",
     desc: (lv) => lv.desc,
-    build: (lv, n, rnd) => buildQuestions(lv, n, rnd),
+    build: (lv, n, rnd, avoid) => buildQuestions(lv, n, rnd, avoid),
   },
   pendu: {
     id: "pendu",
     kind: "hangman",
     name: "Le pendu",
-    blurb: "Retrouve le mot caché de la réplique, lettre par lettre.",
-    intro: "Dix répliques dont un mot est caché. Propose des lettres : chaque erreur te coûte un point de vie. Choisis ton niveau.",
+    blurb: "Devine le mot caché avant la fin de la potence.",
+    intro: "Un mot est caché dans une réplique : propose des lettres, chaque erreur ajoute un trait à la potence. Mot trouvé, mot suivant ; la série s'arrête à la première pendaison.",
     desc: (lv) => HANG_DESC[lv.id],
-    build: (lv, n, rnd) => buildHangman(lv, n, rnd),
+    build: (lv, n, rnd, avoid) => buildHangman(lv, n, rnd, avoid),
   },
   wordle: {
     id: "wordle",
     kind: "wordle",
     name: "Le mot juste",
-    blurb: "Trouve le mot en six essais, lettre après lettre.",
-    intro: "Trois mots tirés des répliques, six essais chacun. Une lettre verte est bien placée, une dorée est dans le mot mais ailleurs. Plus tu trouves vite, plus tu gagnes de points. Choisis ton niveau.",
+    blurb: "Trouve le mot en six essais. Un échec et c'est fini.",
+    intro: "Un mot tiré des répliques, six essais. Une lettre verte est bien placée, une dorée est dans le mot mais ailleurs. Mot trouvé, mot suivant ; la série s'arrête au premier échec.",
     desc: (lv) => WORD_DESC[lv.id],
-    build: (lv, n, rnd) => buildWordle(lv, n, rnd),
-    rounds: 3,
-    max: 18,
+    build: (lv, n, rnd, avoid) => buildWordle(lv, n, rnd, avoid),
   },
 };
 
@@ -1255,10 +1241,10 @@ function buildQuestions(level, n, rnd, avoid) {
 }
 
 /* ===== Moteur d'une manche ===== */
-function playRound(root, questions, onFinish, onQuit) {
-  let i = 0, score = 0, answered = false;
+function playRound(root, src, onFinish, onQuit) {
+  const questions = src.first.slice();
+  let i = 0, score = 0, answered = false, lost = false;
   let quoteEl = null;
-  const marks = [];
 
   root.innerHTML = "";
   const tally = el("div", "tally");
@@ -1266,7 +1252,7 @@ function playRound(root, questions, onFinish, onQuit) {
   const sc = el("span");
   const quit = el("button", "back", "Arrêter");
   quit.type = "button";
-  quit.onclick = () => onQuit({ score, marks: marks.slice() });
+  quit.onclick = () => onQuit({ score });
   tally.append(num, sc, quit);
   const stage = el("div");
   const feedback = el("div", "feedback");
@@ -1277,13 +1263,17 @@ function playRound(root, questions, onFinish, onQuit) {
   actions.appendChild(next);
   root.append(tally, stage, feedback, actions);
 
+  function paintTally() {
+    num.textContent = "Série : " + score;
+    sc.textContent = "Record : " + (Math.max(src.best, score) || "–");
+  }
+
   function show() {
     answered = false;
     const qn = questions[i];
     next.hidden = true;
     feedback.textContent = "";
-    num.textContent = "Question " + (i + 1) + " sur " + questions.length;
-    sc.textContent = score + " sur " + i;
+    paintTally();
     stage.innerHTML = "";
 
     if (qn.speaker) {
@@ -1315,8 +1305,7 @@ function playRound(root, questions, onFinish, onQuit) {
     answered = true;
     const qn = questions[i];
     const good = name === qn.answer;
-    marks.push(good);
-    if (good) score++;
+    if (good) score++; else lost = true;
 
     stage.querySelectorAll(".choice").forEach((b) => {
       b.disabled = true;
@@ -1335,15 +1324,21 @@ function playRound(root, questions, onFinish, onQuit) {
       el("span", "verdict " + (good ? "ok" : "ko"), good ? "Bien vu." : "Raté."),
       document.createTextNode(" " + [qn.quote.livre, qn.quote.episode].filter(Boolean).join(" · "))
     );
-    sc.textContent = score + " sur " + (i + 1);
-    next.textContent = i + 1 < questions.length ? "Question suivante" : "Voir le résultat";
+    paintTally();
+    next.textContent = lost ? "Voir le résultat" : "Question suivante";
     next.hidden = false;
     next.focus({ preventScroll: true });
   }
 
   next.onclick = () => {
-    if (i + 1 < questions.length) { i++; show(); }
-    else onFinish({ score, marks });
+    if (lost) { onFinish({ score }); return; }
+    i++;
+    if (i >= questions.length) {
+      const more = src.more();
+      if (!more.length) { onFinish({ score }); return; }
+      questions.push(...more);
+    }
+    show();
   };
   show();
   return { destroy() {} };
@@ -1383,7 +1378,7 @@ function hangTokens(text) {
   return wordTokens(text).filter((t) => t.core.length >= 5 && t.core.length <= 12 && !STOPWORDS.has(t.word));
 }
 
-function buildHangman(level, n, rnd) {
+function buildHangman(level, n, rnd, avoid) {
   const rule = HANG_RULES[level.id];
   const found = new Map();
   const chosen = pickQuotes(level, n, rnd, (q) => {
@@ -1392,7 +1387,7 @@ function buildHangman(level, n, rnd) {
     if (!t.length) return false;
     found.set(q, t);
     return true;
-  });
+  }, avoid);
   return chosen.map((q) => {
     const toks = found.get(q);
     const target = toks[Math.floor(rnd() * toks.length)];
@@ -1471,14 +1466,14 @@ function buildGibbet() {
   };
 }
 
-function playHangman(root, questions, onFinish, onQuit) {
+function playHangman(root, src, onFinish, onQuit) {
+  const questions = src.first.slice();
   const ALPHA = "abcdefghijklmnopqrstuvwxyz".split("");
   let i = 0, score = 0, over = true, wrong = 0;
   let tried = new Set();
   let needed = new Set();
   let qn = null;
   let slotsOf = [];
-  const marks = [];
   const keyBtns = {};
 
   root.innerHTML = "";
@@ -1487,7 +1482,7 @@ function playHangman(root, questions, onFinish, onQuit) {
   const sc = el("span");
   const quit = el("button", "back", "Arrêter");
   quit.type = "button";
-  quit.onclick = () => onQuit({ score, marks: marks.slice() });
+  quit.onclick = () => onQuit({ score });
   tally.append(num, sc, quit);
 
   const stage = el("div");
@@ -1552,6 +1547,11 @@ function playHangman(root, questions, onFinish, onQuit) {
     quoteEl.appendChild(document.createTextNode(qn.text.slice(pos)));
   }
 
+  function paintTally() {
+    num.textContent = "Série : " + score;
+    sc.textContent = "Record : " + (Math.max(src.best, score) || "–");
+  }
+
   function paintGibbet() {
     const on = wrong === 0 ? 0 : Math.max(1, Math.round((wrong * GIBBET_STEPS) / qn.lives));
     gibbet.show(on);
@@ -1572,8 +1572,7 @@ function playHangman(root, questions, onFinish, onQuit) {
     next.hidden = true;
     keys.hidden = false;
     feedback.textContent = "";
-    num.textContent = "Mot " + (i + 1) + " sur " + questions.length;
-    sc.textContent = score + " sur " + i;
+    paintTally();
     speaker.hidden = !qn.speaker;
     speaker.textContent = qn.speaker ? qn.speaker + " :" : "";
     ALPHA.forEach((c) => {
@@ -1616,7 +1615,7 @@ function playHangman(root, questions, onFinish, onQuit) {
 
   function finishWord(won) {
     over = true;
-    marks.push(won);
+    qn.won = won;
     if (won) score++;
     paintQuote(won ? "won" : "lost");
     keys.hidden = true;
@@ -1625,8 +1624,8 @@ function playHangman(root, questions, onFinish, onQuit) {
       el("span", "verdict " + (won ? "ok" : "ko"), won ? "Bien vu." : "Pendu : c'était « " + qn.shown + " »."),
       document.createTextNode(" " + [qn.quote.livre, qn.quote.episode].filter(Boolean).join(" · "))
     );
-    sc.textContent = score + " sur " + (i + 1);
-    next.textContent = i + 1 < questions.length ? "Mot suivant" : "Voir le résultat";
+    paintTally();
+    next.textContent = won ? "Mot suivant" : "Voir le résultat";
     next.hidden = false;
     next.focus({ preventScroll: true });
   }
@@ -1640,8 +1639,14 @@ function playHangman(root, questions, onFinish, onQuit) {
   document.addEventListener("keydown", onKey);
 
   next.onclick = () => {
-    if (i + 1 < questions.length) { i++; show(); }
-    else { document.removeEventListener("keydown", onKey); onFinish({ score, marks }); }
+    if (over && !questions[i].won) { document.removeEventListener("keydown", onKey); onFinish({ score }); return; }
+    i++;
+    if (i >= questions.length) {
+      const more = src.more();
+      if (!more.length) { document.removeEventListener("keydown", onKey); onFinish({ score }); return; }
+      questions.push(...more);
+    }
+    show();
   };
   show();
   return { destroy() { document.removeEventListener("keydown", onKey); } };
@@ -1684,10 +1689,10 @@ function buildWordBank() {
   return { words: [...map.values()], names: [...names.values()] };
 }
 
-function buildWordle(level, n, rnd) {
+function buildWordle(level, n, rnd, avoid) {
   if (!wordBank) wordBank = buildWordBank();
   const words = wordBank.words.filter(WORD_RULES[level.id]);
-  const used = new Set();
+  const used = new Set(avoid || []);
   const out = [];
   let guard = 0;
   while (out.length < n && guard++ < 300) {
@@ -1718,13 +1723,13 @@ function maskedQuote(text, word) {
   return frag;
 }
 
-function playWordle(root, answers, onFinish, onQuit) {
+function playWordle(root, src, onFinish, onQuit) {
+  const answers = src.first.slice();
   const MAX_TRIES = 6;
   const KEYROWS = ["azertyuiop", "qsdfghjklm", "wxcvbn"];
-  let i = 0, total = 0, over = true, busy = false, hinted = false;
+  let i = 0, score = 0, over = true, busy = false, hinted = false;
   let ans = null, L = 0, row = 0, cur = "";
   let lines = [];
-  const results = [];
   const keyBtns = {};
 
   root.innerHTML = "";
@@ -1733,7 +1738,7 @@ function playWordle(root, answers, onFinish, onQuit) {
   const sc = el("span");
   const quit = el("button", "back", "Arrêter");
   quit.type = "button";
-  quit.onclick = () => onQuit({ score: total, marks: results.slice() });
+  quit.onclick = () => onQuit({ score });
   tally.append(num, sc, quit);
 
   const stage = el("div");
@@ -1743,7 +1748,7 @@ function playWordle(root, answers, onFinish, onQuit) {
   const feedback = el("div", "feedback");
   feedback.setAttribute("aria-live", "polite");
   const tools = el("div", "wtools");
-  const hintBtn = el("button", "linklike", "Un indice (moins un point)");
+  const hintBtn = el("button", "linklike", "Un indice");
   hintBtn.type = "button";
   tools.appendChild(hintBtn);
   const hint = el("div", "whint");
@@ -1773,6 +1778,11 @@ function playWordle(root, answers, onFinish, onQuit) {
   actions.appendChild(next);
   root.append(tally, stage, keys, actions);
 
+  function paintTally() {
+    num.textContent = "Série : " + score;
+    sc.textContent = "Record : " + (Math.max(src.best, score) || "–");
+  }
+
   function show() {
     ans = answers[i];
     L = ans.word.length;
@@ -1791,8 +1801,7 @@ function playWordle(root, answers, onFinish, onQuit) {
     hintBtn.hidden = true;
     keys.hidden = false;
     next.hidden = true;
-    num.textContent = "Mot " + (i + 1) + " sur " + answers.length;
-    sc.textContent = total + (total > 1 ? " points" : " point");
+    paintTally();
     feedback.textContent = L + " lettres, six essais.";
     replay(stage);
   }
@@ -1882,14 +1891,13 @@ function playWordle(root, answers, onFinish, onQuit) {
   function finishWord(won) {
     over = true;
     const tries = row + 1;
-    const pts = won ? Math.max(0, 7 - tries - (hinted ? 1 : 0)) : 0;
-    total += pts;
-    results.push(won ? tries : 0);
+    ans.won = won;
+    if (won) score++;
     keys.hidden = true;
     hintBtn.hidden = true;
     feedback.textContent = "";
     feedback.appendChild(el("span", "verdict " + (won ? "ok" : "ko"),
-      won ? "Trouvé en " + tries + (tries > 1 ? " essais" : " essai") + ", " + pts + (pts > 1 ? " points." : " point.")
+      won ? "Trouvé en " + tries + (tries > 1 ? " essais." : " essai.")
           : "Raté : c'était « " + ans.shown + " »."));
     const quoteP = el("p", "hit-text");
     quoteP.appendChild(markedText(ans.quote.text, fold(ans.quote.text), [ans.word], true));
@@ -1899,8 +1907,8 @@ function playWordle(root, answers, onFinish, onQuit) {
       el("span", "where", [ans.quote.livre, ans.quote.episode].filter(Boolean).join(" · "))
     );
     hint.replaceChildren(el("p", "tag", "Le mot vient de cette réplique :"), quoteP, colo);
-    sc.textContent = total + (total > 1 ? " points" : " point");
-    next.textContent = i + 1 < answers.length ? "Mot suivant" : "Voir le résultat";
+    paintTally();
+    next.textContent = won ? "Mot suivant" : "Voir le résultat";
     next.hidden = false;
     next.focus({ preventScroll: true });
   }
@@ -1919,47 +1927,31 @@ function playWordle(root, answers, onFinish, onQuit) {
   document.addEventListener("keydown", onKey);
 
   next.onclick = () => {
-    if (i + 1 < answers.length) { i++; show(); }
-    else { document.removeEventListener("keydown", onKey); onFinish({ score: total, marks: results }); }
+    if (!ans.won) { document.removeEventListener("keydown", onKey); onFinish({ score }); return; }
+    i++;
+    if (i >= answers.length) {
+      const more = src.more();
+      if (!more.length) { document.removeEventListener("keydown", onKey); onFinish({ score }); return; }
+      answers.push(...more);
+    }
+    show();
   };
   show();
   return { destroy() { document.removeEventListener("keydown", onKey); } };
 }
 
 /* ===== Éléments de résultat ===== */
-const NUM = ["aucune", "une", "deux", "trois", "quatre", "cinq", "six", "sept", "huit", "neuf", "dix"];
-
-function sentenceScore(score, total) {
-  const w = NUM[score];
-  return w.charAt(0).toUpperCase() + w.slice(1) + (score > 1 ? " bonnes réponses" : " bonne réponse") + " sur " + NUM[total] + ".";
-}
-function verdictLine(score, total) {
-  const r = score / total;
-  if (r >= 1) return "Sans faute. La Table Ronde t'ouvre ses portes.";
-  if (r >= 0.8) return "Excellent. Tu as dû regarder la série plusieurs fois.";
-  if (r >= 0.5) return "Honorable. Il reste des coins sombres au château.";
-  if (r >= 0.2) return "Il faudrait revoir quelques épisodes.";
-  return "Ça sent le visionnage à reprendre depuis le Livre I.";
-}
-function marksRow(marks) {
-  const row = el("div", "marks");
-  row.setAttribute("role", "img");
-  row.setAttribute("aria-label", marks.map((m) => (m ? "bonne" : "mauvaise")).join(", "));
-  marks.forEach((m) => row.appendChild(el("span", "cell " + (m ? "ok" : "ko"), m ? "✓" : "✗")));
-  return row;
-}
-
-// Résultat du mot juste : une case par mot, avec le nombre d'essais (✗ si raté)
-function triesRow(tries) {
-  const row = el("div", "marks");
-  row.setAttribute("role", "img");
-  row.setAttribute("aria-label", tries.map((t) => (t ? "trouvé en " + t : "raté")).join(", "));
-  tries.forEach((t) => row.appendChild(el("span", "cell " + (t ? "ok" : "ko"), t ? String(t) : "✗")));
-  return row;
+function streakVerdict(n) {
+  if (n === 0) return "Dès la première : le château a connu pire.";
+  if (n < 3) return "Un début. Les chevaliers ont des progrès à faire.";
+  if (n < 6) return "Honorable. Il reste des coins sombres au château.";
+  if (n < 10) return "Bien joué : tu as dû regarder la série plusieurs fois.";
+  if (n < 20) return "Excellent. La Table Ronde t'ouvre ses portes.";
+  return "Légendaire. Même Merlin n'y croit pas.";
 }
 
 /* Publication du score dans le classement commun (si activé) */
-function publishBox(boardId, score, n) {
+function publishBox(boardId, score) {
   if (!board.enabled()) return null;
   const wrap = el("div", "publish");
   const input = el("input");
@@ -1984,7 +1976,7 @@ function publishBox(boardId, score, n) {
     btn.disabled = true;
     msg.textContent = "Envoi en cours…";
     try {
-      await board.post(boardId, name, score, n);
+      await board.post(boardId, name, score);
       store.set("kmt-name", name);
       delete rankCache[boardId];
       input.disabled = true;
@@ -2008,7 +2000,7 @@ function renderPlay() {
   const root = $("play-root");
   root.innerHTML = "";
   const intro = el("div", "state");
-  intro.appendChild(el("p", "", "Trois jeux, trois niveaux."));
+  intro.appendChild(el("p", "", "Trois jeux en mort subite : tu enchaînes jusqu'à la première erreur, et ton score est ta plus longue série. Tu peux t'arrêter quand tu veux."));
   const list = el("div", "levels");
   Object.values(MODES).forEach((m, k) => {
     const b = el("button", "choice level rise");
@@ -2038,8 +2030,8 @@ function renderLevels(mode) {
     b.style.setProperty("--i", k);
     const left = el("span", "name");
     left.append(el("span", "level-name", lv.name + " · " + lv.id), el("span", "level-desc", mode.desc(lv)));
-    const best = store.get("kmt-best-" + mode.id + "-" + lv.id);
-    b.append(left, el("span", "level-best", best !== null ? "Record " + best + "/" + (mode.max || 10) : ""));
+    const best = store.get("kmt-run-" + mode.id + "-" + lv.id);
+    b.append(left, el("span", "level-best", best !== null ? "Record " + best : ""));
     b.onclick = () => startRound(mode, lv);
     list.appendChild(b);
   });
@@ -2049,36 +2041,33 @@ function renderLevels(mode) {
 
 let currentRound = null;
 
-// Arrêt en cours de manche : on garde le score partiel, on reprend, ou on quitte sans rien enregistrer
+// Arrêt volontaire : on garde la série en cours, on reprend, ou on quitte sans rien enregistrer
 function stopRound(mode, lv, st) {
   const root = $("play-root");
   const saved = [...root.childNodes];
-  const wordle = mode.kind === "wordle";
-  const total = mode.max || 10;
-  const n = st.marks.length;
+  const n = st.score;
   root.replaceChildren();
 
   const wrap = el("div", "result");
-  const title = el("h2", "result-title", "Manche interrompue.");
+  const title = el("h2", "result-title", "Pause.");
   title.tabIndex = -1;
   wrap.appendChild(title);
-  const unit = wordle ? (n > 1 ? "mots" : "mot") : (n > 1 ? "questions" : "question");
   wrap.appendChild(el("p", "", n === 0
-    ? "Tu n'as pas encore répondu : il n'y a rien à garder."
-    : "Tu en es à " + st.score + (wordle ? (st.score > 1 ? " points" : " point") : "") + " sur " + total + ", après " + n + " " + unit + " jouée" + (n > 1 ? "s" : "") + ". Veux-tu garder ce score ?"));
+    ? "Tu n'as encore rien trouvé : il n'y a rien à garder."
+    : "Ta série en cours est de " + n + ". Veux-tu la garder ?"));
 
   const actions = el("div", "actions stack");
-  const resume = el("button", "btn" + (n === 0 ? " primary" : ""), "Reprendre la manche");
+  const resume = el("button", "btn" + (n === 0 ? " primary" : ""), "Reprendre");
   resume.onclick = () => { root.replaceChildren(...saved); };
   if (n > 0) {
-    const keep = el("button", "btn primary", "Garder ce score");
+    const keep = el("button", "btn primary", "Garder ma série");
     keep.onclick = () => { currentRound.destroy(); finishRound(mode, lv, st, true); };
     actions.append(keep, resume);
   } else {
     actions.appendChild(resume);
   }
   wrap.appendChild(actions);
-  const drop = el("button", "back", n > 0 ? "Quitter sans enregistrer" : "Quitter la manche");
+  const drop = el("button", "back", n > 0 ? "Quitter sans enregistrer" : "Quitter");
   drop.onclick = () => { currentRound.destroy(); renderLevels(mode); };
   wrap.appendChild(drop);
   root.appendChild(wrap);
@@ -2089,36 +2078,40 @@ function stopRound(mode, lv, st) {
 function startRound(mode, lv) {
   document.body.classList.add("playing");
   const play = { hangman: playHangman, wordle: playWordle }[mode.kind] || playRound;
-  currentRound = play($("play-root"), mode.build(lv, mode.rounds || 10, Math.random), (r) => finishRound(mode, lv, r), (st) => stopRound(mode, lv, st));
+  const asked = new Set();
+  // Les questions arrivent par lots de 10, sans jamais répéter la même
+  const more = () => {
+    let qs = mode.build(lv, 10, Math.random, asked);
+    if (!qs.length) { asked.clear(); qs = mode.build(lv, 10, Math.random, asked); }
+    qs.forEach((q) => asked.add(mode.kind === "wordle" ? q.word : q.quote));
+    return qs;
+  };
+  const best = parseInt(store.get("kmt-run-" + mode.id + "-" + lv.id), 10) || 0;
+  currentRound = play($("play-root"), { first: more(), more, best }, (r) => finishRound(mode, lv, r), (st) => stopRound(mode, lv, st));
 }
 
 function finishRound(mode, lv, r, partial) {
   document.body.classList.remove("playing");
   const root = $("play-root");
-  const key = "kmt-best-" + mode.id + "-" + lv.id;
+  const key = "kmt-run-" + mode.id + "-" + lv.id;
   const prev = parseInt(store.get(key), 10);
-  const isBest = isNaN(prev) || r.score > prev;
+  const isBest = r.score > 0 && (isNaN(prev) || r.score > prev);
   if (isBest) store.set(key, String(r.score));
-  const saved = store.get(key) === String(isBest ? r.score : prev);
 
   root.innerHTML = "";
-  const total = mode.max || 10;
-  const wordle = mode.kind === "wordle";
   const wrap = el("div", "result");
-  const title = el("h2", "result-title", partial ? "Score gardé : " + r.score + " sur " + total + "." : wordle ? r.score + (r.score > 1 ? " points" : " point") + " sur " + total + "." : sentenceScore(r.score, total));
+  const title = el("h2", "result-title", partial ? "Série gardée : " + r.score + "." : r.score === 0 ? "Perdu dès le premier." : "Série de " + r.score + ".");
   title.tabIndex = -1;
   wrap.appendChild(title);
-  if (!partial) wrap.appendChild(el("p", "", verdictLine(r.score, total)));
-  wrap.appendChild(wordle ? triesRow(r.marks) : marksRow(r.marks));
-  if (saved) {
+  if (!partial) wrap.appendChild(el("p", "", streakVerdict(r.score)));
+  if (r.score > 0) {
     const where = mode.name + ", niveau " + lv.name;
     const line = isBest
-      ? (isNaN(prev) ? "Premier score enregistré : " + where + "." : "Nouveau record : " + where + (partial ? "." : " !"))
-      : "Record : " + where + ", " + prev + " sur " + total + ".";
+      ? (isNaN(prev) ? "Premier record : " + where + "." : "Nouveau record : " + where + ". L'ancien était de " + prev + ".")
+      : "Ton record reste de " + prev + " (" + where + ").";
     wrap.appendChild(el("p", "", line));
   }
-
-  const pub = publishBox(mode.id + "-" + lv.id, r.score, total);
+  const pub = r.score > 0 ? publishBox(mode.id + "-" + lv.id, r.score) : null;
   if (pub) wrap.appendChild(pub);
 
   const actions = el("div", "actions");
@@ -2161,7 +2154,7 @@ function renderRecords() {
 
   root.appendChild(el("h2", "section-title", "Mes records"));
   const table = el("table", "matrix");
-  const cap = el("caption", "sr-only", "Mes meilleurs scores par jeu et par niveau");
+  const cap = el("caption", "sr-only", "Mes plus longues séries par jeu et par niveau");
   const head = el("tr");
   head.appendChild(el("td"));
   Object.values(levels).forEach((lv) => {
@@ -2177,17 +2170,15 @@ function renderRecords() {
     const th = el("th", "", m.name);
     th.scope = "row";
     tr.appendChild(th);
-    const max = m.max || 10;
     Object.values(levels).forEach((lv) => {
       const id = m.id + "-" + lv.id;
-      const v = store.get("kmt-best-" + id);
-      const c = el(on ? "button" : "span", "cell-btn" + (v === null ? " empty" : "") + (v === String(max) ? " perfect" : ""));
+      const v = store.get("kmt-run-" + id);
+      const c = el(on ? "button" : "span", "cell-btn" + (v === null ? " empty" : ""));
       c.appendChild(el("span", "val", v === null ? "–" : v));
-      if (v !== null) c.appendChild(el("span", "max", "/" + max));
       if (on) {
         c.type = "button";
         c.setAttribute("aria-pressed", String(id === rankBoard));
-        c.setAttribute("aria-label", m.name + ", " + lv.name + " : " + (v === null ? "pas encore joué" : "record " + v + " sur " + max) + ". Voir le classement.");
+        c.setAttribute("aria-label", m.name + ", " + lv.name + " : " + (v === null ? "pas encore joué" : "record " + v) + ". Voir le classement.");
         c.onclick = () => selectBoard(id);
         cellBtns[id] = c;
       }
@@ -2237,10 +2228,10 @@ function selectBoard(id) {
 
 function paintBoardHead() {
   const b = boardParts(rankBoard);
-  const v = store.get("kmt-best-" + rankBoard);
+  const v = store.get("kmt-run-" + rankBoard);
   const sub = $("board-sub");
   sub.textContent = "";
-  sub.append(el("em", "", b.mode.name + " · " + b.lv.name), document.createTextNode(v !== null ? ". Ton record : " + v + " sur " + (b.mode.max || 10) + "." : ". Tu n'y as pas encore joué."));
+  sub.append(el("em", "", b.mode.name + " · " + b.lv.name), document.createTextNode(v !== null ? ". Ton record : " + v + "." : ". Tu n'y as pas encore joué."));
 }
 
 async function loadRanking(force) {
@@ -2274,7 +2265,7 @@ function paintRanking(rows) {
     const li = el("li", isMe ? "me" : "");
     const nick = el("span", "nick", String(r.name));
     if (isMe) nick.appendChild(el("span", "tag", "toi"));
-    li.append(el("span", "rank", String(k + 1)), nick, el("span", "pts", r.score + " / " + r.n));
+    li.append(el("span", "rank", String(k + 1)), nick, el("span", "pts", String(r.score)));
     list.appendChild(li);
   });
   box.replaceChildren(list);
