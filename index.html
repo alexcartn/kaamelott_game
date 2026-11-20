@@ -697,7 +697,10 @@
   }
   .records-hint { max-width: 34em; margin: var(--space-md) 0 0; font-size: var(--t-sm); font-style: italic; color: var(--ink-soft); }
 
-  .board { margin-top: var(--space-3xl); max-width: 38rem; }
+  .board { max-width: 38rem; }
+  .mine-records { margin-top: var(--space-3xl); }
+  .board-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-lg); }
+  .board-head .linklike { min-height: 44px; }
   .board-title { margin: 0; font-family: var(--font-gothique); font-weight: 700; font-size: 1.875rem; line-height: 1.15; }
   .board-sub { margin: var(--space-xs) 0 0; color: var(--ink-soft); }
   .board-sub em { color: var(--ink); }
@@ -711,15 +714,61 @@
     border-bottom: 1px solid var(--hair);
   }
   .ranking .rank { font-family: var(--font-gothique); font-weight: 700; font-size: 1.625rem; line-height: 1; color: var(--ink-soft); }
-  .ranking li:first-child .rank { color: var(--rubric); }
+  .ranking li.first .rank { color: var(--rubric); }
   .ranking .nick { min-width: 0; overflow-wrap: anywhere; }
-  .ranking li:nth-child(-n+3) .nick { font-family: var(--font-display); font-size: var(--t-md); }
-  .ranking li:first-child .nick::before { content: "◆"; margin-right: 0.45em; font-size: 0.6em; vertical-align: 0.2em; color: var(--gilt); }
+  .ranking li.top .nick { font-family: var(--font-display); font-size: var(--t-md); }
+  .ranking li.first .nick::before { content: "◆"; margin-right: 0.45em; font-size: 0.6em; vertical-align: 0.2em; color: var(--gilt); }
   .ranking .pts { font-family: var(--font-display); font-size: var(--t-md); font-variant-numeric: tabular-nums; color: var(--ink-soft); }
   .ranking li.me { margin-inline: calc(-1 * var(--space-md)); padding-inline: var(--space-md); background: var(--parchment-deep); }
   .ranking li.me .pts { color: var(--rubric); }
   .ranking .tag { margin-left: 0.5em; font-size: var(--t-sm); font-style: italic; color: var(--rubric); }
   .board .actions { margin-top: var(--space-xl); }
+  .picker { display: flex; flex-wrap: wrap; gap: var(--space-sm); margin-top: var(--space-md); }
+  .chip {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    font-family: var(--font-display);
+    font-size: var(--t-md);
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid var(--hair);
+    border-radius: 2px;
+    cursor: pointer;
+    transition: background-color 0.2s var(--ease), color 0.2s var(--ease), border-color 0.2s var(--ease);
+  }
+  .chip:hover:not([aria-pressed="true"]) { background: var(--parchment-deep); border-color: var(--ink-soft); }
+  .chip[aria-pressed="true"] { color: var(--parchment); background: var(--rubric); border-color: var(--rubric-deep); }
+  .chip .lv-svg { width: 1.5rem; height: 1.5rem; flex: none; }
+  .chip[aria-pressed="true"] .lv-svg .ink { stroke: var(--parchment); }
+  .board-me { margin: var(--space-lg) 0 0; font-style: italic; color: var(--rubric); }
+  .podium { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-sm); align-items: end; margin-top: var(--space-lg); }
+  .pod {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-xs);
+    padding: var(--space-md) var(--space-xs);
+    text-align: center;
+    border: 1px solid var(--hair);
+    border-radius: 2px;
+    box-shadow: inset 0 0 0 2px var(--parchment), inset 0 0 0 3px var(--hair);
+  }
+  .pod1 { min-height: 10.5rem; background: oklch(0.88 0.09 85); border-color: var(--gilt); box-shadow: inset 0 0 0 2px oklch(0.88 0.09 85), inset 0 0 0 3px var(--gilt); }
+  .pod2 { min-height: 8.5rem; }
+  .pod3 { min-height: 7.25rem; }
+  .pod.me { outline: 2px solid var(--rubric); outline-offset: 2px; }
+  .pod .lv-svg { width: 2.25rem; height: 2.25rem; }
+  .pod-rank { font-family: var(--font-gothique); font-weight: 700; font-size: 1.5rem; line-height: 1; color: var(--ink-soft); }
+  .pod1 .pod-rank { color: var(--rubric); }
+  .pod-name { max-width: 100%; font-family: var(--font-display); font-size: var(--t-md); line-height: 1.15; overflow-wrap: anywhere; }
+  .pod-score { font-family: var(--font-display); font-size: var(--t-lg); line-height: 1; font-variant-numeric: tabular-nums; }
+  .skel { height: 3.25rem; margin-top: var(--space-sm); background: var(--parchment-deep); animation: pulse 1.1s ease-in-out infinite alternate; }
+  @keyframes pulse { to { opacity: 0.35; } }
   .actions.stack .btn { flex: 1 1 100%; }
   .actions.stack { margin-top: var(--space-xl); }
   .board-empty { max-width: 30em; margin: var(--space-xl) 0 0; color: var(--ink-soft); }
@@ -756,7 +805,7 @@
     <button class="tab tab-play" role="tab" id="tab-play" aria-selected="false" aria-controls="view-play" tabindex="-1"><span class="tab-name">Jouer</span><span class="tab-note">trois jeux</span></button>
     <button class="tab" role="tab" id="tab-quote" aria-selected="true" aria-controls="view-quote" tabindex="0"><span class="tab-name">Citation</span><span class="tab-note">au hasard</span></button>
     <button class="tab" role="tab" id="tab-search" aria-selected="false" aria-controls="view-search" tabindex="-1"><span class="tab-name">Recherche</span><span class="tab-note">par mots</span></button>
-    <button class="tab" role="tab" id="tab-records" aria-selected="false" aria-controls="view-records" tabindex="-1"><span class="tab-name">Records</span><span class="tab-note">et classement</span></button>
+    <button class="tab" role="tab" id="tab-records" aria-selected="false" aria-controls="view-records" tabindex="-1"><span class="tab-name">Classement</span><span class="tab-note">et records</span></button>
   </div>
 
   <section class="panel" id="view-quote" role="tabpanel" aria-labelledby="tab-quote">
@@ -2314,6 +2363,7 @@ function finishRound(mode, lv, r, partial) {
   document.body.classList.remove("playing");
   const root = $("play-root");
   const key = "kmt-run-" + mode.id + "-" + lv.id;
+  store.set("kmt-board", mode.id + "-" + lv.id);
   const prev = parseInt(store.get(key), 10);
   const isBest = r.score > 0 && (isNaN(prev) || r.score > prev);
   if (isBest) store.set(key, String(r.score));
@@ -2346,12 +2396,14 @@ function finishRound(mode, lv, r, partial) {
   title.focus({ preventScroll: true });
 }
 
-/* ===== Onglet Records : tableau des records (sélecteur) puis classement ===== */
+/* ===== Onglet Classement : le classement d'abord, puis mes records ===== */
 let pendingBoard = null;
 let rankBoard = null;
 let rankReq = 0;
 const rankCache = {};
 const cellBtns = {};
+const modeBtns = {};
+const levelBtns = {};
 
 function openRecords(id) {
   pendingBoard = id;
@@ -2372,7 +2424,64 @@ function renderRecords() {
   const bp = boardParts(rankBoard);
   if (!bp.mode || !bp.lv) rankBoard = "qui-facile";
 
-  root.appendChild(el("h2", "section-title", "Mes records"));
+  if (on) root.appendChild(buildBoard());
+  root.appendChild(buildMine(on));
+  if (on) { paintBoardHead(); loadRanking(false); }
+  replay(root);
+}
+
+// Le classement : titre, choix du jeu et du niveau, puis le palmarès
+function buildBoard() {
+  const sec = el("section", "board");
+  const head = el("div", "board-head");
+  head.appendChild(el("h2", "board-title", "Classement"));
+  const refresh = el("button", "linklike", "Actualiser");
+  refresh.type = "button";
+  refresh.onclick = () => loadRanking(true);
+  head.appendChild(refresh);
+
+  const modes = el("div", "picker");
+  modes.setAttribute("role", "group");
+  modes.setAttribute("aria-label", "Jeu");
+  Object.values(MODES).forEach((m) => {
+    const b = el("button", "chip", m.name);
+    b.type = "button";
+    b.onclick = () => selectBoard(m.id + "-" + boardParts(rankBoard).lv.id);
+    modeBtns[m.id] = b;
+    modes.appendChild(b);
+  });
+  const lvls = el("div", "picker");
+  lvls.setAttribute("role", "group");
+  lvls.setAttribute("aria-label", "Niveau");
+  Object.values(levels).forEach((lv) => {
+    const b = el("button", "chip");
+    b.type = "button";
+    b.append(levelIcon(lv.id), document.createTextNode(lv.name));
+    b.onclick = () => selectBoard(boardParts(rankBoard).mode.id + "-" + lv.id);
+    levelBtns[lv.id] = b;
+    lvls.appendChild(b);
+  });
+
+  const sub = el("p", "board-sub");
+  sub.id = "board-sub";
+  const me = el("p", "board-me");
+  me.id = "board-me";
+  me.hidden = true;
+  const box = el("div");
+  box.id = "ranking";
+  box.setAttribute("aria-live", "polite");
+  const actions = el("div", "actions");
+  const play = el("button", "btn primary", "Jouer ce niveau");
+  play.onclick = () => { const b = boardParts(rankBoard); showTab("play"); startRound(b.mode, b.lv); };
+  actions.appendChild(play);
+  sec.append(head, modes, lvls, sub, me, box, actions);
+  return sec;
+}
+
+// Mes records : un tableau jeu x niveau, qui sert aussi de raccourci vers le classement
+function buildMine(on) {
+  const sec = el("section", on ? "mine-records" : "");
+  sec.appendChild(el("h2", "section-title", "Mes records"));
   const table = el("table", "matrix");
   const cap = el("caption", "sr-only", "Mes plus longues séries par jeu et par niveau");
   const head = el("tr");
@@ -2400,7 +2509,11 @@ function renderRecords() {
         c.type = "button";
         c.setAttribute("aria-pressed", String(id === rankBoard));
         c.setAttribute("aria-label", m.name + ", " + lv.name + " : " + (v === null ? "pas encore joué" : "record " + v) + ". Voir le classement.");
-        c.onclick = () => selectBoard(id);
+        c.onclick = () => {
+          selectBoard(id);
+          const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          document.querySelector(".board").scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+        };
         cellBtns[id] = c;
       }
       const td = el("td");
@@ -2410,49 +2523,26 @@ function renderRecords() {
     body.appendChild(tr);
   });
   table.append(cap, thead, body);
-  root.appendChild(table);
-
-  if (!on) {
-    root.appendChild(el("p", "records-hint", "Le classement commun n'est pas encore activé. Tes records restent sur cet appareil."));
-    replay(root);
-    return;
-  }
-  root.appendChild(el("p", "records-hint", "Touche une case pour voir son classement."));
-
-  const sec = el("section", "board");
-  const title = el("h2", "board-title", "Classement");
-  const sub = el("p", "board-sub");
-  sub.id = "board-sub";
-  const box = el("div");
-  box.id = "ranking";
-  box.setAttribute("aria-live", "polite");
-  const actions = el("div", "actions");
-  const play = el("button", "btn primary", "Jouer ce niveau");
-  play.onclick = () => { const b = boardParts(rankBoard); showTab("play"); startRound(b.mode, b.lv); };
-  const refresh = el("button", "btn", "Actualiser");
-  refresh.onclick = () => loadRanking(true);
-  actions.append(play, refresh);
-  sec.append(title, sub, box, actions);
-  root.appendChild(sec);
-  paintBoardHead();
-  loadRanking(false);
-  replay(root);
+  sec.appendChild(table);
+  sec.appendChild(el("p", "records-hint", on ? "Touche une case pour voir son classement." : "Le classement commun n'est pas encore activé. Tes records restent sur cet appareil."));
+  return sec;
 }
 
 function selectBoard(id) {
   rankBoard = id;
   store.set("kmt-board", id);
-  Object.keys(cellBtns).forEach((k) => cellBtns[k].setAttribute("aria-pressed", String(k === id)));
   paintBoardHead();
   loadRanking(false);
 }
 
 function paintBoardHead() {
   const b = boardParts(rankBoard);
+  Object.keys(modeBtns).forEach((k) => modeBtns[k].setAttribute("aria-pressed", String(k === b.mode.id)));
+  Object.keys(levelBtns).forEach((k) => levelBtns[k].setAttribute("aria-pressed", String(k === b.lv.id)));
+  Object.keys(cellBtns).forEach((k) => cellBtns[k].setAttribute("aria-pressed", String(k === rankBoard)));
   const v = store.get("kmt-run-" + rankBoard);
   const sub = $("board-sub");
-  sub.textContent = "";
-  sub.append(el("em", "", b.mode.name + " · " + b.lv.name), document.createTextNode(v !== null ? ". Ton record : " + v + "." : ". Tu n'y as pas encore joué."));
+  sub.textContent = v !== null ? "Ton record : " + v + "." : "Tu n'y as pas encore joué.";
 }
 
 async function loadRanking(force) {
@@ -2461,7 +2551,8 @@ async function loadRanking(force) {
   const req = ++rankReq;
   const c = rankCache[id];
   if (!force && c && Date.now() - c.at < 30000) { paintRanking(c.rows); return; }
-  box.replaceChildren(el("p", "board-empty", "Le scribe consulte le registre…"));
+  $("board-me").hidden = true;
+  box.replaceChildren(...[1, 2, 3, 4].map(() => el("div", "skel")));
   try {
     const rows = await board.rows(id);
     rankCache[id] = { at: Date.now(), rows };
@@ -2475,21 +2566,49 @@ async function loadRanking(force) {
 
 function paintRanking(rows) {
   const box = $("ranking");
+  const meLine = $("board-me");
   if (!rows.length) {
+    meLine.hidden = true;
     box.replaceChildren(el("p", "board-empty", "Personne n'a encore publié ici. Le premier nom gravé sera le tien."));
     return;
   }
   const me = (store.get("kmt-name") || "").trim().toLowerCase();
-  const list = el("ol", "ranking");
-  rows.forEach((r, k) => {
-    const isMe = me && String(r.name).toLowerCase() === me;
-    const li = el("li", isMe ? "me" : "");
-    const nick = el("span", "nick", String(r.name));
-    if (isMe) nick.appendChild(el("span", "tag", "toi"));
-    li.append(el("span", "rank", String(k + 1)), nick, el("span", "pts", String(r.score)));
-    list.appendChild(li);
-  });
-  box.replaceChildren(list);
+  const isMe = (r) => me && String(r.name).toLowerCase() === me;
+  const mine = rows.findIndex(isMe);
+  meLine.hidden = false;
+  meLine.textContent = mine >= 0
+    ? (mine === 0 ? "Tu es en tête du classement." : "Tu es " + (mine + 1) + (mine === 0 ? "er" : "e") + " sur " + rows.length + ".")
+    : "Tu n'es pas encore dans ce classement : joue et publie ta série pour y entrer.";
+
+  const nodes = [];
+  let rest = rows;
+  let from = 0;
+  if (rows.length >= 3) {
+    const pod = el("div", "podium");
+    [1, 0, 2].forEach((idx) => {
+      const r = rows[idx];
+      const b = el("div", "pod pod" + (idx + 1) + (isMe(r) ? " me" : ""));
+      if (idx === 0) b.appendChild(levelIcon("difficile"));
+      b.append(el("span", "pod-rank", String(idx + 1)), el("span", "pod-name", String(r.name)), el("span", "pod-score", String(r.score)));
+      pod.appendChild(b);
+    });
+    nodes.push(pod);
+    rest = rows.slice(3);
+    from = 3;
+  }
+  if (rest.length) {
+    const list = el("ol", "ranking");
+    rest.forEach((r, k) => {
+      const place = from + k + 1;
+      const li = el("li", (isMe(r) ? "me " : "") + (place <= 3 ? "top " : "") + (place === 1 ? "first" : ""));
+      const nick = el("span", "nick", String(r.name));
+      if (isMe(r)) nick.appendChild(el("span", "tag", "toi"));
+      li.append(el("span", "rank", String(place)), nick, el("span", "pts", String(r.score)));
+      list.appendChild(li);
+    });
+    nodes.push(list);
+  }
+  box.replaceChildren(...nodes);
 }
 
 load();
