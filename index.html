@@ -469,22 +469,9 @@
     border: 1px solid var(--ink-soft);
     border-radius: 2px;
   }
-  .publish .btn { flex: none; }
+  .publish .btn { flex: 0 0 auto; min-width: 7rem; }
   .publish-msg { margin: var(--space-md) 0 0; min-height: 1.5em; color: var(--ink-soft); }
   .note.error { color: var(--rubric); font-style: italic; }
-  .ranking { margin: var(--space-md) 0 0; padding: 0; list-style: none; }
-  .ranking li {
-    display: grid;
-    grid-template-columns: 2.25rem 1fr auto;
-    align-items: baseline;
-    gap: var(--space-md);
-    padding: var(--space-md) 0;
-    border-bottom: 1px solid var(--hair);
-  }
-  .ranking .rank { font-family: var(--font-gothique); font-weight: 700; font-size: var(--t-lg); color: var(--ink-soft); }
-  .ranking li:first-child .rank { color: var(--rubric); }
-  .ranking .pts { font-variant-numeric: tabular-nums; color: var(--ink-soft); }
-
   /* Le mot juste */
   .wgrid { display: grid; gap: 6px; max-width: calc(var(--cols) * 3.5rem + (var(--cols) - 1) * 6px); margin-top: var(--space-md); }
   .wline { display: grid; grid-template-columns: repeat(var(--cols), 1fr); gap: 6px; }
@@ -601,14 +588,88 @@
   .key-btn.hit { color: var(--ok); background: var(--ok-tint); border-color: var(--ok); }
   .key-btn.miss { color: var(--rubric); background: var(--ko-tint); border-color: var(--rubric); opacity: 0.7; }
 
-  /* Records */
-  .records-group { max-width: 30rem; margin-top: var(--space-2xl); }
-  .records-group:first-child { margin-top: 0; }
-  .record { display: flex; align-items: baseline; gap: var(--space-md); padding: var(--space-xs) 0; }
-  .record .dots { flex: 1; align-self: end; margin-bottom: 0.35em; border-bottom: 1px dotted var(--hair); }
-  .record .val { font-variant-numeric: tabular-nums; color: var(--ink-soft); }
-  .record .val.top { color: var(--rubric); }
-  .record .val.none { opacity: 0.5; }
+  /* Page Records : tableau (aussi sélecteur) puis classement */
+  .matrix { width: calc(100% + 12px); max-width: 38rem; margin: var(--space-sm) -6px 0; border-collapse: separate; border-spacing: 6px; table-layout: fixed; }
+  .matrix thead td, .matrix tbody th { width: 34%; }
+  .matrix th { font-weight: 400; text-align: left; }
+  .matrix thead th {
+    padding: 0 0 var(--space-xs);
+    text-align: center;
+    font-family: var(--font-gothique);
+    font-weight: 700;
+    font-size: 1.0625rem;
+    color: var(--ink-soft);
+  }
+  .matrix tbody th { padding-right: var(--space-sm); font-family: var(--font-display); font-size: var(--t-md); line-height: 1.2; }
+  .cell-btn {
+    position: relative;
+    width: 100%;
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: var(--space-md) var(--space-xs);
+    font: inherit;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid var(--hair);
+    border-radius: 2px;
+    box-shadow: inset 0 0 0 2px var(--parchment), inset 0 0 0 3px var(--hair);
+    transition: background-color 0.25s var(--ease), color 0.25s var(--ease), border-color 0.25s var(--ease), box-shadow 0.25s var(--ease);
+  }
+  button.cell-btn { cursor: pointer; }
+  button.cell-btn:hover:not([aria-pressed="true"]) { background: var(--parchment-deep); border-color: var(--ink-soft); }
+  .cell-btn .val { font-family: var(--font-display); font-size: var(--t-lg); line-height: 1; }
+  .cell-btn .max { font-size: 0.75rem; color: var(--ink-soft); }
+  .cell-btn.empty { color: var(--ink-soft); }
+  .cell-btn.empty .val { opacity: 0.5; }
+  .cell-btn.perfect::after {
+    content: "";
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 6px;
+    height: 6px;
+    background: var(--gilt);
+    transform: rotate(45deg);
+  }
+  .cell-btn[aria-pressed="true"] {
+    color: var(--parchment);
+    background: var(--rubric);
+    border-color: var(--rubric-deep);
+    box-shadow: inset 0 0 0 2px var(--rubric), inset 0 0 0 3px var(--gilt);
+  }
+  .cell-btn[aria-pressed="true"] .max { color: oklch(0.9 0.05 80); }
+  .records-hint { max-width: 34em; margin: var(--space-md) 0 0; font-size: var(--t-sm); font-style: italic; color: var(--ink-soft); }
+
+  .board { margin-top: var(--space-3xl); max-width: 38rem; }
+  .board-title { margin: 0; font-family: var(--font-gothique); font-weight: 700; font-size: 1.875rem; line-height: 1.15; }
+  .board-sub { margin: var(--space-xs) 0 0; color: var(--ink-soft); }
+  .board-sub em { color: var(--ink); }
+  .ranking { margin: var(--space-lg) 0 0; padding: 0; list-style: none; }
+  .ranking li {
+    display: grid;
+    grid-template-columns: 2.5rem 1fr auto;
+    align-items: baseline;
+    gap: var(--space-md);
+    padding: var(--space-md) 0;
+    border-bottom: 1px solid var(--hair);
+  }
+  .ranking .rank { font-family: var(--font-gothique); font-weight: 700; font-size: 1.625rem; line-height: 1; color: var(--ink-soft); }
+  .ranking li:first-child .rank { color: var(--rubric); }
+  .ranking .nick { min-width: 0; overflow-wrap: anywhere; }
+  .ranking li:nth-child(-n+3) .nick { font-family: var(--font-display); font-size: var(--t-md); }
+  .ranking li:first-child .nick::before { content: "◆"; margin-right: 0.45em; font-size: 0.6em; vertical-align: 0.2em; color: var(--gilt); }
+  .ranking .pts { font-family: var(--font-display); font-size: var(--t-md); font-variant-numeric: tabular-nums; color: var(--ink-soft); }
+  .ranking li.me { margin-inline: calc(-1 * var(--space-md)); padding-inline: var(--space-md); background: var(--parchment-deep); }
+  .ranking li.me .pts { color: var(--rubric); }
+  .ranking .tag { margin-left: 0.5em; font-size: var(--t-sm); font-style: italic; color: var(--rubric); }
+  .board .actions { margin-top: var(--space-xl); }
+  .actions.stack .btn { flex: 1 1 100%; }
+  .actions.stack { margin-top: var(--space-xl); }
+  .board-empty { max-width: 30em; margin: var(--space-xl) 0 0; color: var(--ink-soft); }
 
   /* Signature discrète */
   .credit {
@@ -1205,7 +1266,7 @@ function playRound(root, questions, onFinish, onQuit) {
   const sc = el("span");
   const quit = el("button", "back", "Arrêter");
   quit.type = "button";
-  quit.onclick = onQuit;
+  quit.onclick = () => onQuit({ score, marks: marks.slice() });
   tally.append(num, sc, quit);
   const stage = el("div");
   const feedback = el("div", "feedback");
@@ -1285,6 +1346,7 @@ function playRound(root, questions, onFinish, onQuit) {
     else onFinish({ score, marks });
   };
   show();
+  return { destroy() {} };
 }
 
 /* Le pendu : un mot de la réplique est caché, on le devine lettre par lettre */
@@ -1425,7 +1487,7 @@ function playHangman(root, questions, onFinish, onQuit) {
   const sc = el("span");
   const quit = el("button", "back", "Arrêter");
   quit.type = "button";
-  quit.onclick = () => { document.removeEventListener("keydown", onKey); onQuit(); };
+  quit.onclick = () => onQuit({ score, marks: marks.slice() });
   tally.append(num, sc, quit);
 
   const stage = el("div");
@@ -1570,7 +1632,7 @@ function playHangman(root, questions, onFinish, onQuit) {
   }
 
   function onKey(e) {
-    if (!stage.isConnected) { document.removeEventListener("keydown", onKey); return; }
+    if (!stage.isConnected) return;
     if ($("view-play").hidden || e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1) return;
     const c = plain(e.key);
     if (/^[a-z]$/.test(c)) guess(c);
@@ -1582,6 +1644,7 @@ function playHangman(root, questions, onFinish, onQuit) {
     else { document.removeEventListener("keydown", onKey); onFinish({ score, marks }); }
   };
   show();
+  return { destroy() { document.removeEventListener("keydown", onKey); } };
 }
 
 /* ===== Le mot juste : un mot à trouver en six essais ===== */
@@ -1670,7 +1733,7 @@ function playWordle(root, answers, onFinish, onQuit) {
   const sc = el("span");
   const quit = el("button", "back", "Arrêter");
   quit.type = "button";
-  quit.onclick = () => { document.removeEventListener("keydown", onKey); onQuit(); };
+  quit.onclick = () => onQuit({ score: total, marks: results.slice() });
   tally.append(num, sc, quit);
 
   const stage = el("div");
@@ -1843,7 +1906,7 @@ function playWordle(root, answers, onFinish, onQuit) {
   }
 
   function onKey(e) {
-    if (!stage.isConnected) { document.removeEventListener("keydown", onKey); return; }
+    if (!stage.isConnected) return;
     if ($("view-play").hidden || e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.target && e.target.tagName === "BUTTON" && (e.key === "Enter" || e.key === " ")) return;
     if (e.key === "Enter") { e.preventDefault(); submit(); return; }
@@ -1860,6 +1923,7 @@ function playWordle(root, answers, onFinish, onQuit) {
     else { document.removeEventListener("keydown", onKey); onFinish({ score: total, marks: results }); }
   };
   show();
+  return { destroy() { document.removeEventListener("keydown", onKey); } };
 }
 
 /* ===== Éléments de résultat ===== */
@@ -1904,11 +1968,13 @@ function publishBox(boardId, score, n) {
   input.autocomplete = "nickname";
   input.value = store.get("kmt-name") || "";
   input.id = "pub-" + Math.random().toString(36).slice(2, 8);
-  const label = el("label", "", "Ton nom pour le classement");
+  const label = el("label", "", "Inscrire ce score au classement ? Choisis le nom qui s'affichera.");
   label.htmlFor = input.id;
-  const btn = el("button", "btn", "Publier mon score");
+  const btn = el("button", "btn primary", "Publier");
+  const skip = el("button", "btn", "Non merci");
+  skip.onclick = () => { wrap.replaceChildren(el("p", "publish-msg", "D'accord, rien n'est envoyé.")); };
   const row = el("div", "row");
-  row.append(input, btn);
+  row.append(input, btn, skip);
   const msg = el("p", "publish-msg");
   msg.setAttribute("aria-live", "polite");
 
@@ -1920,7 +1986,9 @@ function publishBox(boardId, score, n) {
     try {
       await board.post(boardId, name, score, n);
       store.set("kmt-name", name);
+      delete rankCache[boardId];
       input.disabled = true;
+      skip.hidden = true;
       msg.textContent = "Score publié. ";
       const go = el("button", "linklike", "Voir le classement");
       go.onclick = () => openRecords(boardId);
@@ -1979,13 +2047,52 @@ function renderLevels(mode) {
   replay(root);
 }
 
+let currentRound = null;
+
+// Arrêt en cours de manche : on garde le score partiel, on reprend, ou on quitte sans rien enregistrer
+function stopRound(mode, lv, st) {
+  const root = $("play-root");
+  const saved = [...root.childNodes];
+  const wordle = mode.kind === "wordle";
+  const total = mode.max || 10;
+  const n = st.marks.length;
+  root.replaceChildren();
+
+  const wrap = el("div", "result");
+  const title = el("h2", "result-title", "Manche interrompue.");
+  title.tabIndex = -1;
+  wrap.appendChild(title);
+  const unit = wordle ? (n > 1 ? "mots" : "mot") : (n > 1 ? "questions" : "question");
+  wrap.appendChild(el("p", "", n === 0
+    ? "Tu n'as pas encore répondu : il n'y a rien à garder."
+    : "Tu en es à " + st.score + (wordle ? (st.score > 1 ? " points" : " point") : "") + " sur " + total + ", après " + n + " " + unit + " jouée" + (n > 1 ? "s" : "") + ". Veux-tu garder ce score ?"));
+
+  const actions = el("div", "actions stack");
+  const resume = el("button", "btn" + (n === 0 ? " primary" : ""), "Reprendre la manche");
+  resume.onclick = () => { root.replaceChildren(...saved); };
+  if (n > 0) {
+    const keep = el("button", "btn primary", "Garder ce score");
+    keep.onclick = () => { currentRound.destroy(); finishRound(mode, lv, st, true); };
+    actions.append(keep, resume);
+  } else {
+    actions.appendChild(resume);
+  }
+  wrap.appendChild(actions);
+  const drop = el("button", "back", n > 0 ? "Quitter sans enregistrer" : "Quitter la manche");
+  drop.onclick = () => { currentRound.destroy(); renderLevels(mode); };
+  wrap.appendChild(drop);
+  root.appendChild(wrap);
+  replay(root);
+  title.focus({ preventScroll: true });
+}
+
 function startRound(mode, lv) {
   document.body.classList.add("playing");
   const play = { hangman: playHangman, wordle: playWordle }[mode.kind] || playRound;
-  play($("play-root"), mode.build(lv, mode.rounds || 10, Math.random), (r) => finishRound(mode, lv, r), () => renderLevels(mode));
+  currentRound = play($("play-root"), mode.build(lv, mode.rounds || 10, Math.random), (r) => finishRound(mode, lv, r), (st) => stopRound(mode, lv, st));
 }
 
-function finishRound(mode, lv, r) {
+function finishRound(mode, lv, r, partial) {
   document.body.classList.remove("playing");
   const root = $("play-root");
   const key = "kmt-best-" + mode.id + "-" + lv.id;
@@ -1998,13 +2105,15 @@ function finishRound(mode, lv, r) {
   const total = mode.max || 10;
   const wordle = mode.kind === "wordle";
   const wrap = el("div", "result");
-  const title = el("h2", "result-title", wordle ? r.score + (r.score > 1 ? " points" : " point") + " sur " + total + "." : sentenceScore(r.score, total));
+  const title = el("h2", "result-title", partial ? "Score gardé : " + r.score + " sur " + total + "." : wordle ? r.score + (r.score > 1 ? " points" : " point") + " sur " + total + "." : sentenceScore(r.score, total));
   title.tabIndex = -1;
-  wrap.append(title, el("p", "", verdictLine(r.score, total)), wordle ? triesRow(r.marks) : marksRow(r.marks));
+  wrap.appendChild(title);
+  if (!partial) wrap.appendChild(el("p", "", verdictLine(r.score, total)));
+  wrap.appendChild(wordle ? triesRow(r.marks) : marksRow(r.marks));
   if (saved) {
     const where = mode.name + ", niveau " + lv.name;
     const line = isBest
-      ? (isNaN(prev) ? "Premier score enregistré : " + where + "." : "Nouveau record : " + where + " !")
+      ? (isNaN(prev) ? "Premier score enregistré : " + where + "." : "Nouveau record : " + where + (partial ? "." : " !"))
       : "Record : " + where + ", " + prev + " sur " + total + ".";
     wrap.appendChild(el("p", "", line));
   }
@@ -2024,84 +2133,151 @@ function finishRound(mode, lv, r) {
   title.focus({ preventScroll: true });
 }
 
-/* ===== Onglet Records ===== */
+/* ===== Onglet Records : tableau des records (sélecteur) puis classement ===== */
 let pendingBoard = null;
+let rankBoard = null;
 let rankReq = 0;
+const rankCache = {};
+const cellBtns = {};
 
 function openRecords(id) {
   pendingBoard = id;
   showTab("records");
 }
 
+function boardParts(id) {
+  const k = String(id).split("-");
+  return { mode: MODES[k[0]], lv: levels[k[1]] };
+}
+
 function renderRecords() {
   const root = $("records-root");
+  const on = board.enabled();
   root.innerHTML = "";
+  if (pendingBoard) { rankBoard = pendingBoard; pendingBoard = null; }
+  if (!rankBoard) rankBoard = store.get("kmt-board") || "qui-facile";
+  const bp = boardParts(rankBoard);
+  if (!bp.mode || !bp.lv) rankBoard = "qui-facile";
+
+  root.appendChild(el("h2", "section-title", "Mes records"));
+  const table = el("table", "matrix");
+  const cap = el("caption", "sr-only", "Mes meilleurs scores par jeu et par niveau");
+  const head = el("tr");
+  head.appendChild(el("td"));
+  Object.values(levels).forEach((lv) => {
+    const th = el("th", "", lv.name);
+    th.scope = "col";
+    head.appendChild(th);
+  });
+  const thead = el("thead");
+  thead.appendChild(head);
+  const body = el("tbody");
   Object.values(MODES).forEach((m) => {
-    const group = el("section", "records-group");
-    group.appendChild(el("h2", "section-title", m.name));
+    const tr = el("tr");
+    const th = el("th", "", m.name);
+    th.scope = "row";
+    tr.appendChild(th);
     const max = m.max || 10;
     Object.values(levels).forEach((lv) => {
-      const v = store.get("kmt-best-" + m.id + "-" + lv.id);
-      const row = el("div", "record");
-      const val = el("span", "val" + (v === null ? " none" : v === String(max) ? " top" : ""), v === null ? "pas encore joué" : v + " sur " + max);
-      row.append(el("span", "", lv.name), el("span", "dots"), val);
-      group.appendChild(row);
+      const id = m.id + "-" + lv.id;
+      const v = store.get("kmt-best-" + id);
+      const c = el(on ? "button" : "span", "cell-btn" + (v === null ? " empty" : "") + (v === String(max) ? " perfect" : ""));
+      c.appendChild(el("span", "val", v === null ? "–" : v));
+      if (v !== null) c.appendChild(el("span", "max", "/" + max));
+      if (on) {
+        c.type = "button";
+        c.setAttribute("aria-pressed", String(id === rankBoard));
+        c.setAttribute("aria-label", m.name + ", " + lv.name + " : " + (v === null ? "pas encore joué" : "record " + v + " sur " + max) + ". Voir le classement.");
+        c.onclick = () => selectBoard(id);
+        cellBtns[id] = c;
+      }
+      const td = el("td");
+      td.appendChild(c);
+      tr.appendChild(td);
     });
-    root.appendChild(group);
+    body.appendChild(tr);
   });
+  table.append(cap, thead, body);
+  root.appendChild(table);
 
-  if (board.enabled()) {
-    const sec = el("section", "records-group");
-    sec.appendChild(el("h2", "section-title", "Classement commun"));
-    const lede = el("p", "lede");
-    const sel = el("select");
-    sel.id = "rank-select";
-    sel.setAttribute("aria-label", "Classement");
-    Object.values(MODES).forEach((m) => {
-      Object.values(levels).forEach((lv) => sel.appendChild(new Option(m.name + " · " + lv.name, m.id + "-" + lv.id)));
-    });
-    sel.onchange = loadRanking;
-    lede.append(el("span", "", "Voir :"), sel);
-    const box = el("div");
-    box.id = "ranking";
-    box.setAttribute("aria-live", "polite");
-    sec.append(lede, box);
-    root.appendChild(sec);
-    if (pendingBoard) { sel.value = pendingBoard; pendingBoard = null; }
-    loadRanking();
+  if (!on) {
+    root.appendChild(el("p", "records-hint", "Le classement commun n'est pas encore activé. Tes records restent sur cet appareil."));
+    replay(root);
+    return;
   }
+  root.appendChild(el("p", "records-hint", "Touche une case pour voir son classement."));
+
+  const sec = el("section", "board");
+  const title = el("h2", "board-title", "Classement");
+  const sub = el("p", "board-sub");
+  sub.id = "board-sub";
+  const box = el("div");
+  box.id = "ranking";
+  box.setAttribute("aria-live", "polite");
+  const actions = el("div", "actions");
+  const play = el("button", "btn primary", "Jouer ce niveau");
+  play.onclick = () => { const b = boardParts(rankBoard); showTab("play"); startRound(b.mode, b.lv); };
+  const refresh = el("button", "btn", "Actualiser");
+  refresh.onclick = () => loadRanking(true);
+  actions.append(play, refresh);
+  sec.append(title, sub, box, actions);
+  root.appendChild(sec);
+  paintBoardHead();
+  loadRanking(false);
   replay(root);
 }
 
-async function loadRanking() {
+function selectBoard(id) {
+  rankBoard = id;
+  store.set("kmt-board", id);
+  Object.keys(cellBtns).forEach((k) => cellBtns[k].setAttribute("aria-pressed", String(k === id)));
+  paintBoardHead();
+  loadRanking(false);
+}
+
+function paintBoardHead() {
+  const b = boardParts(rankBoard);
+  const v = store.get("kmt-best-" + rankBoard);
+  const sub = $("board-sub");
+  sub.textContent = "";
+  sub.append(el("em", "", b.mode.name + " · " + b.lv.name), document.createTextNode(v !== null ? ". Ton record : " + v + " sur " + (b.mode.max || 10) + "." : ". Tu n'y as pas encore joué."));
+}
+
+async function loadRanking(force) {
+  const id = rankBoard;
   const box = $("ranking");
-  const id = $("rank-select").value;
   const req = ++rankReq;
-  box.replaceChildren(el("p", "note", "Le scribe consulte le registre…"));
+  const c = rankCache[id];
+  if (!force && c && Date.now() - c.at < 30000) { paintRanking(c.rows); return; }
+  box.replaceChildren(el("p", "board-empty", "Le scribe consulte le registre…"));
   try {
     const rows = await board.rows(id);
+    rankCache[id] = { at: Date.now(), rows };
     if (req !== rankReq) return;
-    if (!rows.length) {
-      box.replaceChildren(el("p", "note", "Personne n'a encore publié ici. Sois le premier."));
-      return;
-    }
-    const me = (store.get("kmt-name") || "").trim().toLowerCase();
-    const list = el("ol", "ranking");
-    rows.forEach((r, k) => {
-      const li = el("li");
-      const isMe = me && String(r.name).toLowerCase() === me;
-      li.append(
-        el("span", "rank", String(k + 1)),
-        el("span", "", String(r.name) + (isMe ? " · toi" : "")),
-        el("span", "pts", r.score + "/" + r.n)
-      );
-      list.appendChild(li);
-    });
-    box.replaceChildren(list);
+    paintRanking(rows);
   } catch (e) {
     if (req !== rankReq) return;
-    box.replaceChildren(el("p", "note error", "Le registre est injoignable (" + e.message + ")."));
+    box.replaceChildren(el("p", "note error", "Le registre est injoignable (" + e.message + "). Réessaie dans un instant."));
   }
+}
+
+function paintRanking(rows) {
+  const box = $("ranking");
+  if (!rows.length) {
+    box.replaceChildren(el("p", "board-empty", "Personne n'a encore publié ici. Le premier nom gravé sera le tien."));
+    return;
+  }
+  const me = (store.get("kmt-name") || "").trim().toLowerCase();
+  const list = el("ol", "ranking");
+  rows.forEach((r, k) => {
+    const isMe = me && String(r.name).toLowerCase() === me;
+    const li = el("li", isMe ? "me" : "");
+    const nick = el("span", "nick", String(r.name));
+    if (isMe) nick.appendChild(el("span", "tag", "toi"));
+    li.append(el("span", "rank", String(k + 1)), nick, el("span", "pts", r.score + " / " + r.n));
+    list.appendChild(li);
+  });
+  box.replaceChildren(list);
 }
 
 load();
