@@ -3,7 +3,7 @@
 // Les appels externes (API des citations, Supabase) ne passent jamais par le cache.
 // Change ce numéro à chaque modification des icônes, du manifeste ou de og-image.jpg :
 // les anciens fichiers en cache sont alors supprimés et les nouveaux téléchargés.
-const CACHE = "kaamelott-v2";
+const CACHE = "kaamelott-v3";
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 
 self.addEventListener("install", (e) => {

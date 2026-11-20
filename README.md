@@ -9,6 +9,7 @@ Petit recueil de répliques de Kaamelott et jeux de quiz, en une seule page HTML
   - Le pendu : deviner un mot caché de la réplique avant que la potence soit achevée. Mot trouvé, mot suivant ; la série s'arrête à la première pendaison.
   - Le mot juste : trouver un mot tiré des répliques en six essais (lettres vertes et dorées). Les mots inventés sont refusés, et deux indices progressifs sont possibles (qui parle, puis la réplique). La série s'arrête au premier échec.
 - Ressenti de jeu : touches qui réagissent, lettres qui apparaissent une à une, tuiles qui sautent à la victoire. Des sons synthétisés (sans fichier audio) sont disponibles via le bouton haut-parleur de la barre de jeu, désactivés par défaut. Pas de vibrations.
+- Le cul de chouette : le jeu de dés de la taverne, de 2 à 8 joueurs sur un seul téléphone qu'on se passe. Règles de base (chouette, velute, chouette velute, cul de chouette, suite, néant, sirotage simplifié), partie à 343 ou 150 points, dés virtuels ou vrais dés saisis à la main. La partie en cours est gardée sur l'appareil ; pas de classement commun pour ce jeu.
 - Classement : le palmarès commun par jeu et par niveau (podium des trois premiers, ta place en évidence), optionnel (voir plus bas), puis tes meilleures séries gardées sur l'appareil.
 
 Les 765 citations viennent de l'API https://kaamelott.chaudie.re/api (projet sin0light/api-kaamelott) et sont embarquées dans `index.html` : la page fonctionne hors ligne et sans appel réseau.

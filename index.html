@@ -6,14 +6,14 @@
 <meta name="color-scheme" content="light">
 <meta name="theme-color" content="#f5ecd8">
 <title>Kaamelott : recueil de répliques</title>
-<meta name="description" content="Répliques de Kaamelott, recherche, et trois jeux en série : qui a dit ça, le pendu, le mot juste. Combien de suite ?">
+<meta name="description" content="Répliques de Kaamelott, recherche, trois jeux en série (qui a dit ça, le pendu, le mot juste) et le cul de chouette entre amis.">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="fr_FR">
 <meta property="og:title" content="Kaamelott : répliques et jeux">
-<meta property="og:description" content="Cherche une réplique, ou joue : qui a dit ça, le pendu, le mot juste. Combien de suite ?">
+<meta property="og:description" content="Cherche une réplique, ou joue : qui a dit ça, le pendu, le mot juste, et le cul de chouette entre amis.">
 <meta property="og:url" content="https://alexcartn.github.io/kaamelott_game/">
 <meta property="og:image" content="https://alexcartn.github.io/kaamelott_game/og-image.jpg">
 <meta property="og:image:width" content="1200">
@@ -862,6 +862,100 @@
   }
   .credit:hover { opacity: 1; }
 
+  /* Cul de chouette : préparation, tableau des scores, dés */
+  .lv-svg .dot { fill: var(--ink); stroke: none; }
+  .lv-svg .gdie { fill: oklch(0.88 0.09 85); stroke: var(--ink); stroke-width: 2.2; stroke-linejoin: round; }
+  .play-group { margin-top: var(--space-3xl); }
+  .cdc-resume { margin-top: var(--space-xl); padding: var(--space-lg); border: 1px solid var(--gilt); background: var(--parchment-deep); }
+  .cdc-resume p { margin: 0; color: var(--ink); }
+  .cdc-resume .actions { margin-top: var(--space-lg); align-items: center; }
+  .cdc-players { display: grid; gap: var(--space-sm); max-width: 26rem; }
+  .cdc-row { display: flex; align-items: center; gap: var(--space-sm); }
+  .cdc-row .num { flex: none; width: 1.5em; font-family: var(--font-gothique); font-weight: 700; font-size: 1.25rem; color: var(--ink-soft); }
+  .cdc-row input {
+    flex: 1;
+    min-width: 0;
+    min-height: 48px;
+    padding: var(--space-sm) var(--space-md);
+    font: inherit;
+    font-size: var(--t-md);
+    color: var(--ink);
+    background: var(--parchment);
+    border: 1px solid var(--hair);
+    border-radius: 2px;
+  }
+  .cdc-row input:focus { outline: none; border-color: var(--rubric); box-shadow: inset 0 0 0 1px var(--rubric); }
+  .cdc-row .back { flex: none; min-width: 44px; text-decoration: none; font-size: 1.25rem; }
+  .cdc-add { margin-top: var(--space-sm); }
+  .seg.two { grid-template-columns: repeat(2, 1fr); max-width: 26rem; }
+  .seg .seg-note { font-size: var(--t-sm); font-style: italic; opacity: 0.85; }
+  .cdc-setup-go { margin-top: var(--space-xl); }
+
+  .cdc-board { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+  .cdc-board li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: var(--space-xs) var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    border-left: 3px solid transparent;
+  }
+  .cdc-board li.now { border-left-color: var(--rubric); background: var(--parchment-deep); }
+  .cdc-board .nm { min-width: 0; overflow-wrap: anywhere; font-family: var(--font-display); font-size: var(--t-md); }
+  .cdc-board li.now .nm::after { content: "à toi"; margin-left: 0.6em; font-family: var(--font-text); font-size: var(--t-sm); font-style: italic; color: var(--rubric); }
+  .cdc-board .pts { display: inline-block; font-family: var(--font-display); font-size: var(--t-md); font-variant-numeric: tabular-nums; }
+  .cdc-board .pts.neg { color: var(--rubric); }
+  .cdc-board .bar { grid-column: 1 / -1; height: 3px; background: var(--hair); overflow: hidden; }
+  .cdc-board .bar i { display: block; height: 100%; width: var(--p, 0%); background: var(--gilt); transition: width 0.5s var(--ease); }
+  .cdc-board li.now .bar i { background: var(--rubric); }
+
+  .cdc-turn { margin: var(--space-2xl) 0 0; font-family: var(--font-gothique); font-weight: 700; font-size: 1.75rem; line-height: 1.15; }
+  .cdc-dice { display: flex; justify-content: center; gap: var(--space-lg); margin-top: var(--space-xl); }
+  .die-wrap { display: flex; flex-direction: column; align-items: center; gap: var(--space-sm); font-size: var(--t-sm); font-style: italic; color: var(--ink-soft); }
+  .die {
+    width: 76px;
+    height: 76px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    place-items: center;
+    padding: 11px;
+    font: inherit;
+    color: var(--ink);
+    background: oklch(0.975 0.015 85);
+    border: 1.5px solid var(--ink);
+    border-radius: 14px;
+    box-shadow: inset 0 0 0 3px oklch(0.975 0.015 85), inset 0 0 0 4px var(--hair), 0 3px 0 var(--hair);
+  }
+  .die.cul { background: oklch(0.88 0.09 85); box-shadow: inset 0 0 0 3px oklch(0.88 0.09 85), inset 0 0 0 4px var(--gilt), 0 3px 0 var(--gilt); }
+  .die i { width: 13px; height: 13px; border-radius: 50%; background: var(--ink); visibility: hidden; }
+  .die.cul i { background: var(--rubric-deep); }
+  .die i.on { visibility: visible; }
+  .die .q { grid-area: 1 / 1 / 4 / 4; font-family: var(--font-display); font-size: 1.75rem; color: var(--ink-soft); }
+  button.die { cursor: pointer; }
+  button.die:disabled { cursor: default; }
+  .die.pick { outline: 2px dashed var(--rubric); outline-offset: 4px; }
+  .die.lit { border-color: var(--rubric); box-shadow: inset 0 0 0 3px oklch(0.975 0.015 85), inset 0 0 0 4px var(--rubric), 0 3px 0 var(--rubric); }
+  .die.cul.lit { box-shadow: inset 0 0 0 3px oklch(0.88 0.09 85), inset 0 0 0 4px var(--rubric), 0 3px 0 var(--rubric); }
+  .die.rolling { animation: dieroll 0.5s var(--ease); }
+  @keyframes dieroll { 30% { transform: rotate(-16deg) translateY(-8px); } 65% { transform: rotate(9deg); } }
+  .cdc-hint { margin: var(--space-md) 0 0; text-align: center; font-size: var(--t-sm); font-style: italic; color: var(--ink-soft); }
+
+  .cdc-verdict { margin-top: var(--space-xl); }
+  .cdc-combo { margin: 0; font-family: var(--font-gothique); font-weight: 700; font-size: 1.5rem; line-height: 1.2; color: var(--rubric); }
+  .cdc-combo.flat { color: var(--ink-soft); }
+  .cdc-verdict p { max-width: 34em; margin: var(--space-sm) 0 0; color: var(--ink-soft); }
+  .cdc-verdict .cry { font-family: var(--font-display); font-style: italic; color: var(--ink); }
+  .cdc-delta { margin: var(--space-md) 0 0; padding: 0; list-style: none; font-family: var(--font-display); font-size: var(--t-md); }
+  .cdc-delta .up { color: var(--ok); }
+  .cdc-delta .down { color: var(--rubric); }
+  .cdc-who { display: grid; grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr)); gap: var(--space-sm); margin-top: var(--space-md); }
+  .cdc-who .btn { font-variant: normal; letter-spacing: 0; overflow-wrap: anywhere; }
+  .cdc-play .actions { margin-top: var(--space-xl); align-items: center; }
+  .cdc-final { margin-top: var(--space-xl); }
+  .help-fold ul { margin: var(--space-sm) 0 0; padding-left: 1.2em; }
+  .help-fold li { margin-top: var(--space-sm); }
+
   /* Entrée en scène */
   @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
   .enter .rise { animation: rise 0.55s var(--ease) both; animation-delay: calc(var(--i, 0) * 80ms); }
@@ -879,7 +973,7 @@
   <div class="rule" aria-hidden="true"></div>
 
   <div class="tabs" role="tablist" aria-label="Sections">
-    <button class="tab tab-play" role="tab" id="tab-play" aria-selected="false" aria-controls="view-play" tabindex="-1"><span class="tab-name">Jouer</span><span class="tab-note">trois jeux</span></button>
+    <button class="tab tab-play" role="tab" id="tab-play" aria-selected="false" aria-controls="view-play" tabindex="-1"><span class="tab-name">Jouer</span><span class="tab-note">quatre jeux</span></button>
     <button class="tab" role="tab" id="tab-quote" aria-selected="true" aria-controls="view-quote" tabindex="0"><span class="tab-name">Citation</span><span class="tab-note">au hasard</span></button>
     <button class="tab" role="tab" id="tab-search" aria-selected="false" aria-controls="view-search" tabindex="-1"><span class="tab-name">Recherche</span><span class="tab-note">par mots</span></button>
     <button class="tab" role="tab" id="tab-records" aria-selected="false" aria-controls="view-records" tabindex="-1"><span class="tab-name">Classement</span><span class="tab-note">et records</span></button>
@@ -2426,7 +2520,19 @@ function renderPlay() {
     b.onclick = () => renderLevels(m);
     list.appendChild(b);
   });
-  root.append(intro, list);
+  // Entre amis : le jeu de dés, sans niveaux ni classement
+  const group = el("p", "seg-label play-group", "Entre amis");
+  const friends = el("div", "levels");
+  const cdc = el("button", "choice level rise");
+  cdc.style.setProperty("--i", 3);
+  const cdcName = el("span", "name");
+  cdcName.append(el("span", "level-name", "Le cul de chouette"), el("span", "level-desc", "Le jeu de dés de la taverne, de 2 à 8 joueurs sur un seul téléphone."));
+  const cdcIcon = el("span", "lv-icon");
+  cdcIcon.appendChild(gameIcon("cdc"));
+  cdc.append(cdcIcon, cdcName);
+  cdc.onclick = cdcSetup;
+  friends.appendChild(cdc);
+  root.append(intro, list, group, friends);
   replay(root);
 }
 
@@ -2483,6 +2589,13 @@ function gameIcon(id) {
     mk("path", { d: "M35 9 V15", class: "ink thin" }, svg);
     mk("circle", { cx: 35, cy: 19, r: 4, class: "rubline" }, svg);
     mk("path", { d: "M35 23 V32 M35 26 L30 30 M35 26 L40 30 M35 32 L31 39 M35 32 L39 39", class: "rubline" }, svg);
+  } else if (id === "cdc") {
+    // Deux dés : une chouette à l'encre, le cul doré
+    mk("rect", { x: 4, y: 18, width: 22, height: 22, rx: 4, class: "ink" }, svg);
+    [[10, 24], [20, 34]].forEach(([x, y]) => mk("circle", { cx: x, cy: y, r: 2.4, class: "dot" }, svg));
+    const cul = mk("g", { transform: "rotate(14 33 17)" }, svg);
+    mk("rect", { x: 22, y: 6, width: 22, height: 22, rx: 4, class: "gdie" }, cul);
+    [[28, 12], [33, 17], [38, 22]].forEach(([x, y]) => mk("circle", { cx: x, cy: y, r: 2.4, class: "rub" }, cul));
   } else {
     const grid = [["abs", "pre", "ok"], ["ok", "ok", "pre"], ["ok", "ok", "ok"]];
     grid.forEach((row, r) => row.forEach((st, c) => {
@@ -2632,6 +2745,490 @@ function finishRound(mode, lv, r, partial) {
   again.onclick = () => startRound(mode, lv);
   const other = el("button", "btn", "Changer de niveau");
   other.onclick = () => renderLevels(mode);
+  actions.append(again, other);
+  wrap.appendChild(actions);
+  root.appendChild(wrap);
+  replay(root);
+  title.focus({ preventScroll: true });
+}
+
+/* ===== Le cul de chouette : le jeu de dés de la taverne, entre amis sur un seul téléphone =====
+   Règles de base : chouette, velute, chouette velute, cul de chouette, suite, néant, sirotage simplifié.
+   Pas de bévue, de civet ni de paris sur le sirotage. La partie en cours est gardée sur l'appareil. */
+const CDC_KEY = "kmt-cdc";
+const CDC_NAMES = "kmt-cdc-names";
+const CDC_MAX = 8;
+const CDC_TARGETS = [
+  { v: 343, note: "partie classique" },
+  { v: 150, note: "partie courte" },
+];
+
+const cdcSq = (n) => n * n;
+const cdcCul = (v) => 40 + 10 * v;
+
+// Combinaison d'un lancer : d = [chouette, chouette, cul]
+function cdcEval(d) {
+  const s = d.slice().sort((a, b) => a - b);
+  const [a, b, c] = s;
+  if (a === c) return { kind: "cul", v: a, pts: cdcCul(a) };
+  if (b === a + 1 && c === b + 1) {
+    return a === 1 ? { kind: "suite-velute", pts: 2 * cdcSq(3) } : { kind: "suite" };
+  }
+  if (a === b || b === c) {
+    const v = b;
+    const odd = a === b ? c : a;
+    if (odd === 2 * v) return { kind: "chouette-velute", v, pts: 2 * cdcSq(odd) };
+    return { kind: "chouette", v, odd: d.indexOf(odd), pts: cdcSq(v) };
+  }
+  if (a + b === c) return { kind: "velute", v: c, pts: 2 * cdcSq(c) };
+  return { kind: "neant" };
+}
+
+const cdcStore = {
+  load() { try { const s = JSON.parse(store.get(CDC_KEY)); return s && Array.isArray(s.players) && s.players.length >= 2 ? s : null; } catch (e) { return null; } },
+  save(s) { store.set(CDC_KEY, JSON.stringify(s)); },
+  clear() { try { localStorage.removeItem(CDC_KEY); } catch (e) { /* ignoré */ } },
+};
+
+// Un dé : 9 cases, les points allumés selon la valeur ; null affiche un point d'interrogation
+const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+function makeDie(isCul, tappable) {
+  const node = el(tappable ? "button" : "div", "die" + (isCul ? " cul" : ""));
+  if (tappable) node.type = "button";
+  const die = {
+    node,
+    value: null,
+    set(v) {
+      die.value = v;
+      if (v === null) {
+        node.replaceChildren(el("span", "q", "?"));
+      } else {
+        const on = PIPS[v];
+        node.replaceChildren(...[0, 1, 2, 3, 4, 5, 6, 7, 8].map((k) => el("i", on.includes(k) ? "on" : "")));
+      }
+      node.setAttribute("aria-label", (isCul ? "Cul" : "Chouette") + " : " + (v === null ? "pas encore lancé" : v));
+    },
+  };
+  node.setAttribute("role", tappable ? "button" : "img");
+  die.set(null);
+  return die;
+}
+
+function cdcHelp(target) {
+  const box = el("div", "help");
+  box.appendChild(el("p", "", "Trois dés : deux chouettes (blancs) et un cul (doré). À ton tour, tu lances les trois, puis tu passes le téléphone."));
+  const ul = el("ul");
+  [
+    ["Chouette", "deux dés identiques. Le carré de leur valeur : deux 4 font 16 points. Tu peux alors siroter : relancer le troisième dé pour tenter le cul de chouette. Raté, tu perds les points de la chouette."],
+    ["Velute", "deux dés dont la somme fait le troisième (2, 3 et 5). Deux fois le carré du troisième : 50 points."],
+    ["Chouette velute", "les deux à la fois (2, 2 et 4). Le premier qui crie « Pas mou le caillou ! » en tapant sur la table gagne les points de la velute."],
+    ["Cul de chouette", "trois dés identiques. De 50 points pour trois 1 à 100 points pour trois 6."],
+    ["Suite", "trois dés qui se suivent (3, 4 et 5). Tout le monde tape sur la table en criant « Grelotte, ça picote ! » ; le dernier perd 10 points. 1, 2 et 3 est aussi une velute : le lanceur marque 18 points en plus."],
+    ["Néant", "rien de tout ça : zéro point."],
+  ].forEach(([a, b]) => {
+    const li = el("li");
+    li.append(el("span", "tag", a + " : "), document.createTextNode(b));
+    ul.appendChild(li);
+  });
+  box.appendChild(ul);
+  box.appendChild(el("p", "", "Le premier à " + (target || 343) + " points l'emporte. Vous jouez avec de vrais dés ? Touche « J'ai lancé de vrais dés » et saisis-les. Ce sont les règles de base : la bévue, le civet et les paris du sirotage ne sont pas gérés."));
+  return box;
+}
+
+/* Préparation : joueurs, score à atteindre, reprise d'une partie en cours */
+function cdcSetup() {
+  document.body.classList.remove("playing");
+  const root = $("play-root");
+  root.innerHTML = "";
+  const back = el("button", "back", "← Changer de jeu");
+  back.onclick = renderPlay;
+  const title = el("h2", "section-title");
+  title.append(gameIcon("cdc"), document.createTextNode("Le cul de chouette"));
+  const intro = el("div", "state");
+  intro.appendChild(el("p", "", "Le jeu de dés de la taverne, de 2 à 8 joueurs sur un seul téléphone qu'on se passe. Chacun lance à son tour, les combinaisons rapportent des points, et le premier à 343 l'emporte."));
+  root.append(back, title, intro);
+
+  const saved = cdcStore.load();
+  if (saved) {
+    const box = el("div", "cdc-resume");
+    box.appendChild(el("p", "", "Une partie est en cours : " + saved.players.map((p) => p.name + " " + p.score).join(", ") + "."));
+    const actions = el("div", "actions");
+    const go = el("button", "btn primary", "Reprendre la partie");
+    go.onclick = () => cdcGame(saved);
+    const drop = el("button", "linklike", "L'abandonner");
+    drop.type = "button";
+    drop.onclick = () => { cdcStore.clear(); cdcSetup(); };
+    actions.append(go, drop);
+    box.appendChild(actions);
+    root.appendChild(box);
+  }
+
+  let names = [];
+  try { names = JSON.parse(store.get(CDC_NAMES)) || []; } catch (e) { names = []; }
+  if (!Array.isArray(names)) names = [];
+  names = names.filter((n) => typeof n === "string").slice(0, CDC_MAX);
+  while (names.length < 2) names.push("");
+  let target = parseInt(store.get("kmt-cdc-target"), 10) || 343;
+  if (!CDC_TARGETS.some((t) => t.v === target)) target = 343;
+
+  const plLabel = el("p", "seg-label", "Joueurs");
+  const list = el("div", "cdc-players");
+  const add = el("button", "linklike cdc-add", "+ Ajouter un joueur");
+  add.type = "button";
+
+  function readNames() { return [...list.querySelectorAll("input")].map((i) => i.value); }
+  function paintPlayers(focusLast) {
+    list.replaceChildren();
+    names.forEach((n, k) => {
+      const row = el("div", "cdc-row");
+      const input = el("input");
+      input.type = "text";
+      input.maxLength = 20;
+      input.value = n;
+      input.placeholder = "Joueur " + (k + 1);
+      input.autocomplete = "off";
+      input.setAttribute("aria-label", "Nom du joueur " + (k + 1));
+      input.oninput = () => { names[k] = input.value; };
+      input.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); start(); } };
+      row.append(el("span", "num", String(k + 1)), input);
+      if (names.length > 2) {
+        const del = el("button", "back", "✕");
+        del.type = "button";
+        del.setAttribute("aria-label", "Retirer " + (n.trim() || "le joueur " + (k + 1)));
+        del.onclick = () => { names = readNames(); names.splice(k, 1); paintPlayers(false); };
+        row.appendChild(del);
+      }
+      list.appendChild(row);
+    });
+    add.hidden = names.length >= CDC_MAX;
+    if (focusLast) list.querySelector(".cdc-row:last-child input").focus();
+  }
+  add.onclick = () => { names = readNames(); names.push(""); paintPlayers(true); };
+  paintPlayers(false);
+
+  const tLabel = el("p", "seg-label", "Score à atteindre");
+  tLabel.id = "cdc-target";
+  const seg = el("div", "seg two");
+  seg.setAttribute("role", "group");
+  seg.setAttribute("aria-labelledby", "cdc-target");
+  const tBtns = CDC_TARGETS.map((t) => {
+    const b = el("button");
+    b.type = "button";
+    b.append(el("span", "", t.v + " points"), el("span", "seg-note", t.note));
+    b.onclick = () => { target = t.v; paintTarget(); };
+    seg.appendChild(b);
+    return { b, v: t.v };
+  });
+  function paintTarget() { tBtns.forEach((t) => t.b.setAttribute("aria-pressed", String(t.v === target))); }
+  paintTarget();
+
+  const msg = el("p", "publish-msg");
+  msg.setAttribute("aria-live", "polite");
+  const actions = el("div", "actions cdc-setup-go");
+  const go = el("button", "btn primary", saved ? "Nouvelle partie" : "Commencer");
+  actions.appendChild(go);
+
+  function start() {
+    names = readNames();
+    const players = names.map((n, k) => ({ name: n.trim().slice(0, 20) || "Joueur " + (k + 1), score: 0 }));
+    const seen = new Set();
+    for (const p of players) {
+      const key = p.name.toLowerCase();
+      if (seen.has(key)) { msg.textContent = "Deux joueurs s'appellent « " + p.name + " » : change un des noms."; return; }
+      seen.add(key);
+    }
+    store.set(CDC_NAMES, JSON.stringify(names.map((n) => n.trim())));
+    store.set("kmt-cdc-target", String(target));
+    const state = { players, target, turn: 0 };
+    cdcStore.save(state);
+    cdcGame(state);
+  }
+  go.onclick = start;
+
+  const fold = el("details", "help-fold");
+  fold.appendChild(el("summary", "", "Les règles"));
+  fold.appendChild(cdcHelp(target));
+  root.append(plLabel, list, add, tLabel, seg, msg, actions, fold);
+  replay(root);
+}
+
+/* Partie : tableau des scores, lancer, combinaison, puis joueur suivant */
+function cdcGame(state) {
+  document.body.classList.add("playing");
+  const root = $("play-root");
+  root.innerHTML = "";
+  const wrap = el("div", "cdc-play");
+
+  const tally = el("div", "tally");
+  const goal = el("span", "", "Partie en " + state.target + " points");
+  const quit = el("button", "back", "Arrêter");
+  quit.type = "button";
+  quit.onclick = () => { cdcStore.save(state); cdcSetup(); };
+  tally.append(goal, feelToggle(), quit);
+
+  const boardEl = el("ol", "cdc-board");
+  boardEl.setAttribute("aria-label", "Scores");
+  const rows = state.players.map(() => {
+    const li = el("li");
+    const nm = el("span", "nm");
+    const pts = el("span", "pts");
+    const bar = el("span", "bar");
+    bar.appendChild(el("i"));
+    li.append(nm, pts, bar);
+    boardEl.appendChild(li);
+    return { li, nm, pts, bar };
+  });
+
+  const turnTitle = el("h2", "cdc-turn");
+  const dice = [makeDie(false, true), makeDie(false, true), makeDie(true, true)];
+  const diceRow = el("div", "cdc-dice");
+  dice.forEach((d, k) => {
+    const w = el("div", "die-wrap");
+    w.append(d.node, el("span", "", k === 2 ? "le cul" : "chouette"));
+    diceRow.appendChild(w);
+  });
+  const hint = el("p", "cdc-hint");
+  const verdict = el("div", "cdc-verdict");
+  verdict.setAttribute("aria-live", "polite");
+  const actions = el("div", "actions");
+  wrap.append(tally, boardEl, turnTitle, diceRow, hint, verdict, actions);
+  root.appendChild(wrap);
+
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let busy = false;
+  let manual = false;
+  const cur = () => state.players[state.turn];
+
+  function paintBoard(changed) {
+    const top = Math.max(state.target, ...state.players.map((p) => p.score));
+    state.players.forEach((p, k) => {
+      const r = rows[k];
+      r.li.classList.toggle("now", k === state.turn);
+      r.nm.textContent = p.name;
+      r.pts.textContent = String(p.score);
+      r.pts.classList.toggle("neg", p.score < 0);
+      r.bar.firstChild.style.setProperty("--p", Math.max(0, Math.min(100, (p.score / top) * 100)) + "%");
+      if (changed && changed.has(k)) bump(r.pts);
+    });
+  }
+
+  function setDiceTappable(which) {
+    dice.forEach((d, k) => {
+      const on = which.includes(k);
+      d.node.disabled = !on;
+      d.node.classList.toggle("pick", on);
+      d.node.onclick = on ? () => { d.set(d.value === null ? 1 : (d.value % 6) + 1); feel.sfx("tap"); onPick(); } : null;
+    });
+  }
+  let onPick = () => {};
+
+  function btn(label, cls, fn) {
+    const b = el("button", cls, label);
+    b.type = "button";
+    b.onclick = fn;
+    return b;
+  }
+
+  // Lance les dés demandés (indices), avec une courte animation, puis rappelle done()
+  function rollDice(which, done) {
+    busy = true;
+    setDiceTappable([]);
+    const final = which.map(() => 1 + Math.floor(Math.random() * 6));
+    const frames = reduce ? 0 : 7;
+    which.forEach((k) => { dice[k].node.classList.remove("rolling", "lit"); void dice[k].node.offsetWidth; dice[k].node.classList.add("rolling"); });
+    let f = 0;
+    const tick = () => {
+      if (f < frames) {
+        which.forEach((k) => dice[k].set(1 + Math.floor(Math.random() * 6)));
+        feel.sfx("flip", 260 + Math.random() * 260);
+        f++;
+        setTimeout(tick, 65);
+        return;
+      }
+      which.forEach((k, j) => dice[k].set(final[j]));
+      busy = false;
+      done();
+    };
+    tick();
+  }
+
+  // Saisie de vrais dés : on touche chaque dé pour faire défiler sa valeur
+  function enterDice(which, done) {
+    manual = true;
+    which.forEach((k) => dice[k].set(null));
+    hint.textContent = which.length > 1 ? "Touche chaque dé jusqu'à la valeur obtenue." : "Touche le cul jusqu'à la valeur obtenue.";
+    const ok = btn("Valider", "btn primary", () => {
+      setDiceTappable([]);
+      hint.textContent = "";
+      done();
+    });
+    ok.disabled = true;
+    onPick = () => { ok.disabled = which.some((k) => dice[k].value === null); };
+    setDiceTappable(which);
+    actions.replaceChildren(ok, btn("Lancer à ma place", "linklike", () => { hint.textContent = ""; manual = false; rollDice(which, done); }));
+  }
+
+  function startTurn() {
+    manual = false;
+    paintBoard();
+    turnTitle.textContent = "À " + cur().name + " de lancer";
+    dice.forEach((d) => { d.set(null); d.node.classList.remove("lit"); });
+    setDiceTappable([]);
+    hint.textContent = "";
+    verdict.replaceChildren();
+    const roll = btn("Lancer les dés", "btn primary", () => { if (!busy) rollDice([0, 1, 2], resolve); });
+    actions.replaceChildren(roll, btn("J'ai lancé de vrais dés", "linklike", () => enterDice([0, 1, 2], resolve)));
+    roll.focus({ preventScroll: true });
+  }
+
+  function light(idx) { dice.forEach((d, k) => d.node.classList.toggle("lit", idx.includes(k))); }
+
+  // Affiche la combinaison et ce qu'elle demande
+  function resolve() {
+    const d = dice.map((x) => x.value);
+    const r = cdcEval(d);
+    const me = state.turn;
+    const head = (t, flat) => el("h3", "cdc-combo" + (flat ? " flat" : ""), t);
+    const p = (t) => el("p", "", t);
+    const cry = (t) => el("span", "cry", "« " + t + " »");
+
+    if (r.kind === "cul") {
+      light([0, 1, 2]);
+      feel.sfx("win");
+      verdict.replaceChildren(head("Cul de chouette de " + r.v + " !"), p("Trois dés identiques : " + r.pts + " points."));
+      return apply([[me, r.pts]]);
+    }
+    if (r.kind === "velute") {
+      light([0, 1, 2]);
+      feel.sfx("ok");
+      verdict.replaceChildren(head("Velute de " + r.v), p("Deux dés font le troisième : deux fois " + r.v + " au carré, " + r.pts + " points."));
+      return apply([[me, r.pts]]);
+    }
+    if (r.kind === "neant") {
+      feel.sfx("miss");
+      verdict.replaceChildren(head("Néant", true), p("Ni chouette ni velute. Zéro point, au suivant."));
+      return apply([]);
+    }
+    if (r.kind === "chouette") {
+      light([0, 1, 2].filter((k) => k !== r.odd));
+      feel.sfx("ok");
+      const gain = cdcCul(r.v);
+      verdict.replaceChildren(
+        head("Chouette de " + r.v),
+        p(r.pts + " points. Tu peux siroter : relancer le dé seul pour tenter le cul de chouette (" + gain + " points), mais si c'est raté tu perds " + r.pts + " points.")
+      );
+      actions.replaceChildren(
+        btn("Garder", "btn primary", () => apply([[me, r.pts]])),
+        btn("Siroter", "btn", () => sirote(r))
+      );
+      return;
+    }
+    if (r.kind === "chouette-velute") {
+      light([0, 1, 2]);
+      feel.sfx("ok");
+      const q = p("Le premier qui crie ");
+      q.append(cry("Pas mou le caillou !"), document.createTextNode(" en tapant sur la table gagne " + r.pts + " points. Qui a crié le premier ?"));
+      verdict.replaceChildren(head("Chouette velute !"), q, whoPicker((k) => apply([[k, r.pts]])));
+      actions.replaceChildren();
+      return;
+    }
+    // Suite (et suite velutée 1, 2, 3)
+    light([0, 1, 2]);
+    feel.sfx("ok");
+    const q = p("Tout le monde tape sur la table en criant ");
+    q.append(cry("Grelotte, ça picote !"), document.createTextNode(" Le dernier perd 10 points. Qui était le dernier ?"));
+    const parts = [head(r.kind === "suite-velute" ? "Suite velutée !" : "Suite !")];
+    if (r.kind === "suite-velute") parts.push(p("1, 2 et 3 : c'est aussi une velute, " + cur().name + " marque " + r.pts + " points."));
+    parts.push(q, whoPicker((k) => apply(r.kind === "suite-velute" ? [[me, r.pts], [k, -10]] : [[k, -10]])));
+    verdict.replaceChildren(...parts);
+    actions.replaceChildren();
+  }
+
+  function whoPicker(fn) {
+    const box = el("div", "cdc-who");
+    state.players.forEach((pl, k) => box.appendChild(btn(pl.name, "btn", () => { box.querySelectorAll("button").forEach((b) => { b.disabled = true; }); fn(k); })));
+    return box;
+  }
+
+  function sirote(r) {
+    const me = state.turn;
+    const after = () => {
+      const v = dice[r.odd].value;
+      if (v === r.v) {
+        light([0, 1, 2]);
+        feel.sfx("win");
+        verdict.replaceChildren(el("h3", "cdc-combo", "Sirop réussi : cul de chouette de " + r.v + " !"), el("p", "", cdcCul(r.v) + " points."));
+        apply([[me, cdcCul(r.v)]]);
+      } else {
+        feel.sfx("lose");
+        verdict.replaceChildren(el("h3", "cdc-combo flat", "Sirop raté"), el("p", "", "Le dé fait " + v + " : la chouette est perdue, " + r.pts + " points en moins."));
+        apply([[me, -r.pts]]);
+      }
+    };
+    verdict.replaceChildren(el("h3", "cdc-combo", "On sirote…"), el("p", "", "Il faut un " + r.v + "."));
+    if (manual) enterDice([r.odd], after);
+    else { actions.replaceChildren(); rollDice([r.odd], after); }
+  }
+
+  // Applique les points, vérifie la victoire, puis propose le joueur suivant
+  function apply(deltas) {
+    const changed = new Set();
+    const sum = {};
+    deltas.forEach(([k, n]) => { sum[k] = (sum[k] || 0) + n; });
+    const list = el("ul", "cdc-delta");
+    Object.keys(sum).forEach((k) => {
+      const n = sum[k];
+      state.players[k].score += n;
+      changed.add(Number(k));
+      list.appendChild(el("li", n >= 0 ? "up" : "down", state.players[k].name + " " + (n >= 0 ? "+" : "−") + Math.abs(n)));
+    });
+    if (deltas.length) verdict.appendChild(list);
+    paintBoard(changed);
+
+    const winners = state.players.filter((pl) => pl.score >= state.target);
+    if (winners.length) {
+      cdcStore.clear();
+      const best = winners.sort((a, b) => b.score - a.score)[0];
+      actions.replaceChildren(btn("Voir le vainqueur", "btn primary", () => cdcEnd(state, best)));
+      actions.firstChild.focus({ preventScroll: true });
+      return;
+    }
+    state.turn = (state.turn + 1) % state.players.length;
+    cdcStore.save(state);
+    const next = btn("Au tour de " + cur().name, "btn primary", startTurn);
+    actions.replaceChildren(next);
+    next.focus({ preventScroll: true });
+  }
+
+  startTurn();
+  replay(wrap);
+}
+
+function cdcEnd(state, best) {
+  document.body.classList.remove("playing");
+  feel.sfx("win");
+  const root = $("play-root");
+  root.innerHTML = "";
+  const wrap = el("div", "result");
+  const title = el("h2", "result-title", best.name + " l'emporte !");
+  title.tabIndex = -1;
+  wrap.append(title, el("p", "", best.score + " points : la taverne est à ses pieds."));
+  const ranking = el("ol", "ranking cdc-final");
+  state.players.slice().sort((a, b) => b.score - a.score).forEach((p, k) => {
+    const li = el("li", k === 0 ? "top first" : "");
+    li.append(el("span", "rank", String(k + 1)), el("span", "nick", p.name), el("span", "pts", String(p.score)));
+    ranking.appendChild(li);
+  });
+  wrap.appendChild(ranking);
+  const actions = el("div", "actions");
+  const again = el("button", "btn primary", "Revanche");
+  again.onclick = () => {
+    const s = { players: state.players.map((p) => ({ name: p.name, score: 0 })), target: state.target, turn: 0 };
+    cdcStore.save(s);
+    cdcGame(s);
+  };
+  const other = el("button", "btn", "Changer les joueurs");
+  other.onclick = cdcSetup;
   actions.append(again, other);
   wrap.appendChild(actions);
   root.appendChild(wrap);
