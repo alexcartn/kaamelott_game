@@ -902,7 +902,7 @@
   }
   .cdc-board li.now { border-left-color: var(--rubric); background: var(--parchment-deep); }
   .cdc-board .nm { min-width: 0; overflow-wrap: anywhere; font-family: var(--font-display); font-size: var(--t-md); }
-  .cdc-board li.now .nm::after { content: "à toi"; margin-left: 0.6em; font-family: var(--font-text); font-size: var(--t-sm); font-style: italic; color: var(--rubric); }
+  .cdc-board li.now .nm::after { content: attr(data-now); margin-left: 0.6em; font-family: var(--font-text); font-size: var(--t-sm); font-style: italic; color: var(--rubric); }
   .cdc-board .pts { display: inline-block; font-family: var(--font-display); font-size: var(--t-md); font-variant-numeric: tabular-nums; }
   .cdc-board .pts.neg { color: var(--rubric); }
   .cdc-board .bar { grid-column: 1 / -1; height: 3px; background: var(--hair); overflow: hidden; }
@@ -951,6 +951,65 @@
   .cdc-delta .down { color: var(--rubric); }
   .cdc-who { display: grid; grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr)); gap: var(--space-sm); margin-top: var(--space-md); }
   .cdc-who .btn { font-variant: normal; letter-spacing: 0; overflow-wrap: anywhere; }
+  .ia { display: inline-block; margin-left: 0.5em; padding: 0 0.35em; font-family: var(--font-text); font-size: 0.7rem; font-style: normal; letter-spacing: 0.08em; line-height: 1.5; vertical-align: 0.15em; color: var(--ink-soft); border: 1px solid var(--gilt); border-radius: 2px; }
+  .cdc-row .botname { flex: 1; min-width: 0; min-height: 48px; display: flex; flex-direction: column; justify-content: center; padding: var(--space-xs) var(--space-md); border: 1px dashed var(--gilt); border-radius: 2px; }
+  .botname .n, .cdc-botadd .n { display: block; font-family: var(--font-display); font-size: var(--t-md); line-height: 1.2; }
+  .botname .d, .cdc-botadd .d { display: block; font-size: var(--t-sm); font-style: italic; color: var(--ink-soft); line-height: 1.3; }
+  .cdc-bots { display: grid; grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr)); gap: var(--space-sm); max-width: 26rem; }
+  .cdc-botadd { min-height: 44px; padding: var(--space-sm) var(--space-md); text-align: left; font: inherit; color: var(--ink); background: transparent; border: 1px solid var(--hair); border-radius: 2px; cursor: pointer; transition: background-color 0.2s var(--ease), border-color 0.2s var(--ease); }
+  .cdc-botadd:hover { background: var(--parchment-deep); border-color: var(--gilt); }
+  .cdc-slap { width: 100%; min-height: 76px; margin-top: var(--space-md); font-size: 1.375rem; }
+  .cdc-slap:disabled { cursor: default; }
+  .cdc-times { margin-top: var(--space-sm); font-size: var(--t-sm); font-variant-numeric: tabular-nums; }
+  .cdc-verdict .cdc-ai { font-style: italic; color: var(--ink); }
+  .cdc-verdict .actions { margin-top: var(--space-md); }
+  /* Adversaire : carte illustrée et bulle */
+  .foe { display: grid; grid-template-columns: 7.25rem minmax(0, 1fr); align-items: center; gap: var(--space-lg); margin-top: var(--space-xl); }
+  .foe-card {
+    padding: 5px 5px 0;
+    background: oklch(0.975 0.015 85);
+    border: 1.5px solid var(--ink);
+    border-radius: 8px;
+    box-shadow: 0 4px 0 var(--hair);
+    transform: rotate(-2.5deg);
+    transform-origin: 50% 90%;
+  }
+  .foe-card[data-mood="happy"] { transform: rotate(1.5deg); }
+  .foe-card[data-mood="angry"] { transform: rotate(-4deg); }
+  .foe-frame { overflow: hidden; border: 1px solid var(--ink); border-radius: 5px; }
+  .foe-art { display: block; width: 100%; height: auto; }
+  .foe-name { margin: 0; padding: 3px 0 5px; text-align: center; font-family: var(--font-gothique); font-weight: 700; font-size: 1.0625rem; line-height: 1.1; }
+  .foe-say {
+    position: relative;
+    margin: 0;
+    padding: var(--space-md) var(--space-lg);
+    font-family: var(--font-display);
+    font-size: var(--t-md);
+    font-style: italic;
+    line-height: 1.35;
+    color: var(--ink);
+    background: var(--parchment-deep);
+    border: 1px solid var(--hair);
+    border-radius: 12px;
+  }
+  .foe-say::before {
+    content: "";
+    position: absolute;
+    left: -8px;
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    background: var(--parchment-deep);
+    border-left: 1px solid var(--hair);
+    border-bottom: 1px solid var(--hair);
+    transform: translateY(-50%) rotate(45deg);
+  }
+  .foe-card.swap { animation: foeswap 0.5s var(--ease) both; }
+  .foe-card.nudge { animation: foenudge 0.45s var(--ease); }
+  .foe-say.talk { animation: rise 0.35s var(--ease) both; }
+  @keyframes foeswap { from { opacity: 0; transform: translateX(-40px) rotate(-14deg); } }
+  @keyframes foenudge { 40% { transform: rotate(3deg) translateY(-3px); } }
+  .result .foe { max-width: 30rem; }
   .cdc-play .actions { margin-top: var(--space-xl); align-items: center; }
   .cdc-final { margin-top: var(--space-xl); }
   .help-fold ul { margin: var(--space-sm) 0 0; padding-left: 1.2em; }
@@ -2526,7 +2585,7 @@ function renderPlay() {
   const cdc = el("button", "choice level rise");
   cdc.style.setProperty("--i", 3);
   const cdcName = el("span", "name");
-  cdcName.append(el("span", "level-name", "Le cul de chouette"), el("span", "level-desc", "Le jeu de dés de la taverne, de 2 à 8 joueurs sur un seul téléphone."));
+  cdcName.append(el("span", "level-name", "Le cul de chouette"), el("span", "level-desc", "Le jeu de dés de la taverne, entre amis ou contre Léodagan, Perceval et Karadoc."));
   const cdcIcon = el("span", "lv-icon");
   cdcIcon.appendChild(gameIcon("cdc"));
   cdc.append(cdcIcon, cdcName);
@@ -2763,6 +2822,8 @@ const CDC_TARGETS = [
   { v: 150, note: "partie courte" },
 ];
 
+// Un dé à six faces (fonction globale : les tests peuvent la remplacer)
+function cdcRollDie() { return 1 + Math.floor(Math.random() * 6); }
 const cdcSq = (n) => n * n;
 const cdcCul = (v) => 40 + 10 * v;
 
@@ -2790,6 +2851,90 @@ const cdcStore = {
   clear() { try { localStorage.removeItem(CDC_KEY); } catch (e) { /* ignoré */ } },
 };
 
+/* Adversaires : trois personnages, trois façons de jouer.
+   Léodagan calcule (espérance, retard, menace d'un rival) et apprend tes réflexes aux courses.
+   Perceval sirote quasiment toujours et rêvasse pendant les courses.
+   Karadoc garde tout, sauf les miettes, et devient vif quand il y a des points à gagner. */
+const CDC_BOTS = {
+  leodagan: { name: "Léodagan", desc: "calcule tout, apprend tes réflexes" },
+  perceval: { name: "Perceval", desc: "sirote tout, rêvasse aux courses" },
+  karadoc: { name: "Karadoc", desc: "prudent, vif quand il y a à gagner" },
+};
+const CDC_REFLEX = "kmt-cdc-reflex";
+
+function cdcGauss() {
+  let u = 0;
+  while (u === 0) u = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * Math.random());
+}
+
+// Réflexes de l'humain, en millisecondes : médiane des 12 dernières courses
+function cdcHumanMedian() {
+  let list = [];
+  try { list = JSON.parse(store.get(CDC_REFLEX)) || []; } catch (e) { list = []; }
+  if (!Array.isArray(list) || list.length < 3) return null;
+  const s = list.filter((n) => typeof n === "number").sort((a, b) => a - b);
+  return s.length ? s[Math.floor(s.length / 2)] : null;
+}
+function cdcRecordReflex(ms) {
+  let list = [];
+  try { list = JSON.parse(store.get(CDC_REFLEX)) || []; } catch (e) { list = []; }
+  if (!Array.isArray(list)) list = [];
+  list.push(Math.round(ms));
+  store.set(CDC_REFLEX, JSON.stringify(list.slice(-12)));
+}
+
+// Temps de réaction d'une IA à une course ("first" : le premier gagne, "last" : le dernier perd)
+function cdcBotReflex(id, kind) {
+  let t;
+  if (id === "leodagan") {
+    // Il se cale sur toi : à peu près aussi rapide que ta médiane, un peu plus ou un peu moins
+    const med = cdcHumanMedian() || 560;
+    const mean = Math.min(800, Math.max(300, med * (0.9 + Math.random() * 0.2)));
+    t = mean + cdcGauss() * 50;
+  } else if (id === "perceval") {
+    t = 820 + cdcGauss() * 170 + (Math.random() < 0.15 ? 700 : 0);
+  } else {
+    t = kind === "first" ? 470 + cdcGauss() * 80 : 680 + cdcGauss() * 120;
+  }
+  return Math.max(200, Math.round(t));
+}
+
+// Décision de sirotage d'une IA sur une chouette : { sir, why }
+function cdcBotSirote(id, state, me, r) {
+  const keep = r.pts;
+  const gain = cdcCul(r.v);
+  const ev = (gain - 5 * keep) / 6;
+  const my = state.players[me].score;
+  const T = state.target;
+  const lead = Math.max(...state.players.filter((p, k) => k !== me).map((p) => p.score));
+  const winKeep = my + keep >= T;
+  const winSir = my + gain >= T;
+  const threat = lead >= T - 60;
+  const behind = lead - my;
+  const late = lead >= 0.6 * T;
+  const n = (x) => String(Math.round(x * 10) / 10).replace(".", ",");
+  const name = CDC_BOTS[id].name;
+
+  if (id === "perceval") {
+    if (winKeep && Math.random() < 0.5) return { sir: false, why: "Perceval garde. Pour une fois, c'était la bonne idée." };
+    if (Math.random() < 0.85) return { sir: true, why: pick(["Perceval sirote. Évidemment.", "Perceval sirote : « C'est pas faux. »", "Perceval sirote, sans trop savoir ce que ça veut dire."]) };
+    return { sir: false, why: "Perceval garde. Personne ne sait pourquoi." };
+  }
+  if (id === "karadoc") {
+    if (winKeep) return { sir: false, why: "Karadoc garde : quand c'est gagné, on ne gaspille pas." };
+    if (r.v === 1) return { sir: true, why: "Une chouette de 1, ça ne nourrit pas son homme : Karadoc sirote." };
+    if (winSir && threat) return { sir: true, why: "Karadoc sent la fin du repas : il sirote." };
+    return { sir: false, why: "Karadoc garde. Le gras, c'est la vie." };
+  }
+  // Léodagan
+  if (winKeep) return { sir: false, why: name + " encaisse : avec ces " + keep + " points, il gagne." };
+  if (winSir && threat) return { sir: true, why: "Un rival est aux portes de la victoire : " + name + " tente le cul de chouette pour finir." };
+  if (ev > keep) return { sir: true, why: name + " calcule : à " + r.v + ", siroter rapporte " + n(ev) + " points en moyenne, contre " + keep + " en gardant. Il sirote." };
+  if (late && behind > 80 && r.v <= 3) return { sir: true, why: name + " a " + behind + " points de retard et la fin approche : pas le moment de jouer petit bras, il sirote." };
+  return { sir: false, why: name + " calcule : à " + r.v + ", siroter ne rapporte que " + n(ev) + " points en moyenne. Il garde les " + keep + "." };
+}
+
 // Un dé : 9 cases, les points allumés selon la valeur ; null affiche un point d'interrogation
 const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
 function makeDie(isCul, tappable) {
@@ -2816,14 +2961,14 @@ function makeDie(isCul, tappable) {
 
 function cdcHelp(target) {
   const box = el("div", "help");
-  box.appendChild(el("p", "", "Trois dés : deux chouettes (blancs) et un cul (doré). À ton tour, tu lances les trois, puis tu passes le téléphone."));
+  box.appendChild(el("p", "", "Trois dés : deux chouettes (blancs) et un cul (doré). À ton tour, tu lances les deux chouettes, puis le cul, et tu passes le téléphone."));
   const ul = el("ul");
   [
     ["Chouette", "deux dés identiques. Le carré de leur valeur : deux 4 font 16 points. Tu peux alors siroter : relancer le troisième dé pour tenter le cul de chouette. Raté, tu perds les points de la chouette."],
     ["Velute", "deux dés dont la somme fait le troisième (2, 3 et 5). Deux fois le carré du troisième : 50 points."],
-    ["Chouette velute", "les deux à la fois (2, 2 et 4). Le premier qui crie « Pas mou le caillou ! » en tapant sur la table gagne les points de la velute."],
+    ["Chouette velute", "les deux à la fois (2, 2 et 4). Le premier qui crie « Pas mou le caillou ! » en frappant dans ses mains gagne les points de la velute (en cas d'égalité, les ex æquo les perdent)."],
     ["Cul de chouette", "trois dés identiques. De 50 points pour trois 1 à 100 points pour trois 6."],
-    ["Suite", "trois dés qui se suivent (3, 4 et 5). Tout le monde tape sur la table en criant « Grelotte, ça picote ! » ; le dernier perd 10 points. 1, 2 et 3 est aussi une velute : le lanceur marque 18 points en plus."],
+    ["Suite", "trois dés qui se suivent (3, 4 et 5). Tout le monde tape du poing sur la table en criant « Grelotte, ça picote ! » ; le dernier perd 10 points. Sur 1, 2 et 3 (suite velutée), le lanceur peut en plus valider sa velute de 18 points en criant « Patte de canaaard ! » et en attrapant une chouette."],
     ["Néant", "rien de tout ça : zéro point."],
   ].forEach(([a, b]) => {
     const li = el("li");
@@ -2831,8 +2976,163 @@ function cdcHelp(target) {
     ul.appendChild(li);
   });
   box.appendChild(ul);
-  box.appendChild(el("p", "", "Le premier à " + (target || 343) + " points l'emporte. Vous jouez avec de vrais dés ? Touche « J'ai lancé de vrais dés » et saisis-les. Ce sont les règles de base : la bévue, le civet et les paris du sirotage ne sont pas gérés."));
+  box.appendChild(el("p", "", "Le premier à " + (target || 343) + " points l'emporte. Vous jouez avec de vrais dés ? Touche « J'ai lancé de vrais dés » et saisis-les. Ce sont les règles de base, d'après la règle publiée sur Wikibooks : la grelottine, la bévue, le civet, l'artichette, la soufflette et les paris du sirotage ne sont pas gérés."));
+  box.appendChild(el("p", "", "Seul ou pas assez nombreux ? Ajoute une IA : Léodagan, Perceval ou Karadoc, chacun avec sa façon de jouer. Avec des IA, les courses (« Pas mou le caillou ! », « Grelotte, ça picote ! ») se jouent au bouton : le plus rapide à le toucher gagne, et Léodagan apprend tes réflexes."));
   return box;
+}
+
+/* Portrait de l'adversaire : une carte illustrée (aplats cernés d'encre) et une bulle de dialogue.
+   Quatre humeurs : neutral, happy, angry, sad. Les répliques sont écrites dans l'esprit des personnages. */
+const FOE_LOOK = {
+  leodagan: { bg: "oklch(0.8 0.06 30)", cloth: "oklch(0.45 0.14 28)" },
+  perceval: { bg: "oklch(0.83 0.05 240)", cloth: "oklch(0.5 0.08 245)" },
+  karadoc: { bg: "oklch(0.85 0.07 115)", cloth: "oklch(0.5 0.07 110)" },
+};
+const FOE_LINES = {
+  leodagan: {
+    turn: ["Bon. On va pas y passer la nuit.", "À moi. Regardez et prenez des notes.", "Silence. Le roi lance."],
+    good: ["Évidemment.", "Ça, c'est du jeu.", "Et voilà comment on fait, en Carmélide."],
+    bad: ["Ces dés sont pipés, je l'ai toujours dit.", "Ça commence à bien faire.", "Personne n'a rien vu."],
+    humanGood: ["Coup de bol.", "Profitez-en, ça va pas durer.", "Hmm. Pas mal, pour un amateur."],
+    humanBad: ["Ha ! Rien du tout.", "Je m'en doutais.", "Ça vous apprendra."],
+    raceWin: ["Trop lent, mon vieux.", "Les réflexes, ça se travaille."],
+    raceLose: ["J'avais la main dans la poche.", "Je vous ai laissé gagner. Par politesse."],
+    win: ["Je vous l'avais dit : on ne bat pas un roi."],
+    lose: ["Je retiens. Je retiens tout."],
+  },
+  perceval: {
+    turn: ["C'est à moi ? Ah ouais, c'est à moi.", "J'ai les dés, là. C'est bon signe.", "Attendez, je me concentre."],
+    good: ["Ah ben voilà !", "Je sais pas ce que j'ai fait, mais c'est bien.", "C'est ça, le talent."],
+    bad: ["C'est pas faux.", "Ah. Ben c'est pas grave.", "Je crois que j'ai pas compris la règle."],
+    humanGood: ["C'est vous qui comptez les points ?", "Bravo ! Enfin, je crois."],
+    humanBad: ["Moi aussi, j'ai fait ça une fois.", "Ça arrive aux meilleurs. Enfin, à moi."],
+    raceWin: ["Pas mou le… le truc !", "J'ai tapé ! J'ai tapé quoi ?"],
+    raceLose: ["Hein ? On criait quoi ?", "J'étais en train de compter les chouettes."],
+    win: ["J'ai gagné ? Pour de vrai ?"],
+    lose: ["C'était quoi, le but, déjà ?"],
+  },
+  karadoc: {
+    turn: ["Attendez, je finis ma cuisse.", "Allez, on lance, j'ai faim.", "Je lance, et après on mange."],
+    good: ["Ça, c'est nourrissant.", "Voilà qui ouvre l'appétit.", "Le gras, c'est la vie."],
+    bad: ["C'est pas une raison pour sauter le repas.", "Ça me coupe la faim. Presque."],
+    humanGood: ["Vous voulez pas faire une pause casse-croûte ?", "Ça, ça mérite une tartine."],
+    humanBad: ["Faut manger, aussi, pour avoir de la chance.", "Rien ? Pas même une miette ?"],
+    raceWin: ["Quand y a à gagner, je suis là.", "Réflexes de table, mon vieux."],
+    raceLose: ["J'avais du gras sur les doigts.", "Vous m'avez pris pendant que je mâchais."],
+    win: ["Victoire ! On passe à table ?"],
+    lose: ["Bah. Au moins, il reste du poulet."],
+  },
+};
+
+function cdcPortrait(id, mood) {
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("viewBox", "0 0 100 120");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("class", "foe-art");
+  const mk = (tag, attrs, parent) => {
+    const n = document.createElementNS(NS, tag);
+    Object.keys(attrs).forEach((k) => n.setAttribute(k, attrs[k]));
+    (parent || svg).appendChild(n);
+    return n;
+  };
+  const look = FOE_LOOK[id];
+  const INK = "oklch(0.26 0.035 55)";
+  const SKIN = "oklch(0.83 0.06 60)";
+  const line = { stroke: INK, "stroke-width": 1.6, "stroke-linejoin": "round", "stroke-linecap": "round" };
+  const fill = (f) => Object.assign({ fill: f }, line);
+  const stroke = (w) => Object.assign({ fill: "none" }, line, w ? { "stroke-width": w } : {});
+
+  mk("rect", { x: 0, y: 0, width: 100, height: 120, fill: look.bg });
+  // Corps et cou
+  mk("path", Object.assign({ d: "M8 121 C10 97 30 89 50 89 C70 89 90 97 92 121 Z" }, fill(look.cloth)));
+  mk("path", Object.assign({ d: "M44 74 V90 H56 V74 Z" }, fill("oklch(0.75 0.06 55)")));
+  const round = id === "karadoc";
+  // Oreilles et tête
+  mk("ellipse", Object.assign({ cx: round ? 26 : 30, cy: 58, rx: 4, ry: 5 }, fill(SKIN)));
+  mk("ellipse", Object.assign({ cx: round ? 74 : 70, cy: 58, rx: 4, ry: 5 }, fill(SKIN)));
+  mk("ellipse", Object.assign({ cx: 50, cy: 56, rx: round ? 24 : 20, ry: round ? 25 : 24 }, fill(SKIN)));
+
+  if (id === "leodagan") {
+    mk("path", Object.assign({ d: "M26 95 Q50 85 74 95 Q50 103 26 95 Z" }, fill("oklch(0.93 0.03 85)")));
+    mk("path", Object.assign({ d: "M29 56 C27 90 73 90 71 56 C68 70 60 74 50 74 C40 74 32 70 29 56 Z" }, fill("oklch(0.72 0.01 80)")));
+    mk("path", Object.assign({ d: "M41 66 Q50 61 59 66 Q50 64.5 41 66 Z" }, fill("oklch(0.72 0.01 80)")));
+    mk("path", Object.assign({ d: "M29 60 C25 14 75 14 71 60 C69 48 62 43 50 43 C38 43 31 48 29 60 Z" }, fill("oklch(0.72 0.01 80)")));
+    mk("path", Object.assign({ d: "M34 38 L36 26 L42 32 L50 22 L58 32 L64 26 L66 38 Z" }, fill("oklch(0.66 0.1 80)")));
+    mk("circle", { cx: 50, cy: 31, r: 1.8, fill: "oklch(0.49 0.165 29)" });
+  } else if (id === "perceval") {
+    mk("path", Object.assign({ d: "M30 96 Q50 87 70 96 L70 103 Q50 94 30 103 Z" }, fill("oklch(0.74 0.01 250)")));
+    mk("path", Object.assign({ d: "M27 62 C20 12 80 12 73 62 C71 51 67 44 63 48 C59 40 53 46 49 41 C45 47 39 42 35 50 C32 47 29 53 27 62 Z" }, fill("oklch(0.47 0.07 55)")));
+  } else {
+    mk("path", Object.assign({ d: "M25 58 C21 10 79 10 75 58 C72 44 62 39 50 39 C38 39 28 44 25 58 Z" }, fill("oklch(0.32 0.04 50)")));
+    mk("path", Object.assign({ d: "M25 55 C23 97 77 97 75 55 C72 70 62 75 50 75 C38 75 28 70 25 55 Z" }, fill("oklch(0.32 0.04 50)")));
+  }
+
+  // Sourcils, yeux, nez, bouche selon l'humeur
+  const brows = {
+    neutral: "M38 49 H46 M54 49 H62",
+    happy: "M38 48 Q42 45 46 48 M54 48 Q58 45 62 48",
+    angry: "M37 46 L46 50 M63 46 L54 50",
+    sad: "M38 50 L46 46 M62 50 L54 46",
+  }[mood];
+  mk("path", Object.assign({ d: brows }, stroke(2.2)));
+  const eyeR = id === "perceval" ? 3 : 2.4;
+  if (mood === "happy") {
+    mk("path", Object.assign({ d: "M39 56 Q42 52 45 56 M55 56 Q58 52 61 56" }, stroke(2)));
+  } else {
+    mk("circle", { cx: 42, cy: 55, r: eyeR, fill: INK });
+    mk("circle", { cx: 58, cy: 55, r: eyeR, fill: INK });
+  }
+  mk("path", Object.assign({ d: "M50 57 Q54 63 49 64" }, stroke()));
+  const mouth = {
+    neutral: id === "perceval" ? "M46 68 Q50 71 54 68" : "M45 69 H55",
+    happy: "M42 66 Q50 75 58 66",
+    angry: "M44 70 L56 67",
+    sad: "M44 71 Q50 66 56 71",
+  }[mood];
+  mk("path", Object.assign({ d: mouth }, stroke(2)));
+  if (id === "karadoc") {
+    // La cuisse de poulet, jamais très loin
+    mk("path", Object.assign({ d: "M72 104 L80 92" }, stroke(4.4)));
+    mk("path", Object.assign({ d: "M72 104 L80 92" }, { fill: "none", stroke: "oklch(0.95 0.02 85)", "stroke-width": 2.4, "stroke-linecap": "round" }));
+    mk("path", Object.assign({ d: "M78 94 C72 84 80 70 90 72 C99 74 98 88 88 93 C85 95 81 96 78 94 Z" }, fill("oklch(0.6 0.12 55)")));
+    mk("path", { d: "M84 78 Q89 76 92 80", fill: "none", stroke: "oklch(0.78 0.09 70)", "stroke-width": 1.6, "stroke-linecap": "round" });
+    mk("circle", Object.assign({ cx: 70, cy: 106, r: 6 }, fill(SKIN)));
+  }
+  return svg;
+}
+
+// La carte de l'adversaire et sa bulle ; show() change d'orateur ou d'humeur
+function cdcFoe() {
+  const box = el("div", "foe");
+  const card = el("div", "foe-card");
+  const art = el("div", "foe-frame");
+  const name = el("p", "foe-name");
+  card.append(art, name);
+  const say = el("p", "foe-say");
+  say.setAttribute("aria-live", "polite");
+  box.append(card, say);
+  let who = null;
+  return {
+    node: box,
+    show(id, text, mood) {
+      const swap = who !== id;
+      who = id;
+      art.replaceChildren(cdcPortrait(id, mood || "neutral"));
+      name.textContent = CDC_BOTS[id].name;
+      card.dataset.mood = mood || "neutral";
+      say.textContent = text;
+      card.classList.remove("swap", "nudge");
+      say.classList.remove("talk");
+      void card.offsetWidth;
+      card.classList.add(swap ? "swap" : "nudge");
+      say.classList.add("talk");
+    },
+    line(id, event) {
+      const mood = { turn: "neutral", good: "happy", bad: id === "leodagan" ? "angry" : "sad", humanGood: id === "perceval" ? "happy" : id === "leodagan" ? "angry" : "sad", humanBad: "happy", raceWin: "happy", raceLose: id === "leodagan" ? "angry" : "sad", win: "happy", lose: id === "leodagan" ? "angry" : "sad" }[event];
+      this.show(id, pick(FOE_LINES[id][event]), mood);
+    },
+  };
 }
 
 /* Préparation : joueurs, score à atteindre, reprise d'une partie en cours */
@@ -2845,7 +3145,7 @@ function cdcSetup() {
   const title = el("h2", "section-title");
   title.append(gameIcon("cdc"), document.createTextNode("Le cul de chouette"));
   const intro = el("div", "state");
-  intro.appendChild(el("p", "", "Le jeu de dés de la taverne, de 2 à 8 joueurs sur un seul téléphone qu'on se passe. Chacun lance à son tour, les combinaisons rapportent des points, et le premier à 343 l'emporte."));
+  intro.appendChild(el("p", "", "Le jeu de dés de la taverne, de 2 à 8 joueurs sur un seul téléphone qu'on se passe. Chacun lance à son tour, les combinaisons rapportent des points, et le premier à 343 l'emporte. Seul ? Ajoute des IA."));
   root.append(back, title, intro);
 
   const saved = cdcStore.load();
@@ -2863,11 +3163,13 @@ function cdcSetup() {
     root.appendChild(box);
   }
 
-  let names = [];
-  try { names = JSON.parse(store.get(CDC_NAMES)) || []; } catch (e) { names = []; }
-  if (!Array.isArray(names)) names = [];
-  names = names.filter((n) => typeof n === "string").slice(0, CDC_MAX);
-  while (names.length < 2) names.push("");
+  // Chaque place : { name } pour un humain, { bot } pour une IA
+  let raw = [];
+  try { raw = JSON.parse(store.get(CDC_NAMES)) || []; } catch (e) { raw = []; }
+  if (!Array.isArray(raw)) raw = [];
+  let names = raw.map((x) => (typeof x === "string" ? { name: x } : x && CDC_BOTS[x.bot] ? { bot: x.bot } : x && typeof x.name === "string" ? { name: x.name } : null))
+    .filter(Boolean).slice(0, CDC_MAX);
+  while (names.length < 2) names.push({ name: "" });
   let target = parseInt(store.get("kmt-cdc-target"), 10) || 343;
   if (!CDC_TARGETS.some((t) => t.v === target)) target = 343;
 
@@ -2875,35 +3177,67 @@ function cdcSetup() {
   const list = el("div", "cdc-players");
   const add = el("button", "linklike cdc-add", "+ Ajouter un joueur");
   add.type = "button";
+  const botsLabel = el("p", "seg-label", "Ajouter une IA");
+  const bots = el("div", "cdc-bots");
+  const botBtns = {};
+  Object.keys(CDC_BOTS).forEach((id) => {
+    const b = el("button", "cdc-botadd");
+    b.type = "button";
+    b.append(el("span", "n", CDC_BOTS[id].name), el("span", "d", CDC_BOTS[id].desc));
+    b.onclick = () => { readNames(); names.push({ bot: id }); paintPlayers(false); };
+    botBtns[id] = b;
+    bots.appendChild(b);
+  });
 
-  function readNames() { return [...list.querySelectorAll("input")].map((i) => i.value); }
+  // Les champs de texte font foi pour les humains
+  function readNames() {
+    list.querySelectorAll("input").forEach((i) => { names[Number(i.dataset.k)].name = i.value; });
+    return names;
+  }
   function paintPlayers(focusLast) {
     list.replaceChildren();
     names.forEach((n, k) => {
       const row = el("div", "cdc-row");
-      const input = el("input");
-      input.type = "text";
-      input.maxLength = 20;
-      input.value = n;
-      input.placeholder = "Joueur " + (k + 1);
-      input.autocomplete = "off";
-      input.setAttribute("aria-label", "Nom du joueur " + (k + 1));
-      input.oninput = () => { names[k] = input.value; };
-      input.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); start(); } };
-      row.append(el("span", "num", String(k + 1)), input);
+      row.appendChild(el("span", "num", String(k + 1)));
+      if (n.bot) {
+        const who = el("span", "botname");
+        const nm = el("span", "n", CDC_BOTS[n.bot].name);
+        nm.appendChild(el("span", "ia", "IA"));
+        who.append(nm, el("span", "d", CDC_BOTS[n.bot].desc));
+        row.appendChild(who);
+      } else {
+        const input = el("input");
+        input.type = "text";
+        input.maxLength = 20;
+        input.value = n.name;
+        input.dataset.k = String(k);
+        input.placeholder = "Joueur " + (k + 1);
+        input.autocomplete = "off";
+        input.setAttribute("aria-label", "Nom du joueur " + (k + 1));
+        input.oninput = () => { names[k].name = input.value; };
+        input.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); start(); } };
+        row.appendChild(input);
+      }
       if (names.length > 2) {
         const del = el("button", "back", "✕");
         del.type = "button";
-        del.setAttribute("aria-label", "Retirer " + (n.trim() || "le joueur " + (k + 1)));
-        del.onclick = () => { names = readNames(); names.splice(k, 1); paintPlayers(false); };
+        del.setAttribute("aria-label", "Retirer " + (n.bot ? CDC_BOTS[n.bot].name : n.name.trim() || "le joueur " + (k + 1)));
+        del.onclick = () => { readNames(); names.splice(k, 1); paintPlayers(false); };
         row.appendChild(del);
       }
       list.appendChild(row);
     });
-    add.hidden = names.length >= CDC_MAX;
+    const full = names.length >= CDC_MAX;
+    add.hidden = full;
+    let anyBot = false;
+    Object.keys(botBtns).forEach((id) => {
+      botBtns[id].hidden = full || names.some((n) => n.bot === id);
+      if (!botBtns[id].hidden) anyBot = true;
+    });
+    botsLabel.hidden = bots.hidden = !anyBot;
     if (focusLast) list.querySelector(".cdc-row:last-child input").focus();
   }
-  add.onclick = () => { names = readNames(); names.push(""); paintPlayers(true); };
+  add.onclick = () => { readNames(); names.push({ name: "" }); paintPlayers(true); };
   paintPlayers(false);
 
   const tLabel = el("p", "seg-label", "Score à atteindre");
@@ -2929,15 +3263,18 @@ function cdcSetup() {
   actions.appendChild(go);
 
   function start() {
-    names = readNames();
-    const players = names.map((n, k) => ({ name: n.trim().slice(0, 20) || "Joueur " + (k + 1), score: 0 }));
+    readNames();
+    if (names.every((n) => n.bot)) { msg.textContent = "Il faut au moins un joueur humain pour lancer les dés."; return; }
+    const players = names.map((n, k) => (n.bot
+      ? { name: CDC_BOTS[n.bot].name, score: 0, bot: n.bot }
+      : { name: n.name.trim().slice(0, 20) || "Joueur " + (k + 1), score: 0 }));
     const seen = new Set();
     for (const p of players) {
       const key = p.name.toLowerCase();
       if (seen.has(key)) { msg.textContent = "Deux joueurs s'appellent « " + p.name + " » : change un des noms."; return; }
       seen.add(key);
     }
-    store.set(CDC_NAMES, JSON.stringify(names.map((n) => n.trim())));
+    store.set(CDC_NAMES, JSON.stringify(names.map((n) => (n.bot ? { bot: n.bot } : { name: n.name.trim() }))));
     store.set("kmt-cdc-target", String(target));
     const state = { players, target, turn: 0 };
     cdcStore.save(state);
@@ -2948,7 +3285,7 @@ function cdcSetup() {
   const fold = el("details", "help-fold");
   fold.appendChild(el("summary", "", "Les règles"));
   fold.appendChild(cdcHelp(target));
-  root.append(plLabel, list, add, tLabel, seg, msg, actions, fold);
+  root.append(plLabel, list, add, botsLabel, bots, tLabel, seg, msg, actions, fold);
   replay(root);
 }
 
@@ -2991,13 +3328,27 @@ function cdcGame(state) {
   const verdict = el("div", "cdc-verdict");
   verdict.setAttribute("aria-live", "polite");
   const actions = el("div", "actions");
-  wrap.append(tally, boardEl, turnTitle, diceRow, hint, verdict, actions);
+  // En face : le portrait de l'IA qui parle (s'il y a des IA)
+  const botIds = state.players.filter((p) => p.bot).map((p) => p.bot);
+  const foe = botIds.length ? cdcFoe() : null;
+  let foeShown = false;
+  const talk = (id, event) => { if (foe && id) { foe.line(id, event); foeShown = true; } };
+  const someBot = () => pick(botIds);
+  // Une IA réagit parfois aux coups des humains
+  const react = (event, chance) => { if (foe && Math.random() < chance) talk(someBot(), event); };
+  wrap.append(tally, boardEl);
+  if (foe) wrap.appendChild(foe.node);
+  wrap.append(turnTitle, diceRow, hint, verdict, actions);
   root.appendChild(wrap);
 
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   let busy = false;
   let manual = false;
   const cur = () => state.players[state.turn];
+  const hasBots = state.players.some((p) => p.bot);
+  const humans = state.players.map((p, k) => (p.bot ? -1 : k)).filter((k) => k >= 0);
+  // Minuteries des IA : ignorées si on a quitté la partie entre-temps
+  const later = (fn, ms) => setTimeout(() => { if (wrap.isConnected) fn(); }, ms);
 
   function paintBoard(changed) {
     const top = Math.max(state.target, ...state.players.map((p) => p.score));
@@ -3005,6 +3356,8 @@ function cdcGame(state) {
       const r = rows[k];
       r.li.classList.toggle("now", k === state.turn);
       r.nm.textContent = p.name;
+      if (p.bot) r.nm.appendChild(el("span", "ia", "IA"));
+      r.nm.dataset.now = p.bot ? "joue…" : "à toi";
       r.pts.textContent = String(p.score);
       r.pts.classList.toggle("neg", p.score < 0);
       r.bar.firstChild.style.setProperty("--p", Math.max(0, Math.min(100, (p.score / top) * 100)) + "%");
@@ -3029,23 +3382,25 @@ function cdcGame(state) {
     return b;
   }
 
-  // Lance les dés demandés (indices), avec une courte animation, puis rappelle done()
+  // Lance les dés demandés (indices), avec une courte animation, puis rappelle done().
+  // Comme à la table : les deux chouettes tombent d'abord, le cul ensuite.
   function rollDice(which, done) {
     busy = true;
     setDiceTappable([]);
-    const final = which.map(() => 1 + Math.floor(Math.random() * 6));
+    const final = which.map(() => cdcRollDie());
     const frames = reduce ? 0 : 7;
+    const stopAt = which.map((k) => (which.length === 3 && k === 2 && !reduce ? frames + 5 : frames));
+    const end = Math.max(...stopAt);
     which.forEach((k) => { dice[k].node.classList.remove("rolling", "lit"); void dice[k].node.offsetWidth; dice[k].node.classList.add("rolling"); });
     let f = 0;
     const tick = () => {
-      if (f < frames) {
-        which.forEach((k) => dice[k].set(1 + Math.floor(Math.random() * 6)));
+      which.forEach((k, j) => dice[k].set(f < stopAt[j] ? 1 + Math.floor(Math.random() * 6) : final[j]));
+      if (f < end) {
         feel.sfx("flip", 260 + Math.random() * 260);
         f++;
         setTimeout(tick, 65);
         return;
       }
-      which.forEach((k, j) => dice[k].set(final[j]));
       busy = false;
       done();
     };
@@ -3076,6 +3431,14 @@ function cdcGame(state) {
     setDiceTappable([]);
     hint.textContent = "";
     verdict.replaceChildren();
+    if (cur().bot) {
+      actions.replaceChildren();
+      hint.textContent = cur().name + " prend les dés…";
+      talk(cur().bot, "turn");
+      later(() => { hint.textContent = ""; rollDice([0, 1, 2], resolve); }, reduce ? 300 : 800);
+      return;
+    }
+    if (foe && !foeShown) { foe.show(botIds[0], "À vous l'honneur. On vous regarde.", "neutral"); foeShown = true; }
     const roll = btn("Lancer les dés", "btn primary", () => { if (!busy) rollDice([0, 1, 2], resolve); });
     actions.replaceChildren(roll, btn("J'ai lancé de vrais dés", "linklike", () => enterDice([0, 1, 2], resolve)));
     roll.focus({ preventScroll: true });
@@ -3096,23 +3459,38 @@ function cdcGame(state) {
       light([0, 1, 2]);
       feel.sfx("win");
       verdict.replaceChildren(head("Cul de chouette de " + r.v + " !"), p("Trois dés identiques : " + r.pts + " points."));
+      if (cur().bot) talk(cur().bot, "good"); else react("humanGood", 0.9);
       return apply([[me, r.pts]]);
     }
     if (r.kind === "velute") {
       light([0, 1, 2]);
       feel.sfx("ok");
       verdict.replaceChildren(head("Velute de " + r.v), p("Deux dés font le troisième : deux fois " + r.v + " au carré, " + r.pts + " points."));
+      if (cur().bot) talk(cur().bot, "good"); else react("humanGood", r.pts >= 32 ? 0.7 : 0.3);
       return apply([[me, r.pts]]);
     }
     if (r.kind === "neant") {
       feel.sfx("miss");
       verdict.replaceChildren(head("Néant", true), p("Ni chouette ni velute. Zéro point, au suivant."));
+      if (cur().bot) talk(cur().bot, "bad"); else react("humanBad", 0.5);
       return apply([]);
     }
     if (r.kind === "chouette") {
       light([0, 1, 2].filter((k) => k !== r.odd));
       feel.sfx("ok");
       const gain = cdcCul(r.v);
+      if (cur().bot) {
+        verdict.replaceChildren(head("Chouette de " + r.v), p(r.pts + " points, ou siroter pour tenter le cul de chouette (" + gain + " points)…"));
+        actions.replaceChildren();
+        const choice = cdcBotSirote(cur().bot, state, me, r);
+        later(() => {
+          if (foe) foe.show(cur().bot, choice.why, choice.sir ? "happy" : "neutral");
+          verdict.appendChild(el("p", "cdc-ai", cur().name + (choice.sir ? " sirote." : " garde ses " + r.pts + " points.")));
+          if (choice.sir) later(() => sirote(r, true), 900);
+          else apply([[me, r.pts]]);
+        }, reduce ? 300 : 1000);
+        return;
+      }
       verdict.replaceChildren(
         head("Chouette de " + r.v),
         p(r.pts + " points. Tu peux siroter : relancer le dé seul pour tenter le cul de chouette (" + gain + " points), mais si c'est raté tu perds " + r.pts + " points.")
@@ -3126,31 +3504,125 @@ function cdcGame(state) {
     if (r.kind === "chouette-velute") {
       light([0, 1, 2]);
       feel.sfx("ok");
-      const q = p("Le premier qui crie ");
-      q.append(cry("Pas mou le caillou !"), document.createTextNode(" en tapant sur la table gagne " + r.pts + " points. Qui a crié le premier ?"));
-      verdict.replaceChildren(head("Chouette velute !"), q, whoPicker((k) => apply([[k, r.pts]])));
       actions.replaceChildren();
+      if (hasBots) {
+        verdict.replaceChildren(head("Chouette velute !"));
+        race("first", r.pts, (k) => apply([[k, r.pts]]));
+        return;
+      }
+      const q = p("Le premier qui crie ");
+      q.append(cry("Pas mou le caillou !"), document.createTextNode(" en frappant dans ses mains gagne " + r.pts + " points. Qui a crié le premier ?"));
+      verdict.replaceChildren(head("Chouette velute !"), q, whoPicker((k) => apply([[k, r.pts]])));
       return;
     }
     // Suite (et suite velutée 1, 2, 3)
     light([0, 1, 2]);
     feel.sfx("ok");
+    const parts = [head(r.kind === "suite-velute" ? "Suite velutée !" : "Suite !")];
+    if (r.kind === "suite-velute") parts.push(p("1, 2 et 3 : la suite s'applique, et " + cur().name + " peut aussi valider sa velute (" + r.pts + " points) en criant « Patte de canaaard ! » et en attrapant une chouette."));
+    // Suite velutée : après la course, le lanceur a-t-il validé sa velute ?
+    const settle = (k) => {
+      if (r.kind !== "suite-velute") return apply([[k, -10]]);
+      const bot = cur().bot;
+      if (bot) {
+        const shout = Math.random() < { leodagan: 0.95, karadoc: 0.8, perceval: 0.4 }[bot];
+        verdict.appendChild(el("p", "cdc-ai", shout ? cur().name + " attrape une chouette : « Patte de canaaard ! »" : cur().name + " a oublié de crier « Patte de canaaard ! ». La velute est perdue."));
+        return apply(shout ? [[me, r.pts], [k, -10]] : [[k, -10]]);
+      }
+      const ask = el("div", "actions");
+      ask.append(
+        btn("Oui, " + r.pts + " points", "btn primary", () => { ask.remove(); apply([[me, r.pts], [k, -10]]); }),
+        btn("Non", "btn", () => { ask.remove(); apply([[k, -10]]); })
+      );
+      verdict.append(p(cur().name + ", as-tu crié « Patte de canaaard ! » en attrapant une chouette ?"), ask);
+    };
+    actions.replaceChildren();
+    if (hasBots) {
+      verdict.replaceChildren(...parts);
+      race("last", 10, settle);
+      return;
+    }
     const q = p("Tout le monde tape sur la table en criant ");
     q.append(cry("Grelotte, ça picote !"), document.createTextNode(" Le dernier perd 10 points. Qui était le dernier ?"));
-    const parts = [head(r.kind === "suite-velute" ? "Suite velutée !" : "Suite !")];
-    if (r.kind === "suite-velute") parts.push(p("1, 2 et 3 : c'est aussi une velute, " + cur().name + " marque " + r.pts + " points."));
-    parts.push(q, whoPicker((k) => apply(r.kind === "suite-velute" ? [[me, r.pts], [k, -10]] : [[k, -10]])));
+    parts.push(q, whoPicker(settle));
     verdict.replaceChildren(...parts);
-    actions.replaceChildren();
   }
 
-  function whoPicker(fn) {
+  function whoPicker(fn, only) {
     const box = el("div", "cdc-who");
-    state.players.forEach((pl, k) => box.appendChild(btn(pl.name, "btn", () => { box.querySelectorAll("button").forEach((b) => { b.disabled = true; }); fn(k); })));
+    state.players.forEach((pl, k) => {
+      if (only && !only.includes(k)) return;
+      box.appendChild(btn(pl.name, "btn", () => { box.querySelectorAll("button").forEach((b) => { b.disabled = true; }); fn(k); }));
+    });
     return box;
   }
 
-  function sirote(r) {
+  // Course avec des IA : un gros bouton pour les humains, un temps de réaction pour chaque IA.
+  // "first" : le plus rapide gagne. "last" : le plus lent perd. Plusieurs humains : le bouton donne
+  // le temps du premier (ou du dernier) d'entre eux, puis on demande lequel c'était.
+  function race(kind, pts, done) {
+    const first = kind === "first";
+    const shout = first ? "Pas mou le caillou !" : "Grelotte, ça picote !";
+    const solo = humans.length === 1;
+    const rule = first
+      ? (solo ? "Touche le bouton avant les IA : le plus rapide gagne " + pts + " points." : "Le premier d'entre vous à frapper dans ses mains touche le bouton, avant les IA : le plus rapide gagne " + pts + " points.")
+      : (solo ? "Touche le bouton vite : le plus lent perd 10 points." : "Tapez tous sur la table ; le dernier d'entre vous touche le bouton dès qu'il a tapé. Le plus lent, IA comprises, perd 10 points.");
+    const slap = btn("Attention…", "btn cdc-slap", null);
+    slap.disabled = true;
+    const times = el("p", "cdc-times");
+    verdict.append(el("p", "", rule), slap, times);
+    const fmt = (ms) => (ms / 1000).toFixed(2).replace(".", ",") + " s";
+    let t0 = 0, timer = 0, over = false, bots = [];
+
+    const finish = (th) => {
+      if (over) return;
+      over = true;
+      clearTimeout(timer);
+      slap.disabled = true;
+      slap.classList.remove("primary");
+      if (th !== null && solo) cdcRecordReflex(th);
+      const who = solo ? "Toi" : "Vous";
+      const line = [[who, th]].concat(bots.map((b) => [state.players[b.k].name, b.t]))
+        .sort((a, b) => (a[1] === null ? 1e9 : a[1]) - (b[1] === null ? 1e9 : b[1]))
+        .map(([n, t]) => n + " : " + (t === null ? "trop tard" : fmt(t)));
+      times.textContent = line.join(" · ");
+      if (first) {
+        const fb = bots.reduce((a, b) => (b.t < a.t ? b : a));
+        const humanWins = th !== null && th < fb.t;
+        slap.textContent = humanWins ? (solo ? "Gagné !" : "Vous avez été plus rapides !") : state.players[fb.k].name + " a été plus rapide";
+        feel.sfx(humanWins ? "ok" : "miss");
+        talk(humanWins ? someBot() : state.players[fb.k].bot, humanWins ? "raceLose" : "raceWin");
+        if (!humanWins) return done(fb.k);
+        if (solo) return done(humans[0]);
+        verdict.append(el("p", "", "Qui a tapé le premier ?"), whoPicker(done, humans));
+        return;
+      }
+      const slowBot = bots.reduce((a, b) => (b.t > a.t ? b : a));
+      const humanLast = th === null || th > slowBot.t;
+      slap.textContent = humanLast ? (solo ? "Trop lent !" : "Un de vous est le dernier") : state.players[slowBot.k].name + " est le dernier";
+      feel.sfx(humanLast ? "miss" : "ok");
+      talk(humanLast ? someBot() : state.players[slowBot.k].bot, humanLast ? "raceWin" : "raceLose");
+      if (!humanLast) return done(slowBot.k);
+      if (solo) return done(humans[0]);
+      verdict.append(el("p", "", "Qui était le dernier d'entre vous ?"), whoPicker(done, humans));
+    };
+
+    later(() => {
+      t0 = performance.now();
+      bots = state.players.map((p, k) => (p.bot ? { k, t: cdcBotReflex(p.bot, kind) } : null)).filter(Boolean);
+      slap.disabled = false;
+      slap.classList.add("primary");
+      slap.textContent = shout;
+      slap.focus({ preventScroll: true });
+      feel.sfx("tap");
+      slap.onclick = () => finish(performance.now() - t0);
+      // Course au premier : on s'arrête dès que l'IA la plus rapide a tapé. Au dernier : 3 secondes au plus.
+      const wait = first ? Math.min(...bots.map((b) => b.t)) : 3000;
+      timer = setTimeout(() => { if (wrap.isConnected) finish(null); }, wait);
+    }, 700 + Math.random() * 900);
+  }
+
+  function sirote(r, auto) {
     const me = state.turn;
     const after = () => {
       const v = dice[r.odd].value;
@@ -3158,15 +3630,17 @@ function cdcGame(state) {
         light([0, 1, 2]);
         feel.sfx("win");
         verdict.replaceChildren(el("h3", "cdc-combo", "Sirop réussi : cul de chouette de " + r.v + " !"), el("p", "", cdcCul(r.v) + " points."));
+        if (cur().bot) talk(cur().bot, "good"); else react("humanGood", 0.9);
         apply([[me, cdcCul(r.v)]]);
       } else {
         feel.sfx("lose");
         verdict.replaceChildren(el("h3", "cdc-combo flat", "Sirop raté"), el("p", "", "Le dé fait " + v + " : la chouette est perdue, " + r.pts + " points en moins."));
+        if (cur().bot) talk(cur().bot, "bad"); else react("humanBad", 0.7);
         apply([[me, -r.pts]]);
       }
     };
     verdict.replaceChildren(el("h3", "cdc-combo", "On sirote…"), el("p", "", "Il faut un " + r.v + "."));
-    if (manual) enterDice([r.odd], after);
+    if (manual && !auto) enterDice([r.odd], after);
     else { actions.replaceChildren(); rollDice([r.odd], after); }
   }
 
@@ -3193,11 +3667,16 @@ function cdcGame(state) {
       actions.firstChild.focus({ preventScroll: true });
       return;
     }
+    const wasBot = Boolean(cur().bot);
     state.turn = (state.turn + 1) % state.players.length;
     cdcStore.save(state);
-    const next = btn("Au tour de " + cur().name, "btn primary", startTurn);
+    let go = false;
+    const nextTurn = () => { if (go) return; go = true; startTurn(); };
+    const next = btn("Au tour de " + cur().name, "btn primary", nextTurn);
     actions.replaceChildren(next);
     next.focus({ preventScroll: true });
+    // Deux IA de suite : on enchaîne seul, le temps de lire le résultat
+    if (wasBot && cur().bot) later(nextTurn, reduce ? 1200 : 2600);
   }
 
   startTurn();
@@ -3213,6 +3692,13 @@ function cdcEnd(state, best) {
   const title = el("h2", "result-title", best.name + " l'emporte !");
   title.tabIndex = -1;
   wrap.append(title, el("p", "", best.score + " points : la taverne est à ses pieds."));
+  const botIds = state.players.filter((p) => p.bot).map((p) => p.bot);
+  if (botIds.length) {
+    const foe = cdcFoe();
+    wrap.appendChild(foe.node);
+    if (best.bot) foe.line(best.bot, "win");
+    else foe.line(pick(botIds), "lose");
+  }
   const ranking = el("ol", "ranking cdc-final");
   state.players.slice().sort((a, b) => b.score - a.score).forEach((p, k) => {
     const li = el("li", k === 0 ? "top first" : "");
@@ -3223,7 +3709,7 @@ function cdcEnd(state, best) {
   const actions = el("div", "actions");
   const again = el("button", "btn primary", "Revanche");
   again.onclick = () => {
-    const s = { players: state.players.map((p) => ({ name: p.name, score: 0 })), target: state.target, turn: 0 };
+    const s = { players: state.players.map((p) => (p.bot ? { name: p.name, score: 0, bot: p.bot } : { name: p.name, score: 0 })), target: state.target, turn: 0 };
     cdcStore.save(s);
     cdcGame(s);
   };
