@@ -1115,6 +1115,44 @@
   .bet-row > span { font-family: var(--font-display); font-size: var(--t-md); }
   .bet-row select { flex: 1 1 12rem; min-height: 44px; padding: 0 var(--space-md); font: inherit; color: var(--ink); background: var(--parchment); border: 1px solid var(--ink-soft); border-radius: 2px; }
   .cdc-play .actions .grelot-btn { flex: 1 1 100%; border-color: var(--rubric); color: var(--rubric); }
+  /* Règles illustrées du cul de chouette */
+  .rules { color: var(--ink); }
+  .rules-intro { display: grid; gap: var(--space-sm); }
+  .rule-aside { display: flex; align-items: center; gap: var(--space-md); margin: var(--space-md) 0 0; font-family: var(--font-display); font-style: italic; line-height: 1.35; color: var(--ink); }
+  .rule-face { flex: none; width: 40px; height: 48px; overflow: hidden; border: 1.5px solid var(--ink); border-radius: 6px; }
+  .rule-face svg { display: block; width: 100%; height: 100%; }
+  .rule-how { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-md) var(--space-lg); margin-top: var(--space-xl); }
+  .rule-how p { flex: 1 1 16rem; margin: 0; color: var(--ink-soft); }
+  .rule-dice { display: inline-flex; flex: none; gap: 6px; }
+  .die.mini { width: 34px; height: 34px; padding: 5px; gap: 0; border-radius: 7px; box-shadow: inset 0 0 0 2px oklch(0.975 0.015 85), 0 2px 0 var(--hair); }
+  .die.mini.cul { box-shadow: inset 0 0 0 2px oklch(0.88 0.09 85), 0 2px 0 var(--gilt); }
+  .die.mini i { width: 6px; height: 6px; }
+  .die.mid { width: 56px; height: 56px; padding: 8px; border-radius: 11px; }
+  .die.mid i { width: 9px; height: 9px; }
+  .rule-dice.sirop .die:not(.cul) { opacity: 0.35; }
+  .rule-cards { display: grid; gap: var(--space-md); margin-top: var(--space-xl); }
+  @media (min-width: 40rem) { .rule-cards { grid-template-columns: 1fr 1fr; } }
+  .rule-card { padding: var(--space-md) var(--space-lg) var(--space-lg); background: oklch(0.975 0.015 85 / 0.6); border: 1px solid var(--hair); border-radius: 6px; }
+  .rule-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-md); margin-bottom: var(--space-sm); }
+  .rule-name { margin: 0; font-family: var(--font-gothique); font-weight: 700; font-size: 1.25rem; line-height: 1.2; color: var(--ink); }
+  .rule-pts { flex: none; font-size: var(--t-sm); font-style: italic; color: var(--rubric); }
+  .rule-cry { margin: var(--space-sm) 0 0; font-family: var(--font-display); font-size: 1.375rem; font-style: italic; line-height: 1.2; color: var(--rubric); }
+  .rule-text { margin: var(--space-sm) 0 0; color: var(--ink-soft); }
+  .rule-sand { margin-top: var(--space-2xl); padding: var(--space-lg); text-align: center; border: 1px dashed var(--gilt); border-radius: 6px; }
+  .rule-sand .rule-dice { margin-top: var(--space-md); gap: var(--space-md); }
+  .rule-out { min-height: 5.5em; margin: var(--space-md) 0; }
+  .rule-out .rule-name { color: var(--rubric); }
+  .rule-sand .btn { flex: none; }
+  .rule-table { margin-top: var(--space-xl); }
+  .rule-table summary { cursor: pointer; color: var(--rubric); text-decoration: underline; min-height: 44px; display: flex; align-items: center; }
+  .rule-adv { margin-top: var(--space-2xl); padding-top: var(--space-lg); border-top: 1px solid var(--hair); }
+  .rule-birds { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-sm); margin-top: var(--space-sm); }
+  .bird { display: flex; align-items: center; gap: var(--space-sm); font-size: var(--t-sm); font-style: italic; }
+  .rules-foot { margin: var(--space-xl) 0 0; font-size: var(--t-sm); font-style: italic; color: var(--ink-soft); }
+  .rules-btn { font-family: var(--font-display); font-size: 1.25rem; }
+  .rules-dialog { width: min(42rem, calc(100% - 32px)); max-height: 88vh; padding: var(--space-lg); color: var(--ink); background: var(--parchment); border: 1.5px solid var(--ink); border-radius: 8px; box-shadow: 0 10px 40px oklch(0.2 0.03 55 / 0.35); }
+  .rules-dialog::backdrop { background: oklch(0.2 0.03 55 / 0.45); }
+  .rules-close { position: sticky; top: 0; float: right; z-index: 2; padding: 0 var(--space-sm); background: var(--parchment); }
   .cdc-play .actions { margin-top: var(--space-xl); align-items: center; }
   .cdc-final { margin-top: var(--space-xl); }
   .help-fold ul { margin: var(--space-sm) 0 0; padding-left: 1.2em; }
@@ -3064,36 +3102,173 @@ function makeDie(isCul, tappable) {
   return die;
 }
 
+// Ce que donne un lancer, expliqué simplement (pour le bac à sable des règles)
+function cdcExplain(d) {
+  const r = cdcEval(d);
+  const s = d.slice().sort((a, b) => a - b);
+  const list = s[0] + ", " + s[1] + " et " + s[2];
+  if (r.kind === "cul") return ["Cul de chouette !", "Trois " + r.v + " : " + r.pts + " points. Le plus beau coup du jeu."];
+  if (r.kind === "velute") return ["Velute de " + r.v, s[0] + " + " + s[1] + " = " + s[2] + " : deux fois " + r.v + " au carré, " + r.pts + " points."];
+  if (r.kind === "chouette-velute") return ["Chouette velute !", list + " : une chouette et une velute à la fois. Le premier qui crie « Pas mou le caillou ! » en frappant dans ses mains gagne " + r.pts + " points."];
+  if (r.kind === "chouette") return ["Chouette de " + r.v, "Deux " + r.v + " : " + r.pts + " points. Ou alors tu sirotes : tu relances le dé seul pour tenter le cul de chouette (" + cdcCul(r.v) + " points), au risque de perdre tes " + r.pts + "."];
+  if (r.kind === "suite-velute") return ["Suite velutée !", "1, 2 et 3 : la suite s'applique (tout le monde tape, le dernier perd 10), et le lanceur crie « Patte de canaaard ! » en attrapant une chouette pour sa velute de 18 points."];
+  if (r.kind === "suite") return ["Suite !", list + " se suivent : tout le monde tape du poing sur la table en criant « Grelotte, ça picote ! ». Le dernier perd 10 points."];
+  return ["Néant", list + " : rien du tout, zéro point. En règles avancées, tu gagnes au moins une grelottine."];
+}
+
 function cdcHelp(target) {
-  const box = el("div", "help");
-  box.appendChild(el("p", "", "Trois dés : deux chouettes (blancs) et un cul (doré). À ton tour, tu lances les deux chouettes, puis le cul, et tu passes le téléphone."));
-  const ul = el("ul");
+  const box = el("div", "rules");
+  const face = (id, mood) => {
+    const f = el("span", "rule-face");
+    f.appendChild(cdcPortrait(id, mood));
+    return f;
+  };
+  const says = (id, mood, text) => {
+    const row = el("p", "rule-aside");
+    row.append(face(id, mood), el("span", "", text));
+    return row;
+  };
+  const miniDice = (vals, culIdx) => {
+    const row = el("span", "rule-dice");
+    row.setAttribute("role", "img");
+    row.setAttribute("aria-label", "Dés : " + vals.join(", "));
+    vals.forEach((v, k) => {
+      const d = makeDie(k === (culIdx === undefined ? 2 : culIdx), false);
+      d.node.classList.add("mini");
+      d.node.removeAttribute("role");
+      d.node.removeAttribute("aria-label");
+      d.set(v);
+      d.node.removeAttribute("aria-label");
+      row.appendChild(d.node);
+    });
+    return row;
+  };
+
+  // Perceval présente, Léodagan corrige
+  const intro = el("div", "rules-intro");
+  intro.append(
+    says("perceval", "happy", "Bon, je vous explique. C'est super simple, vous allez voir."),
+    says("leodagan", "angry", "C'est ce qu'il dit à chaque fois.")
+  );
+  box.appendChild(intro);
+
+  const how = el("div", "rule-how");
+  how.append(
+    miniDice([4, 4, 2]),
+    el("p", "", "Trois dés : deux chouettes, blanches, et un cul, doré. À ton tour, tu lances les deux chouettes, puis le cul. Ce que montrent les trois dés rapporte des points, ou en fait perdre. Le premier à " + (target || 343) + " points gagne.")
+  );
+  box.appendChild(how);
+
+  // Les fiches, de la plus courante à la plus rare
+  const cards = el("div", "rule-cards");
   [
-    ["Chouette", "deux dés identiques. Le carré de leur valeur : deux 4 font 16 points. Tu peux alors siroter : relancer le troisième dé pour tenter le cul de chouette. Raté, tu perds les points de la chouette."],
-    ["Velute", "deux dés dont la somme fait le troisième (2, 3 et 5). Deux fois le carré du troisième : 50 points."],
-    ["Chouette velute", "les deux à la fois (2, 2 et 4). Le premier qui crie « Pas mou le caillou ! » en frappant dans ses mains gagne les points de la velute (en cas d'égalité, les ex æquo les perdent)."],
-    ["Cul de chouette", "trois dés identiques. De 50 points pour trois 1 à 100 points pour trois 6."],
-    ["Suite", "trois dés qui se suivent (3, 4 et 5). Tout le monde tape du poing sur la table en criant « Grelotte, ça picote ! » ; le dernier perd 10 points. Sur 1, 2 et 3 (suite velutée), le lanceur peut en plus valider sa velute de 18 points en criant « Patte de canaaard ! » et en attrapant une chouette."],
-    ["Néant", "rien de tout ça : zéro point."],
-  ].forEach(([a, b]) => {
-    const li = el("li");
-    li.append(el("span", "tag", a + " : "), document.createTextNode(b));
-    ul.appendChild(li);
+    { name: "Chouette", dice: [4, 4, 2], pts: "de 1 à 36", rule: "Deux dés pareils : le carré de leur valeur. Deux 4, 16 points.", who: ["karadoc", "happy", "Deux dés pareils, c'est comme deux parts de tarte : on prend."] },
+    { name: "Velute", dice: [2, 3, 5], pts: "de 18 à 72", rule: "Deux dés qui, additionnés, font le troisième : deux fois le carré du troisième. 2 + 3 = 5, 50 points.", who: ["perceval", "neutral", "Le petit plus le moyen, ça fait le gros. Enfin, je crois."] },
+    { name: "Chouette velute", dice: [2, 2, 4], pts: "8, 32 ou 72", cry: "Pas mou le caillou !", rule: "Les deux à la fois. Le premier qui crie en frappant dans ses mains empoche les points de la velute.", who: ["leodagan", "angry", "On frappe dans ses mains. Pas sur la tête du voisin."] },
+    { name: "Cul de chouette", dice: [6, 6, 6], pts: "de 50 à 100", rule: "Trois dés pareils : 40 points, plus 10 fois la valeur. Trois 6, 100 points.", who: ["karadoc", "happy", "Trois pareils. Là, on peut parler de repas complet."] },
+    { name: "Suite", dice: [3, 4, 5], pts: "−10 au dernier", cry: "Grelotte, ça picote !", rule: "Trois dés qui se suivent : tout le monde tape du poing sur la table en criant. Le dernier perd 10 points.", who: ["perceval", "happy", "Celui-là, je l'aime bien : tout le monde tape sur la table."] },
+    { name: "Suite velutée", dice: [1, 2, 3], pts: "18 au lanceur", cry: "Patte de canaaard !", rule: "1, 2 et 3 : la suite s'applique, et le lanceur valide sa velute de 18 points s'il crie en attrapant une chouette.", who: ["leodagan", "neutral", "Il crie, il attrape, il encaisse. Sinon, tant pis pour lui."] },
+    { name: "Néant", dice: [1, 4, 6], pts: "0", rule: "Rien de tout ça. Zéro point, au suivant.", who: ["karadoc", "sad", "Rien. Même pas une miette."] },
+    { name: "Le sirotage", dice: [4, 4, 4], pts: "tout ou rien", rule: "Après une chouette, tu peux relancer le dé seul pour tenter le cul de chouette. Réussi, tu marques le cul ; raté, tu perds les points de ta chouette.", who: ["leodagan", "neutral", "À 1 ou 2, siroter rapporte plus en moyenne. Au-delà, gardez vos points. Je dis ça, je dis rien."], sirop: true },
+  ].forEach((c) => {
+    const card = el("article", "rule-card");
+    const head = el("div", "rule-head");
+    head.append(el("h4", "rule-name", c.name), el("span", "rule-pts", c.pts));
+    card.append(head, miniDice(c.dice));
+    if (c.sirop) card.lastChild.classList.add("sirop");
+    if (c.cry) card.appendChild(el("p", "rule-cry", "« " + c.cry + " »"));
+    card.appendChild(el("p", "rule-text", c.rule));
+    card.appendChild(says(...c.who));
+    cards.appendChild(card);
   });
-  box.appendChild(ul);
-  box.appendChild(el("p", "", "Le premier à " + (target || 343) + " points l'emporte. Vous jouez avec de vrais dés ? Touche « J'ai lancé de vrais dés » et saisis-les. Ce sont les règles de base, d'après la règle publiée sur Wikibooks : la grelottine, la bévue, le civet, l'artichette, la soufflette et les paris du sirotage ne sont pas gérés."));
-  box.appendChild(el("p", "tag", "Règles avancées (au choix avant la partie)"));
-  const adv = el("ul");
-  [
-    ["Grelottine", "un néant donne une grelottine (une seule à la fois). Entre deux tours, un joueur qui en a une peut défier un autre joueur qui en a une aussi, si tous deux ont plus de 0 point : il impose une combinaison et une mise. Le défié a deux lancers, et peut garder des dés entre les deux. Réussi, il gagne la mise et les points de sa combinaison, et le grelottin perd la mise ; raté, c'est l'inverse. Mise maximale : un pourcentage du plus petit des deux scores (chouette 33 %, velute 25 %, cul de chouette 12 %, chouette velute 6 %)."],
-    ["Paris sur le sirotage", "avant que le dé ne roule, chaque autre joueur peut parier 5 points sur une face, désignée par son oiseau : linotte (1), alouette (2), fauvette (3), mouette (4), bergeronnette (5), chouette (6). « Beau sirop ! » parie sur la réussite. Pari gagné : 25 points (la mise est gardée) ; perdu : la mise de 5 points. « Couche-sirop ! » : pas de pari."],
-  ].forEach(([a, b]) => {
-    const li = el("li");
-    li.append(el("span", "tag", a + " : "), document.createTextNode(b));
-    adv.appendChild(li);
-  });
+  box.appendChild(cards);
+
+  // Bac à sable : on lance pour voir
+  const sand = el("div", "rule-sand");
+  sand.appendChild(el("h4", "rule-name", "Lance pour voir"));
+  const sDice = [makeDie(false, false), makeDie(false, false), makeDie(true, false)];
+  const sRow = el("div", "rule-dice big");
+  sDice.forEach((d) => { d.node.classList.add("mid"); sRow.appendChild(d.node); });
+  const sOut = el("div", "rule-out");
+  sOut.setAttribute("aria-live", "polite");
+  sOut.appendChild(el("p", "rule-text", "Lance les dés : je te dis ce que tu as fait et ce que ça rapporte."));
+  const sBtn = el("button", "btn primary", "Lancer pour voir");
+  sBtn.type = "button";
+  sBtn.onclick = () => {
+    const fin = [0, 1, 2].map(() => 1 + Math.floor(Math.random() * 6));
+    const calm = cdcCalm();
+    let n = calm ? 0 : 6;
+    sBtn.disabled = true;
+    const tick = () => {
+      if (n-- > 0) { sDice.forEach((d) => d.set(1 + Math.floor(Math.random() * 6))); cdcSfx("rattle"); setTimeout(tick, 60); return; }
+      sDice.forEach((d, k) => d.set(fin[k]));
+      cdcSfx("thud");
+      const [t, x] = cdcExplain(fin);
+      sOut.replaceChildren(el("p", "rule-name", t), el("p", "rule-text", x));
+      sBtn.disabled = false;
+      sBtn.textContent = "Relancer";
+    };
+    tick();
+  };
+  sand.append(sRow, sOut, sBtn);
+  box.appendChild(sand);
+
+  // Tous les points, pour les tricheurs
+  const tbl = el("details", "rule-table");
+  tbl.appendChild(el("summary", "", "Tous les points"));
+  const t = el("table", "cdc-table");
+  const head = el("tr");
+  ["Valeur", "Chouette", "Velute", "Cul"].forEach((x, i) => { const th = el("th", i ? "num" : "", x); th.scope = "col"; head.appendChild(th); });
+  const thead = el("thead");
+  thead.appendChild(head);
+  const body = el("tbody");
+  for (let v = 1; v <= 6; v++) {
+    const tr = el("tr");
+    const th = el("th", "", String(v));
+    th.scope = "row";
+    tr.append(th, el("td", "num", String(v * v)), el("td", "num", v === 1 ? "–" : v === 2 ? "8*" : String(2 * v * v)), el("td", "num", String(cdcCul(v))));
+    body.appendChild(tr);
+  }
+  t.append(thead, body);
+  tbl.append(t, el("p", "cdc-legend", "* La velute de 2 n'existe qu'en chouette velute (1, 1 et 2). La valeur d'une velute est celle du plus grand dé."));
+  box.appendChild(tbl);
+
+  // Règles avancées
+  const adv = el("div", "rule-adv");
+  adv.appendChild(el("h4", "rule-name", "Règles avancées (au choix avant la partie)"));
+  const g = el("article", "rule-card");
+  const gh = el("div", "rule-head");
+  gh.append(el("h4", "rule-name", "Grelottine"), el("span", "rule-pts", "défi à mise"));
+  g.append(gh,
+    el("p", "rule-text", "Un néant te donne une grelottine (une seule à la fois). Entre deux tours, si toi et un autre joueur en avez une, avec chacun plus de 0 point, tu peux le défier : tu lui imposes une combinaison et une mise."),
+    el("p", "rule-text", "Il a deux lancers, et peut garder des dés entre les deux. Réussi : il gagne la mise et les points de sa combinaison, tu perds la mise. Raté : c'est toi qui encaisses. Mise maximale selon le plus petit des deux scores : chouette 33 %, velute 25 %, cul de chouette 12 %, chouette velute 6 %."),
+    says("leodagan", "happy", "Imposez un cul de chouette. Ils ne le réussissent presque jamais.")
+  );
+  const pr = el("article", "rule-card");
+  const ph = el("div", "rule-head");
+  ph.append(el("h4", "rule-name", "Paris sur le sirotage"), el("span", "rule-pts", "5 pour gagner 25"));
+  const birds = el("div", "rule-birds");
+  for (let f = 1; f <= 6; f++) {
+    const b = el("span", "bird");
+    const d = makeDie(false, false);
+    d.node.classList.add("mini");
+    d.set(f);
+    d.node.setAttribute("aria-hidden", "true");
+    b.append(d.node, el("span", "", CDC_BIRDS[f]));
+    birds.appendChild(b);
+  }
+  pr.append(ph,
+    el("p", "rule-text", "Quand quelqu'un sirote, chaque autre joueur peut miser 5 points sur la face qui va sortir, en criant le nom de son oiseau :"),
+    birds,
+    el("p", "rule-text", "« Beau sirop ! » : tu paries sur la réussite. Pari gagné, 25 points, et tu gardes ta mise ; perdu, tu perds tes 5 points. « Couche-sirop ! » : tu ne paries pas."),
+    says("perceval", "happy", "Moi je parie toujours sur la linotte. C'est joli, linotte.")
+  );
+  const advCards = el("div", "rule-cards");
+  advCards.append(g, pr);
+  adv.appendChild(advCards);
   box.appendChild(adv);
-  box.appendChild(el("p", "", "Seul ou pas assez nombreux ? Ajoute une IA : Léodagan, Perceval ou Karadoc, chacun avec sa façon de jouer. Avec des IA, les courses (« Pas mou le caillou ! », « Grelotte, ça picote ! ») se jouent au bouton : le plus rapide à le toucher gagne, et Léodagan apprend tes réflexes."));
+
+  box.appendChild(el("p", "rules-foot", "Vous jouez avec de vrais dés ? Touche « J'ai lancé de vrais dés » et saisis-les. Seul ? Ajoute une IA : avec elles, les cris se jouent au bouton, au plus rapide. Règles d'après la version publiée sur Wikibooks ; bévue, civet, artichette, soufflette et autres raffinements ne sont pas gérés."));
   return box;
 }
 
@@ -3518,7 +3693,9 @@ function cdcSetup() {
   go.onclick = start;
 
   const fold = el("details", "help-fold");
-  fold.appendChild(el("summary", "", "Les règles"));
+  fold.appendChild(el("summary", "", "Comment on joue ? Les règles illustrées"));
+  // Ouvertes d'office la première fois
+  if (!store.get("kmt-cdc-rules")) { fold.open = true; store.set("kmt-cdc-rules", "1"); }
   fold.appendChild(cdcHelp(target));
   root.append(plLabel, list, add, botsLabel, bots, tLabel, seg, rLabel, rSeg, msg, actions, fold);
   replay(root);
@@ -3669,7 +3846,23 @@ function cdcGame(state) {
   const quit = el("button", "back", "Arrêter");
   quit.type = "button";
   quit.onclick = () => { cdcStore.save(state); cdcSetup(); };
-  tally.append(goal, feelToggle(), quit);
+  // Les règles à portée de main pendant la partie
+  const help = el("button", "back feel rules-btn", "?");
+  help.type = "button";
+  help.setAttribute("aria-label", "Les règles");
+  help.onclick = () => {
+    const dlg = el("dialog", "rules-dialog");
+    dlg.setAttribute("aria-label", "Les règles du cul de chouette");
+    const close = el("button", "back rules-close", "Fermer");
+    close.type = "button";
+    close.onclick = () => dlg.close();
+    dlg.append(close, cdcHelp(state.target));
+    dlg.addEventListener("close", () => dlg.remove());
+    dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
+    document.body.appendChild(dlg);
+    if (typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open", "");
+  };
+  tally.append(goal, help, feelToggle(), quit);
 
   const boardEl = el("ol", "cdc-board");
   boardEl.setAttribute("aria-label", "Scores");
