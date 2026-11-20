@@ -111,7 +111,7 @@
   }
 
   /* Navigation : trois grands panneaux encadrés, comme des titres de chapitre */
-  .tabs { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-md); margin-top: var(--space-xl); }
+  .tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-md); margin-top: var(--space-xl); }
   .tab {
     min-height: 80px;
     display: flex;
@@ -128,7 +128,20 @@
     cursor: pointer;
     transition: background-color 0.25s var(--ease), color 0.25s var(--ease), border-color 0.25s var(--ease), box-shadow 0.25s var(--ease), transform 0.1s var(--ease);
   }
-  @media (min-width: 36rem) { .tabs { grid-template-columns: repeat(4, 1fr); } }
+  /* Jouer : le bouton d'appel, en tête, pleine largeur, doré tant qu'il n'est pas sélectionné */
+  .tab-play { grid-column: 1 / -1; min-height: 92px; }
+  .tab-play .tab-name { font-size: clamp(1.875rem, 1.4rem + 2.6vw, 2.75rem); }
+  .tab-play .tab-note { font-size: 0.9375rem; }
+  .tab-play:not([aria-selected="true"]) {
+    color: var(--ink);
+    background: oklch(0.84 0.11 85);
+    border-color: oklch(0.5 0.1 75);
+    box-shadow: inset 0 0 0 3px oklch(0.84 0.11 85), inset 0 0 0 4px oklch(0.5 0.1 75);
+  }
+  .tab-play:not([aria-selected="true"]) .tab-note { color: oklch(0.34 0.05 60); }
+  .tab-play:not([aria-selected="true"]):hover { background: oklch(0.8 0.12 85); }
+  .tab:not(.tab-play) { padding: var(--space-md) var(--space-xs); }
+  .tab:not(.tab-play) .tab-name { font-size: clamp(1.1875rem, 0.9rem + 1.6vw, 1.75rem); }
   .tab-name {
     font-family: var(--font-gothique);
     font-weight: 700;
@@ -698,9 +711,9 @@
   <div class="rule" aria-hidden="true"></div>
 
   <div class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab tab-play" role="tab" id="tab-play" aria-selected="false" aria-controls="view-play" tabindex="-1"><span class="tab-name">Jouer</span><span class="tab-note">trois jeux</span></button>
     <button class="tab" role="tab" id="tab-quote" aria-selected="true" aria-controls="view-quote" tabindex="0"><span class="tab-name">Citation</span><span class="tab-note">au hasard</span></button>
     <button class="tab" role="tab" id="tab-search" aria-selected="false" aria-controls="view-search" tabindex="-1"><span class="tab-name">Recherche</span><span class="tab-note">par mots</span></button>
-    <button class="tab" role="tab" id="tab-play" aria-selected="false" aria-controls="view-play" tabindex="-1"><span class="tab-name">Jouer</span><span class="tab-note">trois jeux</span></button>
     <button class="tab" role="tab" id="tab-records" aria-selected="false" aria-controls="view-records" tabindex="-1"><span class="tab-name">Records</span><span class="tab-note">et classement</span></button>
   </div>
 
@@ -1139,7 +1152,7 @@ const store = {
 };
 
 /* ===== Onglets ===== */
-const TABS = ["quote", "search", "play", "records"];
+const TABS = ["play", "quote", "search", "records"];
 let gamesReady = false;
 
 function showTab(name) {
