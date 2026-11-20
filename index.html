@@ -1010,6 +1010,100 @@
   @keyframes foeswap { from { opacity: 0; transform: translateX(-40px) rotate(-14deg); } }
   @keyframes foenudge { 40% { transform: rotate(3deg) translateY(-3px); } }
   .result .foe { max-width: 30rem; }
+  /* Cul de chouette : ressenti (lancer, sirop, sceaux, plumes, points, tension, victoire) */
+  .cdc-dice { position: relative; }
+  .cdc-play.jolt { animation: jolt 0.24s var(--ease); }
+  @keyframes jolt { 25% { transform: translate(2px, 1px); } 50% { transform: translate(-2px, -1px); } 75% { transform: translate(1px, 0); } }
+  .die.throw { animation: diethrow 0.62s cubic-bezier(0.3, 0.7, 0.4, 1) both; }
+  @keyframes diethrow {
+    0% { opacity: 0; transform: translate(var(--fx, 0), 170px) rotate(-260deg) scale(0.7); }
+    45% { opacity: 1; transform: translate(calc(var(--fx, 0) * 0.3), -26px) rotate(-40deg) scale(1.05); }
+    70% { transform: translate(0, 0) rotate(6deg) scale(1.12, 0.86); }
+    82% { transform: translateY(-8px) rotate(-2deg); }
+    92% { transform: translateY(0) scale(1.04, 0.96); }
+    100% { transform: none; }
+  }
+  .cdc-dice.shaking .die { animation: rattle 0.11s linear infinite alternate; }
+  .cdc-dice.shaking .die:nth-child(1) { animation-duration: 0.09s; }
+  @keyframes rattle { from { transform: translate(-3px, 2px) rotate(-9deg); } to { transform: translate(3px, -2px) rotate(9deg); } }
+  .cdc-play .actions .btn.primary { flex: 2 1 10rem; }
+  .cdc-play .actions .shake-btn { flex: 1 1 6rem; }
+  .shake-btn { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+  .die-wrap { transition: opacity 0.3s var(--ease); }
+  .die-wrap.dim { opacity: 0.28; }
+  .die.solo { scale: 1.3; z-index: 2; }
+  .die.suspense { animation: sus 0.5s ease-in-out infinite alternate; }
+  @keyframes sus { from { transform: rotate(-9deg); } to { transform: rotate(9deg) translateY(-6px); } }
+  .cdc-dice.sirop { margin-block: var(--space-xl) var(--space-sm); }
+  .die.flop { filter: grayscale(0.7); animation: flop 0.6s var(--ease) both; }
+  @keyframes flop { 30% { transform: translateY(-6px) rotate(-6deg); } 100% { transform: translateY(4px) rotate(12deg); } }
+  .cdc-dice.tense .die { box-shadow: 0 0 0 3px oklch(0.66 0.1 80 / 0.5), 0 3px 0 var(--hair); animation: tense 1.2s ease-in-out infinite alternate; }
+  @keyframes tense { to { box-shadow: 0 0 0 7px oklch(0.66 0.1 80 / 0.15), 0 3px 0 var(--hair); } }
+  .cdc-close { margin: var(--space-sm) 0 0; font-style: italic; color: var(--ink-soft); }
+  .cdc-close.hot { font-family: var(--font-display); font-size: var(--t-md); font-style: normal; color: var(--rubric); animation: hot 1s ease-in-out infinite alternate; }
+  @keyframes hot { to { opacity: 0.6; } }
+  .cdc-board li.lead .nm::before { content: "◆"; margin-right: 0.4em; font-size: 0.7em; vertical-align: 0.15em; color: var(--gilt); }
+  .cdc-board li.close { box-shadow: inset 0 0 0 1px var(--gilt); animation: glow 1.1s ease-in-out infinite alternate; }
+  @keyframes glow { to { box-shadow: inset 0 0 0 2px var(--gilt), 0 0 14px oklch(0.66 0.1 80 / 0.45); } }
+  .stamp { position: absolute; inset: -12px -4px; z-index: 3; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; pointer-events: none; animation: stampin 2.3s var(--ease) both; }
+  .stamp-name {
+    padding: 6px 14px;
+    font-family: var(--font-gothique);
+    font-weight: 700;
+    font-size: clamp(1.6rem, 7vw, 2.4rem);
+    line-height: 1.05;
+    text-align: center;
+    color: var(--rubric);
+    background: oklch(0.975 0.015 85 / 0.93);
+    border: 3px double var(--rubric);
+    border-radius: 4px;
+    transform: rotate(-7deg);
+    position: relative;
+  }
+  .seal {
+    position: absolute;
+    right: 6px;
+    top: -46px;
+    width: 54px;
+    height: 54px;
+    display: grid;
+    place-items: center;
+    border-radius: 47% 53% 50% 50% / 52% 46% 54% 48%;
+    font-family: var(--font-display);
+    font-size: 1.0625rem;
+    color: var(--parchment);
+    background: radial-gradient(circle at 35% 30%, oklch(0.6 0.17 29), var(--rubric-deep) 70%);
+    box-shadow: 0 0 0 4px oklch(0.45 0.15 29 / 0.35), 0 3px 0 oklch(0.35 0.1 29);
+    transform: rotate(10deg);
+  }
+  @keyframes stampin { 0% { opacity: 0; transform: scale(2.2); } 12% { opacity: 1; transform: scale(0.94); } 18% { transform: scale(1); } 80% { opacity: 1; } 100% { opacity: 0; } }
+  .feathers { position: fixed; inset: 0; z-index: 50; overflow: hidden; pointer-events: none; }
+  .feather { position: absolute; top: -50px; width: 18px; height: 36px; animation: featherfall var(--d) linear var(--delay) both; }
+  .feather svg { display: block; width: 100%; height: 100%; }
+  @keyframes featherfall {
+    0% { transform: translate(0, 0) rotate(0); }
+    25% { transform: translate(var(--sway), 28vh) rotate(calc(var(--rot) * 0.25)); }
+    50% { transform: translate(calc(var(--sway) * -1), 56vh) rotate(calc(var(--rot) * 0.5)); }
+    75% { transform: translate(var(--sway), 84vh) rotate(calc(var(--rot) * 0.75)); }
+    100% { transform: translate(0, 112vh) rotate(var(--rot)); }
+  }
+  .fly { position: fixed; z-index: 40; pointer-events: none; font-family: var(--font-display); font-size: 1.75rem; color: var(--ok); text-shadow: 0 1px 0 var(--parchment), 0 0 8px var(--parchment); }
+  .fly.neg { color: var(--rubric); }
+  .foe.big { grid-template-columns: 1fr; justify-items: center; }
+  .foe.big .foe-card { width: min(13rem, 60vw); }
+  .foe.big .foe-name { font-size: 1.375rem; }
+  .win-art { display: grid; place-items: center; aspect-ratio: 100 / 120; background: radial-gradient(circle at 50% 40%, oklch(0.93 0.07 85), oklch(0.8 0.1 80)); }
+  .win-art .lv-svg { width: 62%; height: auto; }
+  .cdc-recap { margin-top: var(--space-2xl); }
+  .cdc-recap > p { margin: var(--space-sm) 0 0; }
+  .cdc-table { width: 100%; margin-top: var(--space-lg); border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  .cdc-table th, .cdc-table td { padding: var(--space-sm) var(--space-xs); text-align: left; border-bottom: 1px solid var(--hair); font-weight: 400; }
+  .cdc-table thead th { font-size: var(--t-sm); color: var(--ink-soft); }
+  .cdc-table .num { text-align: right; }
+  .cdc-table tbody th { font-family: var(--font-display); font-size: var(--t-md); overflow-wrap: anywhere; }
+  .cdc-table .rank { width: 1.75rem; font-family: var(--font-gothique); font-weight: 700; font-size: 1.25rem; color: var(--ink-soft); }
+  .cdc-table tr.first .rank { color: var(--rubric); }
+  .cdc-legend { font-size: var(--t-sm); font-style: italic; }
   .cdc-play .actions { margin-top: var(--space-xl); align-items: center; }
   .cdc-final { margin-top: var(--space-xl); }
   .help-fold ul { margin: var(--space-sm) 0 0; padding-left: 1.2em; }
@@ -3324,12 +3418,144 @@ function cdcSetup() {
   replay(root);
 }
 
+/* Ressenti du cul de chouette : sons de taverne (synthétisés), sceau de cire, plumes, points qui volent */
+function cdcCtx() {
+  if (!feel.sound) return null;
+  try {
+    if (!feel.ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      feel.ctx = new AC();
+    }
+    if (feel.ctx.state === "suspended") feel.ctx.resume();
+    return feel.ctx;
+  } catch (e) { return null; }
+}
+// Bruit filtré : grelot des dés, choc du bois
+function cdcNoise(dur, freq, gain, delay) {
+  const ctx = cdcCtx();
+  if (!ctx) return;
+  try {
+    const t0 = ctx.currentTime + (delay || 0);
+    const len = Math.max(1, Math.floor(ctx.sampleRate * dur));
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const bp = ctx.createBiquadFilter();
+    bp.type = "bandpass";
+    bp.frequency.value = freq;
+    bp.Q.value = 1.2;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(gain, t0);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    src.connect(bp);
+    bp.connect(g);
+    g.connect(ctx.destination);
+    src.start(t0);
+    src.stop(t0 + dur + 0.02);
+  } catch (e) { /* ignoré */ }
+}
+function cdcSfx(name) {
+  if (!feel.sound) return;
+  if (name === "rattle") { for (let i = 0; i < 3; i++) cdcNoise(0.025, 2600 + Math.random() * 2200, 0.12, i * 0.03 + Math.random() * 0.02); }
+  else if (name === "thud") { feel.tone(150, 0.14, { type: "sine", gain: 0.16, slide: -70 }); cdcNoise(0.05, 900, 0.18); }
+  else if (name === "tick") cdcNoise(0.02, 3200, 0.08);
+  else if (name === "heart") { feel.tone(62, 0.13, { type: "sine", gain: 0.22 }); feel.tone(58, 0.13, { type: "sine", gain: 0.16, delay: 0.17 }); }
+  else if (name === "stamp") { feel.tone(95, 0.2, { type: "sine", gain: 0.22, slide: -40 }); cdcNoise(0.08, 500, 0.22); }
+  else if (name === "fanfare") {
+    [523, 659, 784].forEach((f, k) => feel.tone(f, 0.14, { type: "triangle", gain: 0.06, delay: k * 0.11 }));
+    [523, 659, 784, 1047].forEach((f) => feel.tone(f, 0.8, { type: "triangle", gain: 0.035, delay: 0.36 }));
+  }
+  else if (name === "fall") { feel.tone(420, 0.7, { type: "sawtooth", gain: 0.04, slide: -300 }); feel.tone(300, 0.5, { type: "triangle", gain: 0.03, slide: -200, delay: 0.1 }); }
+  else if (name === "count") feel.tone(900 + Math.random() * 200, 0.025, { type: "triangle", gain: 0.02 });
+}
+const cdcCalm = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// Le nom du coup s'imprime comme un sceau de cire, avec les points
+function cdcStamp(host, name, pts) {
+  const s = el("div", "stamp");
+  s.setAttribute("aria-hidden", "true");
+  const label = el("span", "stamp-name", name);
+  label.appendChild(el("span", "seal", (pts >= 0 ? "+" : "−") + Math.abs(pts)));
+  s.appendChild(label);
+  host.appendChild(s);
+  cdcSfx("stamp");
+  setTimeout(() => s.remove(), cdcCalm() ? 1600 : 2300);
+}
+
+// Pluie de plumes de chouette
+const FEATHER = ["oklch(0.62 0.06 60)", "oklch(0.9 0.03 80)", "oklch(0.72 0.09 80)"];
+function cdcFeathers(n) {
+  if (cdcCalm()) return;
+  const layer = el("div", "feathers");
+  layer.setAttribute("aria-hidden", "true");
+  for (let i = 0; i < n; i++) {
+    const f = el("span", "feather");
+    f.style.left = Math.random() * 96 + "%";
+    f.style.setProperty("--d", (2.2 + Math.random() * 1.6).toFixed(2) + "s");
+    f.style.setProperty("--delay", (Math.random() * 0.7).toFixed(2) + "s");
+    f.style.setProperty("--sway", Math.round(Math.random() * 70 - 35) + "px");
+    f.style.setProperty("--rot", Math.round(Math.random() * 540 - 270) + "deg");
+    const c = FEATHER[i % FEATHER.length];
+    f.innerHTML = '<svg viewBox="0 0 20 40"><path d="M10 2 C18 10 18 26 10 38 C2 26 2 10 10 2 Z" fill="' + c + '" stroke="oklch(0.26 0.035 55)" stroke-width="1"/><path d="M10 6 V39 M10 14 L15 10 M10 20 L5 16 M10 26 L15 22" stroke="oklch(0.26 0.035 55)" stroke-width="0.9" fill="none" stroke-linecap="round"/></svg>';
+    layer.appendChild(f);
+  }
+  document.body.appendChild(layer);
+  setTimeout(() => layer.remove(), 4800);
+}
+
+// Un « +16 » part des dés vers la ligne du joueur
+function cdcFly(fromEl, toEl, text, neg, done) {
+  if (cdcCalm() || !fromEl.isConnected || !toEl.isConnected || typeof Element.prototype.animate !== "function") { done(); return; }
+  const a = fromEl.getBoundingClientRect();
+  const b = toEl.getBoundingClientRect();
+  const f = el("span", "fly" + (neg ? " neg" : ""), text);
+  f.setAttribute("aria-hidden", "true");
+  const x0 = a.left + a.width / 2;
+  const y0 = a.top + a.height / 2;
+  f.style.left = x0 + "px";
+  f.style.top = y0 + "px";
+  document.body.appendChild(f);
+  const dx = b.left + b.width / 2 - x0;
+  const dy = b.top + b.height / 2 - y0;
+  const anim = f.animate([
+    { transform: "translate(-50%, -50%) scale(0.6)", opacity: 0 },
+    { transform: "translate(-50%, -110%) scale(1.3)", opacity: 1, offset: 0.25 },
+    { transform: "translate(calc(-50% + " + dx + "px), calc(-50% + " + dy + "px)) scale(0.8)", opacity: 0.9 },
+  ], { duration: 800, easing: "cubic-bezier(0.5, 0, 0.3, 1)" });
+  anim.onfinish = () => { f.remove(); done(); };
+}
+
+// Le compteur défile jusqu'au nouveau score
+function cdcCount(node, from, to, done) {
+  if (cdcCalm() || from === to) { node.textContent = String(to); if (done) done(); return; }
+  const t0 = performance.now();
+  const dur = 520;
+  let last = from;
+  const step = (t) => {
+    const k = Math.min(1, (t - t0) / dur);
+    const v = Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3)));
+    if (v !== last && Math.abs(v - from) % 3 === 0) cdcSfx("count");
+    last = v;
+    node.textContent = String(v);
+    if (k < 1) requestAnimationFrame(step);
+    else if (done) done();
+  };
+  requestAnimationFrame(step);
+}
+
 /* Partie : tableau des scores, lancer, combinaison, puis joueur suivant */
 function cdcGame(state) {
   document.body.classList.add("playing");
   const root = $("play-root");
   root.innerHTML = "";
   const wrap = el("div", "cdc-play");
+  if (!Array.isArray(state.stats) || state.stats.length !== state.players.length) {
+    state.stats = state.players.map(() => ({ best: 0, bestLabel: "", sirOk: 0, sirKo: 0, raceWin: 0, raceLose: 0 }));
+  }
+  if (!Array.isArray(state.reflex)) state.reflex = [];
 
   const tally = el("div", "tally");
   const goal = el("span", "", "Partie en " + state.target + " points");
@@ -3373,7 +3599,9 @@ function cdcGame(state) {
   const react = (event, chance) => { if (foe && Math.random() < chance) talk(someBot(), event); };
   wrap.append(tally, boardEl);
   if (foe) wrap.appendChild(foe.node);
-  wrap.append(turnTitle, diceRow, hint, verdict, actions);
+  const closeLine = el("p", "cdc-close");
+  closeLine.hidden = true;
+  wrap.append(turnTitle, closeLine, diceRow, hint, verdict, actions);
   root.appendChild(wrap);
 
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -3385,11 +3613,17 @@ function cdcGame(state) {
   // Minuteries des IA : ignorées si on a quitté la partie entre-temps
   const later = (fn, ms) => setTimeout(() => { if (wrap.isConnected) fn(); }, ms);
 
+  // Proche de la victoire : à moins de 12 % du score visé (25 points au moins)
+  const closeGap = Math.max(25, Math.round(state.target * 0.12));
+  const isClose = (p) => p.score < state.target && state.target - p.score <= closeGap;
   function paintBoard(changed) {
     const top = Math.max(state.target, ...state.players.map((p) => p.score));
+    const lead = Math.max(...state.players.map((p) => p.score));
     state.players.forEach((p, k) => {
       const r = rows[k];
       r.li.classList.toggle("now", k === state.turn);
+      r.li.classList.toggle("lead", lead > 0 && p.score === lead);
+      r.li.classList.toggle("close", isClose(p));
       r.nm.textContent = p.name;
       if (p.bot) r.nm.appendChild(el("span", "ia", "IA"));
       r.nm.dataset.now = p.bot ? "joue…" : "à toi";
@@ -3419,23 +3653,81 @@ function cdcGame(state) {
 
   // Lance les dés demandés (indices), avec une courte animation, puis rappelle done().
   // Comme à la table : les deux chouettes tombent d'abord, le cul ensuite.
-  function rollDice(which, done) {
+  const rnd6 = () => 1 + Math.floor(Math.random() * 6);
+  function jolt() {
+    if (reduce) return;
+    wrap.classList.remove("jolt");
+    void wrap.offsetWidth;
+    wrap.classList.add("jolt");
+  }
+  function rollDice(which, done, opts) {
     busy = true;
+    canRoll = false;
     setDiceTappable([]);
     const final = which.map(() => cdcRollDie());
-    const frames = reduce ? 0 : 7;
-    const stopAt = which.map((k) => (which.length === 3 && k === 2 && !reduce ? frames + 5 : frames));
-    const end = Math.max(...stopAt);
-    which.forEach((k) => { dice[k].node.classList.remove("rolling", "lit"); void dice[k].node.offsetWidth; dice[k].node.classList.add("rolling"); });
-    let f = 0;
+    if (reduce) {
+      which.forEach((k, j) => { dice[k].node.classList.remove("lit"); dice[k].set(final[j]); });
+      cdcSfx("thud");
+      busy = false;
+      done();
+      return;
+    }
+    if (opts && opts.suspense) return suspenseRoll(which[0], final[0], opts.target, done);
+    // Les dés arrivent du bas, tournent, rebondissent et s'écrasent : chouettes d'abord, cul ensuite
+    let landed = 0;
+    which.forEach((k, j) => {
+      const node = dice[k].node;
+      const delay = which.length === 3 && k === 2 ? 380 : j * 70;
+      node.classList.remove("throw", "lit", "flop");
+      node.style.setProperty("--fx", Math.round(Math.random() * 60 - 30) + "px");
+      node.style.animationDelay = delay + "ms";
+      dice[k].set(rnd6());
+      void node.offsetWidth;
+      node.classList.add("throw");
+      const spin = setInterval(() => { if (wrap.isConnected) dice[k].set(rnd6()); }, 70);
+      later(() => {
+        clearInterval(spin);
+        dice[k].set(final[j]);
+        cdcSfx("thud");
+        jolt();
+        landed++;
+        if (landed === which.length) later(() => { busy = false; done(); }, 260);
+      }, delay + 430);
+    });
+  }
+
+  // Sirotage : le dé seul, mis en avant, roule longtemps et ralentit ; le cœur bat
+  function suspenseRoll(k, final, target, done) {
+    const node = dice[k].node;
+    dice.forEach((d, i) => d.node.parentNode.classList.toggle("dim", i !== k));
+    diceRow.classList.add("sirop");
+    node.classList.remove("lit", "flop", "throw");
+    node.classList.add("solo", "suspense");
+    cdcSfx("heart");
+    const heart = setInterval(() => { if (wrap.isConnected) cdcSfx("heart"); }, 700);
+    let wait = 55;
+    const waits = [];
+    while (wait < 480) { waits.push(wait); wait *= 1.17; }
+    let face = dice[k].value || rnd6();
+    let i = 0;
     const tick = () => {
-      which.forEach((k, j) => dice[k].set(f < stopAt[j] ? 1 + Math.floor(Math.random() * 6) : final[j]));
-      if (f < end) {
-        feel.sfx("flip", 260 + Math.random() * 260);
-        f++;
-        setTimeout(tick, 65);
+      if (!wrap.isConnected) { clearInterval(heart); return; }
+      if (i < waits.length) {
+        // Juste avant la fin, le dé passe par la bonne face… ou pas
+        let next = rnd6();
+        if (i === waits.length - 1 && final !== target) next = target;
+        else while (next === face) next = rnd6();
+        face = next;
+        dice[k].set(face);
+        cdcSfx("tick");
+        setTimeout(tick, waits[i++]);
         return;
       }
+      clearInterval(heart);
+      dice[k].set(final);
+      node.classList.remove("suspense");
+      cdcSfx("thud");
+      jolt();
       busy = false;
       done();
     };
@@ -3458,11 +3750,34 @@ function cdcGame(state) {
     actions.replaceChildren(ok, btn("Lancer à ma place", "linklike", () => { hint.textContent = ""; manual = false; rollDice(which, done); }));
   }
 
+  // Tension de fin : le joueur du tour, ou un rival, est tout près de la victoire
+  function paintTension() {
+    const me = cur();
+    const left = state.target - me.score;
+    const rival = state.players.filter((p) => p !== me && isClose(p)).sort((a, b) => b.score - a.score)[0];
+    diceRow.classList.toggle("tense", isClose(me));
+    if (isClose(me)) {
+      closeLine.className = "cdc-close hot";
+      closeLine.textContent = "Plus que " + left + (left > 1 ? " points" : " point") + " pour gagner !";
+      closeLine.hidden = false;
+      cdcSfx("heart");
+    } else if (rival) {
+      const l = state.target - rival.score;
+      closeLine.className = "cdc-close";
+      closeLine.textContent = "Attention : " + rival.name + " n'est plus qu'à " + l + (l > 1 ? " points" : " point") + " de la victoire.";
+      closeLine.hidden = false;
+    } else {
+      closeLine.hidden = true;
+    }
+  }
+
   function startTurn() {
     manual = false;
     paintBoard();
     turnTitle.textContent = "À " + cur().name + " de lancer";
-    dice.forEach((d) => { d.set(null); d.node.classList.remove("lit"); });
+    paintTension();
+    diceRow.classList.remove("sirop", "shaking");
+    dice.forEach((d) => { d.set(null); d.node.classList.remove("lit", "solo", "suspense", "flop", "throw"); d.node.parentNode.classList.remove("dim"); });
     setDiceTappable([]);
     hint.textContent = "";
     verdict.replaceChildren();
@@ -3474,9 +3789,82 @@ function cdcGame(state) {
       return;
     }
     if (foe && !foeShown) { foe.show(botIds[0], "À vous l'honneur. On vous regarde.", "neutral"); foeShown = true; }
-    const roll = btn("Lancer les dés", "btn primary", () => { if (!busy) rollDice([0, 1, 2], resolve); });
-    actions.replaceChildren(roll, btn("J'ai lancé de vrais dés", "linklike", () => enterDice([0, 1, 2], resolve)));
+    canRoll = true;
+    const roll = btn("Lancer les dés", "btn primary", () => { askMotion(); throwNow(); });
+    // « Secouer » : on garde le doigt dessus, les dés grelottent, on lâche pour jeter
+    const shakeBtn = btn("Secouer", "btn shake-btn", (e) => { if (e.detail === 0) throwNow(); });
+    shakeBtn.onpointerdown = (e) => {
+      e.preventDefault();
+      askMotion();
+      try { shakeBtn.setPointerCapture(e.pointerId); } catch (err) { /* ignoré */ }
+      startShake();
+    };
+    shakeBtn.onpointerup = () => { if (shaking) throwNow(); };
+    shakeBtn.onpointercancel = () => { if (shaking) throwNow(); };
+    shakeBtn.oncontextmenu = (e) => e.preventDefault();
+    actions.replaceChildren(roll, shakeBtn, btn("J'ai lancé de vrais dés", "linklike", () => { stopShake(); canRoll = false; enterDice([0, 1, 2], resolve); }));
+    hint.textContent = "Ou garde le doigt sur « Secouer » et lâche pour jeter" + (motionOk ? ", ou secoue ton téléphone." : ".");
     roll.focus({ preventScroll: true });
+  }
+
+  // Lancer physique : bouton maintenu ou téléphone secoué
+  let canRoll = false;
+  let shaking = false;
+  let shakeTimer = 0;
+  const motionOk = "ondevicemotion" in window && ("ontouchstart" in window || navigator.maxTouchPoints > 0);
+  let motionAsked = false;
+  function askMotion() {
+    if (motionAsked || !motionOk) return;
+    motionAsked = true;
+    try {
+      if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function") DeviceMotionEvent.requestPermission().catch(() => {});
+    } catch (e) { /* ignoré */ }
+  }
+  function startShake() {
+    if (!canRoll || busy || shaking) return;
+    shaking = true;
+    diceRow.classList.add("shaking");
+    hint.textContent = "Ça grelotte… lâche pour jeter !";
+    const rattle = () => {
+      if (!shaking || !wrap.isConnected) return;
+      cdcSfx("rattle");
+      dice.forEach((d) => d.set(rnd6()));
+      shakeTimer = setTimeout(rattle, 110);
+    };
+    rattle();
+  }
+  function stopShake() {
+    shaking = false;
+    clearTimeout(shakeTimer);
+    diceRow.classList.remove("shaking");
+  }
+  function throwNow() {
+    if (!canRoll || busy) return;
+    stopShake();
+    hint.textContent = "";
+    rollDice([0, 1, 2], resolve);
+  }
+  if (motionOk) {
+    let hits = 0;
+    let quiet = 0;
+    const onMotion = (e) => {
+      if (!wrap.isConnected) { window.removeEventListener("devicemotion", onMotion); return; }
+      if (!canRoll || busy || cur().bot) return;
+      const a = e.acceleration;
+      let mag;
+      if (a && a.x !== null) mag = Math.hypot(a.x, a.y, a.z);
+      else if (e.accelerationIncludingGravity) {
+        const g = e.accelerationIncludingGravity;
+        mag = Math.abs(Math.hypot(g.x || 0, g.y || 0, g.z || 0) - 9.81);
+      } else return;
+      if (mag < 13) return;
+      hits++;
+      if (!shaking) startShake();
+      clearTimeout(quiet);
+      // Le téléphone s'arrête de bouger : on jette (après quelques secousses franches)
+      quiet = setTimeout(() => { if (shaking && hits >= 3) throwNow(); else stopShake(); hits = 0; }, 380);
+    };
+    window.addEventListener("devicemotion", onMotion);
   }
 
   function light(idx) { dice.forEach((d, k) => d.node.classList.toggle("lit", idx.includes(k))); }
@@ -3492,17 +3880,20 @@ function cdcGame(state) {
 
     if (r.kind === "cul") {
       light([0, 1, 2]);
-      feel.sfx("win");
+      cdcSfx("fanfare");
+      cdcStamp(diceRow, "Cul de chouette !", r.pts);
+      cdcFeathers(18);
       verdict.replaceChildren(head("Cul de chouette de " + r.v + " !"), p("Trois dés identiques : " + r.pts + " points."));
       if (cur().bot) talk(cur().bot, "good"); else react("humanGood", 0.9);
-      return apply([[me, r.pts]]);
+      return apply([[me, r.pts]], "Cul de chouette de " + r.v);
     }
     if (r.kind === "velute") {
       light([0, 1, 2]);
       feel.sfx("ok");
+      cdcStamp(diceRow, "Velute !", r.pts);
       verdict.replaceChildren(head("Velute de " + r.v), p("Deux dés font le troisième : deux fois " + r.v + " au carré, " + r.pts + " points."));
       if (cur().bot) talk(cur().bot, "good"); else react("humanGood", r.pts >= 32 ? 0.7 : 0.3);
-      return apply([[me, r.pts]]);
+      return apply([[me, r.pts]], "Velute de " + r.v);
     }
     if (r.kind === "neant") {
       feel.sfx("miss");
@@ -3522,7 +3913,7 @@ function cdcGame(state) {
           if (foe) foe.show(cur().bot, choice.why, choice.sir ? "happy" : "neutral");
           verdict.appendChild(el("p", "cdc-ai", cur().name + (choice.sir ? " sirote." : " garde ses " + r.pts + " points.")));
           if (choice.sir) later(() => sirote(r, true), 900);
-          else apply([[me, r.pts]]);
+          else apply([[me, r.pts]], "Chouette de " + r.v);
         }, reduce ? 300 : 1000);
         return;
       }
@@ -3531,7 +3922,7 @@ function cdcGame(state) {
         p(r.pts + " points. Tu peux siroter : relancer le dé seul pour tenter le cul de chouette (" + gain + " points), mais si c'est raté tu perds " + r.pts + " points.")
       );
       actions.replaceChildren(
-        btn("Garder", "btn primary", () => apply([[me, r.pts]])),
+        btn("Garder", "btn primary", () => apply([[me, r.pts]], "Chouette de " + r.v)),
         btn("Siroter", "btn", () => sirote(r))
       );
       return;
@@ -3539,15 +3930,17 @@ function cdcGame(state) {
     if (r.kind === "chouette-velute") {
       light([0, 1, 2]);
       feel.sfx("ok");
+      cdcStamp(diceRow, "Chouette velute !", r.pts);
       actions.replaceChildren();
+      const cvDone = (k) => { recRace("first", k); apply([[k, r.pts]], "Chouette velute de " + 2 * r.v); };
       if (hasBots) {
         verdict.replaceChildren(head("Chouette velute !"));
-        race("first", r.pts, (k) => apply([[k, r.pts]]));
+        race("first", r.pts, cvDone);
         return;
       }
       const q = p("Le premier qui crie ");
       q.append(cry("Pas mou le caillou !"), document.createTextNode(" en frappant dans ses mains gagne " + r.pts + " points. Qui a crié le premier ?"));
-      verdict.replaceChildren(head("Chouette velute !"), q, whoPicker((k) => apply([[k, r.pts]])));
+      verdict.replaceChildren(head("Chouette velute !"), q, whoPicker(cvDone));
       return;
     }
     // Suite (et suite velutée 1, 2, 3)
@@ -3557,16 +3950,17 @@ function cdcGame(state) {
     if (r.kind === "suite-velute") parts.push(p("1, 2 et 3 : la suite s'applique, et " + cur().name + " peut aussi valider sa velute (" + r.pts + " points) en criant « Patte de canaaard ! » et en attrapant une chouette."));
     // Suite velutée : après la course, le lanceur a-t-il validé sa velute ?
     const settle = (k) => {
+      recRace("last", k);
       if (r.kind !== "suite-velute") return apply([[k, -10]]);
       const bot = cur().bot;
       if (bot) {
         const shout = Math.random() < { leodagan: 0.95, karadoc: 0.8, perceval: 0.4 }[bot];
         verdict.appendChild(el("p", "cdc-ai", shout ? cur().name + " attrape une chouette : « Patte de canaaard ! »" : cur().name + " a oublié de crier « Patte de canaaard ! ». La velute est perdue."));
-        return apply(shout ? [[me, r.pts], [k, -10]] : [[k, -10]]);
+        return apply(shout ? [[me, r.pts], [k, -10]] : [[k, -10]], "Velute de 3");
       }
       const ask = el("div", "actions");
       ask.append(
-        btn("Oui, " + r.pts + " points", "btn primary", () => { ask.remove(); apply([[me, r.pts], [k, -10]]); }),
+        btn("Oui, " + r.pts + " points", "btn primary", () => { ask.remove(); apply([[me, r.pts], [k, -10]], "Velute de 3"); }),
         btn("Non", "btn", () => { ask.remove(); apply([[k, -10]]); })
       );
       verdict.append(p(cur().name + ", as-tu crié « Patte de canaaard ! » en attrapant une chouette ?"), ask);
@@ -3581,6 +3975,12 @@ function cdcGame(state) {
     q.append(cry("Grelotte, ça picote !"), document.createTextNode(" Le dernier perd 10 points. Qui était le dernier ?"));
     parts.push(q, whoPicker(settle));
     verdict.replaceChildren(...parts);
+  }
+
+  // Courses gagnées : le premier sur une chouette velute ; tous sauf le dernier sur une suite
+  function recRace(kind, k) {
+    if (kind === "first") state.stats[k].raceWin++;
+    else state.stats.forEach((st, i) => { if (i === k) st.raceLose++; else st.raceWin++; });
   }
 
   function whoPicker(fn, only) {
@@ -3615,7 +4015,7 @@ function cdcGame(state) {
       clearTimeout(timer);
       slap.disabled = true;
       slap.classList.remove("primary");
-      if (th !== null && solo) cdcRecordReflex(th);
+      if (th !== null && solo) { cdcRecordReflex(th); state.reflex.push(Math.round(th)); }
       const who = solo ? "Toi" : "Vous";
       const line = [[who, th]].concat(bots.map((b) => [state.players[b.k].name, b.t]))
         .sort((a, b) => (a[1] === null ? 1e9 : a[1]) - (b[1] === null ? 1e9 : b[1]))
@@ -3661,14 +4061,21 @@ function cdcGame(state) {
     const me = state.turn;
     const after = () => {
       const v = dice[r.odd].value;
+      dice.forEach((d) => d.node.parentNode.classList.remove("dim"));
+      diceRow.classList.remove("sirop");
       if (v === r.v) {
+        state.stats[me].sirOk++;
         light([0, 1, 2]);
-        feel.sfx("win");
+        cdcSfx("fanfare");
+        cdcStamp(diceRow, "Cul de chouette !", cdcCul(r.v));
+        cdcFeathers(18);
         verdict.replaceChildren(el("h3", "cdc-combo", "Sirop réussi : cul de chouette de " + r.v + " !"), el("p", "", cdcCul(r.v) + " points."));
         if (cur().bot) talk(cur().bot, "good"); else react("humanGood", 0.9);
-        apply([[me, cdcCul(r.v)]]);
+        apply([[me, cdcCul(r.v)]], "Sirop réussi, cul de chouette de " + r.v);
       } else {
-        feel.sfx("lose");
+        state.stats[me].sirKo++;
+        cdcSfx("fall");
+        dice[r.odd].node.classList.add("flop");
         verdict.replaceChildren(el("h3", "cdc-combo flat", "Sirop raté"), el("p", "", "Le dé fait " + v + " : la chouette est perdue, " + r.pts + " points en moins."));
         if (cur().bot) talk(cur().bot, "bad"); else react("humanBad", 0.7);
         apply([[me, -r.pts]]);
@@ -3676,28 +4083,45 @@ function cdcGame(state) {
     };
     verdict.replaceChildren(el("h3", "cdc-combo", "On sirote…"), el("p", "", "Il faut un " + r.v + "."));
     if (manual && !auto) enterDice([r.odd], after);
-    else { actions.replaceChildren(); rollDice([r.odd], after); }
+    else { actions.replaceChildren(); rollDice([r.odd], after, { suspense: true, target: r.v }); }
   }
 
   // Applique les points, vérifie la victoire, puis propose le joueur suivant
-  function apply(deltas) {
+  function apply(deltas, label) {
+    actions.replaceChildren();
     const changed = new Set();
     const sum = {};
+    const old = state.players.map((p) => p.score);
     deltas.forEach(([k, n]) => { sum[k] = (sum[k] || 0) + n; });
     const list = el("ul", "cdc-delta");
     Object.keys(sum).forEach((k) => {
       const n = sum[k];
       state.players[k].score += n;
       changed.add(Number(k));
+      if (label && n > state.stats[k].best) { state.stats[k].best = n; state.stats[k].bestLabel = label; }
       list.appendChild(el("li", n >= 0 ? "up" : "down", state.players[k].name + " " + (n >= 0 ? "+" : "−") + Math.abs(n)));
     });
     if (deltas.length) verdict.appendChild(list);
-    paintBoard(changed);
+    cdcStore.save(state);
+    const keys = Object.keys(sum).map(Number);
+    let pending = keys.length;
+    const landed = () => {
+      if (--pending > 0 || !wrap.isConnected) return;
+      paintBoard(changed);
+      keys.forEach((k) => cdcCount(rows[k].pts, old[k], state.players[k].score));
+      after();
+    };
+    if (!keys.length) { paintBoard(changed); after(); return; }
+    keys.forEach((k) => cdcFly(diceRow, rows[k].pts, (sum[k] >= 0 ? "+" : "−") + Math.abs(sum[k]), sum[k] < 0, landed));
+  }
 
+  function after() {
     const winners = state.players.filter((pl) => pl.score >= state.target);
     if (winners.length) {
       cdcStore.clear();
       const best = winners.sort((a, b) => b.score - a.score)[0];
+      cdcSfx("fanfare");
+      cdcFeathers(24);
       actions.replaceChildren(btn("Voir le vainqueur", "btn primary", () => cdcEnd(state, best)));
       actions.firstChild.focus({ preventScroll: true });
       return;
@@ -3720,27 +4144,75 @@ function cdcGame(state) {
 
 function cdcEnd(state, best) {
   document.body.classList.remove("playing");
-  feel.sfx("win");
   const root = $("play-root");
   root.innerHTML = "";
-  const wrap = el("div", "result");
+  const wrap = el("div", "result cdc-end");
   const title = el("h2", "result-title", best.name + " l'emporte !");
   title.tabIndex = -1;
   wrap.append(title, el("p", "", best.score + " points : la taverne est à ses pieds."));
+
+  // La carte du vainqueur, en grand ; une IA vaincue râle à côté
   const botIds = state.players.filter((p) => p.bot).map((p) => p.bot);
-  if (botIds.length) {
+  if (best.bot) {
     const foe = cdcFoe();
+    foe.node.classList.add("big");
     wrap.appendChild(foe.node);
-    if (best.bot) foe.line(best.bot, "win");
-    else foe.line(pick(botIds), "lose");
+    foe.line(best.bot, "win");
+  } else {
+    const card = el("div", "foe-card win-card");
+    const art = el("div", "foe-frame win-art");
+    art.appendChild(levelIcon("difficile"));
+    card.append(art, el("p", "foe-name", best.name));
+    const box = el("div", "foe big");
+    box.appendChild(card);
+    wrap.appendChild(box);
+    if (botIds.length) {
+      const foe = cdcFoe();
+      wrap.appendChild(foe.node);
+      foe.line(pick(botIds), "lose");
+    }
   }
-  const ranking = el("ol", "ranking cdc-final");
-  state.players.slice().sort((a, b) => b.score - a.score).forEach((p, k) => {
-    const li = el("li", k === 0 ? "top first" : "");
-    li.append(el("span", "rank", String(k + 1)), el("span", "nick", p.name), el("span", "pts", String(p.score)));
-    ranking.appendChild(li);
-  });
-  wrap.appendChild(ranking);
+
+  // La partie en bref
+  const stats = Array.isArray(state.stats) && state.stats.length === state.players.length ? state.stats : null;
+  const recap = el("section", "cdc-recap");
+  recap.appendChild(el("h3", "board-now", "La partie en bref"));
+  if (stats) {
+    let top = -1;
+    stats.forEach((st, k) => { if (st.best > 0 && (top < 0 || st.best > stats[top].best)) top = k; });
+    if (top >= 0) recap.appendChild(el("p", "", "Meilleur coup : " + stats[top].bestLabel + " (" + stats[top].best + " points), par " + state.players[top].name + "."));
+    const ok = stats.reduce((n, st) => n + st.sirOk, 0);
+    const ko = stats.reduce((n, st) => n + st.sirKo, 0);
+    if (ok + ko) recap.appendChild(el("p", "", "Sirops : " + ok + (ok > 1 ? " réussis, " : " réussi, ") + ko + (ko > 1 ? " ratés." : " raté.")));
+  }
+  if (Array.isArray(state.reflex) && state.reflex.length) {
+    const avg = state.reflex.reduce((a, b) => a + b, 0) / state.reflex.length;
+    recap.appendChild(el("p", "", "Ton temps de réaction moyen aux courses : " + (avg / 1000).toFixed(2).replace(".", ",") + " s, sur " + state.reflex.length + (state.reflex.length > 1 ? " courses." : " course.")));
+  }
+  const table = el("table", "cdc-table");
+  table.appendChild(el("caption", "sr-only", "Classement final et statistiques par joueur"));
+  const head = el("tr");
+  ["", "Joueur", "Points", "Sirops", "Courses"].forEach((t, i) => { const th = el("th", i > 1 ? "num" : "", t); th.scope = "col"; head.appendChild(th); });
+  const thead = el("thead");
+  thead.appendChild(head);
+  const body = el("tbody");
+  state.players.map((p, k) => ({ p, st: stats ? stats[k] : null }))
+    .sort((a, b) => b.p.score - a.p.score)
+    .forEach(({ p, st }, i) => {
+      const tr = el("tr", i === 0 ? "first" : "");
+      const nm = el("th", "", p.name);
+      nm.scope = "row";
+      if (p.bot) nm.appendChild(el("span", "ia", "IA"));
+      tr.append(el("td", "rank", String(i + 1)), nm, el("td", "num", String(p.score)),
+        el("td", "num", st && st.sirOk + st.sirKo ? st.sirOk + " / " + (st.sirOk + st.sirKo) : "–"),
+        el("td", "num", st ? String(st.raceWin) : "–"));
+      body.appendChild(tr);
+    });
+  table.append(thead, body);
+  recap.appendChild(table);
+  recap.appendChild(el("p", "cdc-legend", "Sirops : réussis sur tentés. Courses : gagnées (premier sur une chouette velute, pas dernier sur une suite)."));
+  wrap.appendChild(recap);
+
   const actions = el("div", "actions");
   const again = el("button", "btn primary", "Revanche");
   again.onclick = () => {
