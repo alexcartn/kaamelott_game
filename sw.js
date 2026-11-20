@@ -1,7 +1,9 @@
 // Service worker : la page fonctionne hors ligne une fois visitée.
 // Les pages sont servies depuis le réseau en priorité (pour recevoir les mises à jour), puis depuis le cache.
 // Les appels externes (API des citations, Supabase) ne passent jamais par le cache.
-const CACHE = "kaamelott-v1";
+// Change ce numéro à chaque modification des icônes, du manifeste ou de og-image.jpg :
+// les anciens fichiers en cache sont alors supprimés et les nouveaux téléchargés.
+const CACHE = "kaamelott-v2";
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 
 self.addEventListener("install", (e) => {

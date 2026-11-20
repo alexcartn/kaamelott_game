@@ -31,6 +31,10 @@ Sans configuration, seuls les records de l'appareil sont affichés. Pour un clas
 
 ## Liste de mots du Mot juste
 
-Pour refuser les mots inventés et ne garder comme réponses que des mots naturels, la page embarque une liste compressée (environ 43 Ko, dans la balise `<script id="mots">`) : les mots courants et moins courants du français, plus les mots de 5 lettres du dictionnaire. Les mots prononcés dans la série sont toujours acceptés, même argotiques. Pour la régénérer : `node tools/build-mots.js <dossier node_modules>` (voir l'en-tête du script).
+Pour refuser les mots inventés et ne garder comme réponses que des mots naturels, la page embarque une liste compressée (environ 95 Ko, dans la balise `<script id="mots">`) : les mots de 5 à 9 lettres les plus fréquents du français parlé, classés en courants et moins courants, plus tous les mots de 5 lettres du dictionnaire. Les mots prononcés dans la série sont toujours acceptés, même argotiques. Le niveau Roi pioche dans les mots de la série absents du français courant (graal, burgonde, sloubi…) et dans les noms de personnages. Pour régénérer la liste : `node tools/build-mots.js <dossier node_modules> <fichier fr_50k.txt>` (voir l'en-tête du script).
 
-Sources : [an-array-of-french-words](https://www.npmjs.com/package/an-array-of-french-words) (MIT) et [most-common-words-by-language](https://www.npmjs.com/package/most-common-words-by-language) (MIT), dont les fréquences viennent des [listes de fréquence de Wiktionnaire](https://en.wiktionary.org/wiki/Wiktionary:French_frequency_lists) (CC BY-SA).
+Sources : [an-array-of-french-words](https://www.npmjs.com/package/an-array-of-french-words) (MIT) pour le dictionnaire, et [FrequencyWords](https://github.com/hermitdave/FrequencyWords) (code MIT, contenu CC BY-SA 4.0) pour les fréquences, tirées des sous-titres français d'OpenSubtitles.
+
+## Mise à jour du cache hors ligne
+
+Après une modification des icônes, du manifeste ou de `og-image.jpg`, change le numéro de `CACHE` en tête de `sw.js` (`kaamelott-v2`, puis `v3`…) : sinon les anciens fichiers restent en cache sur les appareils qui ont déjà visité la page.
