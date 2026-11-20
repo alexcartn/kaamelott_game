@@ -292,6 +292,7 @@
   /* Quiz */
   .tally {
     display: flex;
+    align-items: center;
     justify-content: space-between;
     gap: var(--space-lg);
     padding-bottom: var(--space-md);
@@ -376,7 +377,7 @@
     border-radius: 2px;
   }
 
-  /* Complète la réplique, menus, classement */
+  /* Menus et divers */
   .speaker {
     margin: 0 0 var(--space-md);
     font-family: var(--font-display);
@@ -385,7 +386,6 @@
     letter-spacing: 0.06em;
     color: var(--rubric);
   }
-  .fill { color: var(--rubric); border-bottom: 1px solid var(--rubric); }
   .back, .linklike {
     min-height: 44px;
     padding: 0;
@@ -420,23 +420,24 @@
   }
   .slot.miss { color: var(--ink); background: var(--ko-tint); }
   .slot.won { color: var(--ok); border-bottom-color: var(--ok); }
-  .lives {
-    display: flex;
-    align-items: center;
-    gap: var(--space-md);
-    margin-top: var(--space-xl);
-    font-size: var(--t-sm);
-    color: var(--ink-soft);
+  .lives { display: flex; align-items: center; gap: var(--space-lg); margin-top: var(--space-xl); }
+  .lives-side { flex: 1; min-width: 0; }
+  .lives-label { margin: 0; font-size: var(--t-sm); font-style: italic; color: var(--ink-soft); }
+  .lives .feedback { margin-top: var(--space-sm); }
+  .gibbet { flex: none; width: 9.5rem; height: auto; overflow: visible; }
+  .gibbet path, .gibbet circle { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .gibbet .ink { stroke: var(--ink); stroke-width: 3.5; }
+  .gibbet .thin { stroke-width: 2; }
+  .gibbet .fig { stroke: var(--rubric); stroke-width: 3; }
+  .gibbet .gilt { fill: var(--gilt); stroke: var(--ink); stroke-width: 1; }
+  /* Le dessin complet reste en filigrane, chaque erreur le trace pour de bon */
+  .gpart { opacity: 0.09; transition: opacity 0.3s var(--ease); }
+  .gpart.on { opacity: 1; }
+  .gpart.on > * { animation: draw 0.5s var(--ease) both; }
+  @keyframes draw {
+    from { stroke-dasharray: 1; stroke-dashoffset: 1; }
+    to { stroke-dasharray: 1; stroke-dashoffset: 0; }
   }
-  .pips { display: flex; gap: var(--space-sm); padding: 2px; }
-  .pip {
-    width: 10px;
-    height: 10px;
-    background: var(--gilt);
-    transform: rotate(45deg);
-    transition: transform 0.3s var(--ease), background-color 0.3s var(--ease), box-shadow 0.3s var(--ease);
-  }
-  .pip.lost { background: transparent; box-shadow: inset 0 0 0 1px var(--hair); transform: rotate(45deg) scale(0.7); }
   .keys {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(2.75rem, 1fr));
@@ -501,7 +502,7 @@
 
   <div class="tabs" role="tablist" aria-label="Sections">
     <button class="tab" role="tab" id="tab-quote" aria-selected="true" aria-controls="view-quote" tabindex="0"><span class="tab-name">Citation</span><span class="tab-note">au hasard</span></button>
-    <button class="tab" role="tab" id="tab-play" aria-selected="false" aria-controls="view-play" tabindex="-1"><span class="tab-name">Jouer</span><span class="tab-note">trois jeux</span></button>
+    <button class="tab" role="tab" id="tab-play" aria-selected="false" aria-controls="view-play" tabindex="-1"><span class="tab-name">Jouer</span><span class="tab-note">deux jeux</span></button>
     <button class="tab" role="tab" id="tab-records" aria-selected="false" aria-controls="view-records" tabindex="-1"><span class="tab-name">Records</span><span class="tab-note">mes scores</span></button>
   </div>
 
@@ -801,17 +802,6 @@ function cmp(a, b) { return a < b ? -1 : a > b ? 1 : 0; }
 /* ===== Niveaux, jeux et questions ===== */
 let levels = {};
 
-const COMPLETE_RULES = {
-  facile: { k: 3, sameSpeaker: false, showSpeaker: true },
-  moyen: { k: 4, sameSpeaker: true, showSpeaker: true },
-  difficile: { k: 5, sameSpeaker: true, showSpeaker: false },
-};
-const COMPLETE_DESC = {
-  facile: "Fin de 3 mots, fausses pistes prises au hasard",
-  moyen: "Fin de 4 mots, fausses pistes du même personnage",
-  difficile: "Fin de 5 mots, même personnage, sans savoir qui parle",
-};
-
 const MODES = {
   qui: {
     id: "qui",
@@ -820,14 +810,6 @@ const MODES = {
     intro: "Dix répliques, quatre noms, un seul bon. Choisis ton niveau.",
     desc: (lv) => lv.desc,
     build: (lv, n, rnd) => buildQuestions(lv, n, rnd),
-  },
-  complete: {
-    id: "complete",
-    name: "Complète la réplique",
-    blurb: "Retrouve la fin de la phrase parmi quatre.",
-    intro: "Dix répliques à terminer, quatre fins possibles. Choisis ton niveau.",
-    desc: (lv) => COMPLETE_DESC[lv.id],
-    build: (lv, n, rnd) => buildCompleteQuestions(lv, n, rnd),
   },
   pendu: {
     id: "pendu",
@@ -896,59 +878,8 @@ function buildQuestions(level, n, rnd, avoid) {
   });
 }
 
-/* Complète la réplique : on masque les k derniers mots */
-function completeParts(q, k) {
-  if (q.text.indexOf("\n") !== -1 || q.text.length < 60 || q.text.length > 200) return null;
-  const words = q.text.trim().split(/\s+/);
-  if (words.length < k + 5) return null;
-  const raw = words.slice(-k).join(" ");
-  const m = raw.match(/[\s.!?…»"”]+$/);
-  const ending = m ? raw.slice(0, m.index) : raw;
-  const tail = m ? m[0] : "";
-  const stem = words.slice(0, -k).join(" ");
-  if (!ending || /[()]/.test(raw)) return null;
-  const open = (stem.match(/\(/g) || []).length;
-  const close = (stem.match(/\)/g) || []).length;
-  if (open !== close) return null;
-  return { stem, ending, tail };
-}
-
-function buildCompleteQuestions(level, n, rnd, avoid) {
-  const rule = COMPLETE_RULES[level.id];
-  const chosen = pickQuotes(level, n, rnd, (q) => completeParts(q, rule.k) !== null, avoid);
-  const pool = quotes.map((q) => ({ q, p: completeParts(q, rule.k) })).filter((x) => x.p);
-
-  return chosen.map((q) => {
-    const p = completeParts(q, rule.k);
-    const same = [];
-    const other = [];
-    shuffle(pool, rnd).forEach((x) => {
-      if (x.q === q) return;
-      (x.q.perso === q.perso ? same : other).push(x.p.ending);
-    });
-    const cands = rule.sameSpeaker ? same.concat(other) : other.concat(same);
-    const seen = new Set([p.ending.toLowerCase()]);
-    const wrong = [];
-    for (const e of cands) {
-      const key = e.toLowerCase();
-      if (seen.has(key)) continue;
-      seen.add(key);
-      wrong.push(e);
-      if (wrong.length === 3) break;
-    }
-    return {
-      quote: q,
-      text: p.stem + " …",
-      speaker: rule.showSpeaker ? q.perso : "",
-      answer: p.ending,
-      options: shuffle([p.ending, ...wrong], rnd),
-      full: p,
-    };
-  });
-}
-
 /* ===== Moteur d'une manche ===== */
-function playRound(root, questions, onFinish) {
+function playRound(root, questions, onFinish, onQuit) {
   let i = 0, score = 0, answered = false;
   let quoteEl = null;
   const marks = [];
@@ -957,7 +888,10 @@ function playRound(root, questions, onFinish) {
   const tally = el("div", "tally");
   const num = el("span");
   const sc = el("span");
-  tally.append(num, sc);
+  const quit = el("button", "back", "Arrêter");
+  quit.type = "button";
+  quit.onclick = onQuit;
+  tally.append(num, sc, quit);
   const stage = el("div");
   const feedback = el("div", "feedback");
   feedback.setAttribute("aria-live", "polite");
@@ -1018,16 +952,6 @@ function playRound(root, questions, onFinish) {
     if (!good) {
       btn.classList.add("ko");
       btn.querySelector(".mark").textContent = "✗";
-    }
-
-    if (qn.full) {
-      // On dévoile la réplique complète, fin surlignée.
-      quoteEl.textContent = "";
-      quoteEl.append(
-        document.createTextNode(qn.full.stem + " "),
-        el("span", "fill", qn.full.ending),
-        document.createTextNode(qn.full.tail)
-      );
     }
 
     feedback.textContent = "";
@@ -1103,7 +1027,69 @@ function buildHangman(level, n, rnd) {
   });
 }
 
-function playHangman(root, questions, onFinish) {
+/* Potence gothique : 8 étapes, du socle jusqu'aux jambes */
+const GIBBET_STEPS = 8;
+function buildGibbet() {
+  const NS = "http://www.w3.org/2000/svg";
+  const mk = (tag, attrs, parent) => {
+    const n = document.createElementNS(NS, tag);
+    Object.keys(attrs).forEach((k) => n.setAttribute(k, attrs[k]));
+    if (parent) parent.appendChild(n);
+    return n;
+  };
+  const svg = mk("svg", { viewBox: "0 0 120 140", role: "img", class: "gibbet" });
+  const parts = [];
+  const part = (draw) => {
+    const g = mk("g", { class: "gpart" }, svg);
+    draw((tag, attrs) => mk(tag, Object.assign({ pathLength: 1 }, attrs), g));
+    parts.push(g);
+  };
+  // 1. socle à gradins
+  part((add) => {
+    add("path", { d: "M6 133 H84", class: "ink" });
+    add("path", { d: "M14 126 H76", class: "ink thin" });
+  });
+  // 2. poteau et fleuron doré
+  part((add) => {
+    add("path", { d: "M30 126 V16", class: "ink" });
+    add("path", { d: "M30 5 L36 12 L30 19 L24 12 Z", class: "gilt" });
+  });
+  // 3. potence et arc brisé
+  part((add) => {
+    add("path", { d: "M30 16 H96", class: "ink" });
+    add("path", { d: "M30 54 Q54 46 62 16", class: "ink thin" });
+    add("path", { d: "M96 16 V22", class: "ink thin" });
+  });
+  // 4. corde et nœud coulant
+  part((add) => {
+    add("path", { d: "M88 16 V34", class: "ink thin" });
+    add("path", { d: "M82 34 Q88 42 94 34", class: "ink thin" });
+  });
+  // 5. tête
+  part((add) => { add("circle", { cx: 88, cy: 46, r: 9, class: "fig" }); });
+  // 6. corps
+  part((add) => { add("path", { d: "M88 55 V92", class: "fig" }); });
+  // 7. bras
+  part((add) => {
+    add("path", { d: "M88 66 L72 82", class: "fig" });
+    add("path", { d: "M88 66 L104 82", class: "fig" });
+  });
+  // 8. jambes et yeux clos
+  part((add) => {
+    add("path", { d: "M88 92 L75 118", class: "fig" });
+    add("path", { d: "M88 92 L101 118", class: "fig" });
+    add("path", { d: "M83 42 L87 46 M87 42 L83 46 M89 42 L93 46 M93 42 L89 46", class: "fig thin" });
+  });
+  return {
+    svg,
+    show(n) {
+      parts.forEach((g, k) => g.classList.toggle("on", k < n));
+      svg.setAttribute("aria-label", "Potence : " + n + " trait" + (n > 1 ? "s" : "") + " sur " + GIBBET_STEPS);
+    },
+  };
+}
+
+function playHangman(root, questions, onFinish, onQuit) {
   const ALPHA = "abcdefghijklmnopqrstuvwxyz".split("");
   let i = 0, score = 0, over = true, wrong = 0;
   let tried = new Set();
@@ -1117,19 +1103,23 @@ function playHangman(root, questions, onFinish) {
   const tally = el("div", "tally");
   const num = el("span");
   const sc = el("span");
-  tally.append(num, sc);
+  const quit = el("button", "back", "Arrêter");
+  quit.type = "button";
+  quit.onclick = () => { document.removeEventListener("keydown", onKey); onQuit(); };
+  tally.append(num, sc, quit);
 
   const stage = el("div");
   const speaker = el("p", "speaker");
   const quoteEl = el("p", "quote");
   const lives = el("div", "lives");
-  const livesLabel = el("span", "", "Droit à l'erreur");
-  const pips = el("span", "pips");
-  pips.setAttribute("role", "img");
-  lives.append(livesLabel, pips);
+  const gibbet = buildGibbet();
+  const side = el("div", "lives-side");
+  const livesLabel = el("p", "lives-label");
   const feedback = el("div", "feedback");
   feedback.setAttribute("aria-live", "polite");
-  stage.append(speaker, quoteEl, lives, feedback);
+  side.append(livesLabel, feedback);
+  lives.append(gibbet.svg, side);
+  stage.append(speaker, quoteEl, lives);
 
   const keys = el("div", "keys");
   keys.setAttribute("role", "group");
@@ -1180,10 +1170,13 @@ function playHangman(root, questions, onFinish) {
     quoteEl.appendChild(document.createTextNode(qn.text.slice(pos)));
   }
 
-  function paintPips() {
-    pips.innerHTML = "";
-    for (let k = 0; k < qn.lives; k++) pips.appendChild(el("span", "pip" + (k < wrong ? " lost" : "")));
-    pips.setAttribute("aria-label", "Erreurs restantes : " + (qn.lives - wrong) + " sur " + qn.lives);
+  function paintGibbet() {
+    const on = wrong === 0 ? 0 : Math.max(1, Math.round((wrong * GIBBET_STEPS) / qn.lives));
+    gibbet.show(on);
+    const left = qn.lives - wrong;
+    livesLabel.textContent = left > 0
+      ? "Encore " + left + (left > 1 ? " erreurs permises" : " erreur permise")
+      : "Plus aucune erreur permise";
   }
 
   function show() {
@@ -1211,7 +1204,7 @@ function playHangman(root, questions, onFinish) {
       keyBtns[qn.word[0]].classList.add("hit");
     }
     paintQuote(null);
-    paintPips();
+    paintGibbet();
     [speaker, quoteEl, lives, keys].forEach((n, k) => { n.classList.add("rise"); n.style.setProperty("--i", k); });
     replay(stage);
     replay(keys);
@@ -1232,7 +1225,7 @@ function playHangman(root, questions, onFinish) {
     } else {
       wrong++;
       feedback.appendChild(el("span", "verdict ko", "Pas de « " + label + " »."));
-      paintPips();
+      paintGibbet();
     }
     const won = [...needed].every((x) => tried.has(x));
     if (won || wrong >= qn.lives) finishWord(won);
@@ -1299,7 +1292,7 @@ function renderPlay() {
   const root = $("play-root");
   root.innerHTML = "";
   const intro = el("div", "state");
-  intro.appendChild(el("p", "", "Trois jeux, trois niveaux, dix répliques par manche."));
+  intro.appendChild(el("p", "", "Deux jeux, trois niveaux, dix répliques par manche."));
   const list = el("div", "levels");
   Object.values(MODES).forEach((m, k) => {
     const b = el("button", "choice level rise");
@@ -1339,7 +1332,7 @@ function renderLevels(mode) {
 
 function startRound(mode, lv) {
   const play = mode.kind === "hangman" ? playHangman : playRound;
-  play($("play-root"), mode.build(lv, 10, Math.random), (r) => finishRound(mode, lv, r));
+  play($("play-root"), mode.build(lv, 10, Math.random), (r) => finishRound(mode, lv, r), () => renderLevels(mode));
 }
 
 function finishRound(mode, lv, r) {

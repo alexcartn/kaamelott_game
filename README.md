@@ -3,9 +3,8 @@
 Petit recueil de répliques de Kaamelott et jeux de quiz, en une seule page HTML, sans dépendance.
 
 - Citation : une réplique au hasard, filtrable par personnage et par livre.
-- Jouer : trois jeux, trois niveaux (Écuyer, Chevalier, Roi), manches de 10 répliques.
+- Jouer : deux jeux, trois niveaux (Écuyer, Chevalier, Roi), manches de 10 répliques.
   - Qui a dit ça ? : retrouver le personnage.
-  - Complète la réplique : retrouver la fin de la phrase parmi quatre.
   - Le pendu : deviner, lettre par lettre, un mot caché de la réplique (le clavier de l'ordinateur marche aussi).
 - Records : meilleurs scores par jeu et par niveau, gardés sur l'appareil (aucun serveur, aucun compte).
 
