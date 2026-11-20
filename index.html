@@ -2984,9 +2984,9 @@ function cdcHelp(target) {
 /* Portrait de l'adversaire : une carte illustrée (aplats cernés d'encre) et une bulle de dialogue.
    Quatre humeurs : neutral, happy, angry, sad. Les répliques sont écrites dans l'esprit des personnages. */
 const FOE_LOOK = {
-  leodagan: { bg: "oklch(0.8 0.06 30)", cloth: "oklch(0.45 0.14 28)" },
-  perceval: { bg: "oklch(0.83 0.05 240)", cloth: "oklch(0.5 0.08 245)" },
-  karadoc: { bg: "oklch(0.85 0.07 115)", cloth: "oklch(0.5 0.07 110)" },
+  leodagan: { bg: "oklch(0.78 0.03 230)" },
+  perceval: { bg: "oklch(0.5 0.03 60)" },
+  karadoc: { bg: "oklch(0.84 0.06 75)" },
 };
 const FOE_LINES = {
   leodagan: {
@@ -3036,69 +3036,104 @@ function cdcPortrait(id, mood) {
     (parent || svg).appendChild(n);
     return n;
   };
-  const look = FOE_LOOK[id];
   const INK = "oklch(0.26 0.035 55)";
-  const SKIN = "oklch(0.83 0.06 60)";
-  const line = { stroke: INK, "stroke-width": 1.6, "stroke-linejoin": "round", "stroke-linecap": "round" };
-  const fill = (f) => Object.assign({ fill: f }, line);
-  const stroke = (w) => Object.assign({ fill: "none" }, line, w ? { "stroke-width": w } : {});
-
+  const line = { stroke: INK, "stroke-width": 1.5, "stroke-linejoin": "round", "stroke-linecap": "round" };
+  const fill = (f, extra) => Object.assign({ fill: f }, line, extra || {});
+  const stroke = (w, color) => Object.assign({ fill: "none" }, line, { "stroke-width": w || 1.5 }, color ? { stroke: color } : {});
+  const path = (d, attrs) => mk("path", Object.assign({ d }, attrs));
+  const blob = (pts, color) => pts.forEach(([x, y, r]) => mk("circle", fill(color, { cx: x, cy: y, r })));
+  const look = FOE_LOOK[id];
   mk("rect", { x: 0, y: 0, width: 100, height: 120, fill: look.bg });
-  // Corps et cou
-  mk("path", Object.assign({ d: "M8 121 C10 97 30 89 50 89 C70 89 90 97 92 121 Z" }, fill(look.cloth)));
-  mk("path", Object.assign({ d: "M44 74 V90 H56 V74 Z" }, fill("oklch(0.75 0.06 55)")));
-  const round = id === "karadoc";
-  // Oreilles et tête
-  mk("ellipse", Object.assign({ cx: round ? 26 : 30, cy: 58, rx: 4, ry: 5 }, fill(SKIN)));
-  mk("ellipse", Object.assign({ cx: round ? 74 : 70, cy: 58, rx: 4, ry: 5 }, fill(SKIN)));
-  mk("ellipse", Object.assign({ cx: 50, cy: 56, rx: round ? 24 : 20, ry: round ? 25 : 24 }, fill(SKIN)));
+
+  let skin = "oklch(0.8 0.06 60)";
+  let eyeColor = INK;
+  let rx = 19, ry = 23;
+  let post = () => {};
 
   if (id === "leodagan") {
-    mk("path", Object.assign({ d: "M26 95 Q50 85 74 95 Q50 103 26 95 Z" }, fill("oklch(0.93 0.03 85)")));
-    mk("path", Object.assign({ d: "M29 56 C27 90 73 90 71 56 C68 70 60 74 50 74 C40 74 32 70 29 56 Z" }, fill("oklch(0.72 0.01 80)")));
-    mk("path", Object.assign({ d: "M41 66 Q50 61 59 66 Q50 64.5 41 66 Z" }, fill("oklch(0.72 0.01 80)")));
-    mk("path", Object.assign({ d: "M29 60 C25 14 75 14 71 60 C69 48 62 43 50 43 C38 43 31 48 29 60 Z" }, fill("oklch(0.72 0.01 80)")));
-    mk("path", Object.assign({ d: "M34 38 L36 26 L42 32 L50 22 L58 32 L64 26 L66 38 Z" }, fill("oklch(0.66 0.1 80)")));
-    mk("circle", { cx: 50, cy: 31, r: 1.8, fill: "oklch(0.49 0.165 29)" });
+    // Tignasse noire très bouclée, bandeau de métal, barbe poivre et sel, manteau de fourrure et col d'armure
+    skin = "oklch(0.72 0.07 55)";
+    const HAIR = "oklch(0.25 0.02 60)";
+    const BEARD = "oklch(0.48 0.01 70)";
+    blob([[28, 56, 8], [72, 56, 8], [27, 44, 9], [73, 44, 9], [33, 32, 10], [67, 32, 10], [44, 25, 10], [56, 25, 10], [30, 66, 6], [70, 66, 6]], HAIR);
+    path("M1 121 C1 99 13 87 30 85 C37 92 63 92 70 85 C87 87 99 99 99 121 Z", fill("oklch(0.42 0.06 55)"));
+    path("M10 106 l5 -7 M20 97 l4 -7 M90 106 l-5 -7 M80 97 l-4 -7 M8 116 l5 -6 M92 116 l-5 -6", stroke(1.4, "oklch(0.3 0.04 55)"));
+    path("M34 121 L36 97 Q50 101 64 97 L66 121 Z", fill("oklch(0.6 0.01 250)"));
+    path("M44 74 V92 H56 V74 Z", fill("oklch(0.64 0.07 55)"));
+    path("M35 90 Q50 99 65 90 L65 96 Q50 105 35 96 Z", fill("oklch(0.85 0.01 250)"));
+    mk("ellipse", fill(skin, { cx: 31, cy: 58, rx: 3.5, ry: 5 }));
+    mk("ellipse", fill(skin, { cx: 69, cy: 58, rx: 3.5, ry: 5 }));
+    mk("ellipse", fill(skin, { cx: 50, cy: 56, rx, ry }));
+    path("M33 62 C34 81 66 81 67 62 C63 72 57 75 50 75 C43 75 37 72 33 62 Z", fill(BEARD));
+    blob([[37, 39, 6], [44, 35, 6], [51, 34, 6], [58, 35, 6], [64, 39, 5.5]], HAIR);
+    path("M31 45 Q50 38 69 45", stroke(4.2));
+    path("M31 45 Q50 38 69 45", stroke(2.2, "oklch(0.85 0.01 250)"));
+    mk("circle", fill("oklch(0.49 0.165 29)", { cx: 50, cy: 41, r: 2.2 }));
+    post = () => path("M41 65.5 Q50 61.5 59 65.5 L58 68 Q54 65.8 50 66.3 Q46 65.8 42 68 Z", fill(BEARD));
   } else if (id === "perceval") {
-    mk("path", Object.assign({ d: "M30 96 Q50 87 70 96 L70 103 Q50 94 30 103 Z" }, fill("oklch(0.74 0.01 250)")));
-    mk("path", Object.assign({ d: "M27 62 C20 12 80 12 73 62 C71 51 67 44 63 48 C59 40 53 46 49 41 C45 47 39 42 35 50 C32 47 29 53 27 62 Z" }, fill("oklch(0.47 0.07 55)")));
+    // Longs cheveux blond cendré jusqu'aux épaules, barbe courte, yeux bleus, cotte de mailles
+    skin = "oklch(0.8 0.05 60)";
+    eyeColor = "oklch(0.55 0.11 240)";
+    rx = 18; ry = 24;
+    const HAIR = "oklch(0.78 0.06 85)";
+    const BEARD = "oklch(0.6 0.06 70)";
+    path("M28 50 C25 22 75 22 72 50 L77 98 C70 103 62 101 60 92 L40 92 C38 101 30 103 23 98 Z", fill(HAIR));
+    path("M6 121 C8 99 27 90 50 90 C73 90 92 99 94 121 Z", fill("oklch(0.6 0.01 250)"));
+    path("M12 112 h6 M22 104 h6 M72 104 h6 M82 112 h6 M16 118 h6 M78 118 h6 M30 98 h5 M65 98 h5", stroke(1.2, "oklch(0.42 0.01 250)"));
+    path("M26 121 L66 93 L72 97 L34 121 Z", fill("oklch(0.45 0.06 50)"));
+    path("M44 74 V92 H56 V74 Z", fill("oklch(0.72 0.05 55)"));
+    mk("ellipse", fill(skin, { cx: 50, cy: 56, rx, ry }));
+    path("M33 63 C34 82 66 82 67 63 C63 73 57 77 50 77 C43 77 37 73 33 63 Z", fill(BEARD));
+    path("M31 54 C29 30 71 30 69 54 C66 45 59 39 51 38 L50 34 L49 38 C41 39 34 45 31 54 Z", fill(HAIR));
+    path("M31 52 C30 64 31 76 33 84 L29 86 C26 74 26 62 28 50 Z M69 52 C70 64 69 76 67 84 L71 86 C74 74 74 62 72 50 Z", fill(HAIR));
+    path("M40 44 Q44 41 47 39 M60 44 Q56 41 53 39 M27 70 l1 14 M73 70 l-1 14", stroke(1, "oklch(0.6 0.06 80)"));
+    post = () => path("M42 67 Q50 63 58 67 L57 70 Q54 67.5 50 68 Q46 67.5 43 70 Z", fill(BEARD));
   } else {
-    mk("path", Object.assign({ d: "M25 58 C21 10 79 10 75 58 C72 44 62 39 50 39 C38 39 28 44 25 58 Z" }, fill("oklch(0.32 0.04 50)")));
-    mk("path", Object.assign({ d: "M25 55 C23 97 77 97 75 55 C72 70 62 75 50 75 C38 75 28 70 25 55 Z" }, fill("oklch(0.32 0.04 50)")));
+    // Visage rond, cheveux bruns courts en bataille, barbe de trois jours, chemise bordeaux, la cuisse de poulet
+    skin = "oklch(0.8 0.06 55)";
+    rx = 25; ry = 25;
+    const HAIR = "oklch(0.3 0.04 50)";
+    path("M3 121 C5 98 26 88 50 88 C74 88 95 98 97 121 Z", fill("oklch(0.4 0.11 20)"));
+    path("M39 74 V90 L50 106 L61 90 V74 Z", fill("oklch(0.72 0.06 55)"));
+    mk("ellipse", fill(skin, { cx: 26, cy: 58, rx: 4, ry: 5 }));
+    mk("ellipse", fill(skin, { cx: 74, cy: 58, rx: 4, ry: 5 }));
+    mk("ellipse", fill(skin, { cx: 50, cy: 57, rx, ry }));
+    path("M27 60 C28 89 72 89 73 60 C68 75 60 80 50 80 C40 80 32 75 27 60 Z", { fill: HAIR, "fill-opacity": 0.45, stroke: "none" });
+    path("M41 67 Q50 63.5 59 67 L58 69 Q50 66 42 69 Z", { fill: HAIR, "fill-opacity": 0.6, stroke: "none" });
+    path("M40 83 Q50 88 60 83", stroke(1.3));
+    path("M26 52 C23 27 44 21 57 25 C69 28 78 36 74 52 C72 46 68 43 66 39 L61 43 L58 36 L52 41 L47 35 L42 41 L37 37 L34 43 C30 45 27 48 26 52 Z", fill(HAIR));
+    post = () => {
+      path("M72 104 L80 92", stroke(4.4));
+      path("M72 104 L80 92", stroke(2.4, "oklch(0.95 0.02 85)"));
+      path("M78 94 C72 84 80 70 90 72 C99 74 98 88 88 93 C85 95 81 96 78 94 Z", fill("oklch(0.6 0.12 55)"));
+      path("M84 78 Q89 76 92 80", stroke(1.6, "oklch(0.78 0.09 70)"));
+      mk("circle", fill(skin, { cx: 70, cy: 106, r: 6 }));
+    };
   }
 
-  // Sourcils, yeux, nez, bouche selon l'humeur
-  const brows = {
+  // Sourcils, yeux, nez et bouche selon l'humeur
+  const browW = id === "leodagan" ? 3 : 2.2;
+  path({
     neutral: "M38 49 H46 M54 49 H62",
     happy: "M38 48 Q42 45 46 48 M54 48 Q58 45 62 48",
-    angry: "M37 46 L46 50 M63 46 L54 50",
+    angry: "M37 46 L46 50.5 M63 46 L54 50.5",
     sad: "M38 50 L46 46 M62 50 L54 46",
-  }[mood];
-  mk("path", Object.assign({ d: brows }, stroke(2.2)));
-  const eyeR = id === "perceval" ? 3 : 2.4;
+  }[mood], stroke(browW));
   if (mood === "happy") {
-    mk("path", Object.assign({ d: "M39 56 Q42 52 45 56 M55 56 Q58 52 61 56" }, stroke(2)));
+    path("M39 56 Q42 52 45 56 M55 56 Q58 52 61 56", stroke(2));
+  } else if (eyeColor !== INK) {
+    [42, 58].forEach((x) => { mk("circle", { cx: x, cy: 55, r: 3, fill: eyeColor }); mk("circle", { cx: x, cy: 55, r: 1.4, fill: INK }); });
   } else {
-    mk("circle", { cx: 42, cy: 55, r: eyeR, fill: INK });
-    mk("circle", { cx: 58, cy: 55, r: eyeR, fill: INK });
+    [42, 58].forEach((x) => mk("circle", { cx: x, cy: 55, r: 2.4, fill: INK }));
   }
-  mk("path", Object.assign({ d: "M50 57 Q54 63 49 64" }, stroke()));
-  const mouth = {
-    neutral: id === "perceval" ? "M46 68 Q50 71 54 68" : "M45 69 H55",
-    happy: "M42 66 Q50 75 58 66",
-    angry: "M44 70 L56 67",
-    sad: "M44 71 Q50 66 56 71",
-  }[mood];
-  mk("path", Object.assign({ d: mouth }, stroke(2)));
-  if (id === "karadoc") {
-    // La cuisse de poulet, jamais très loin
-    mk("path", Object.assign({ d: "M72 104 L80 92" }, stroke(4.4)));
-    mk("path", Object.assign({ d: "M72 104 L80 92" }, { fill: "none", stroke: "oklch(0.95 0.02 85)", "stroke-width": 2.4, "stroke-linecap": "round" }));
-    mk("path", Object.assign({ d: "M78 94 C72 84 80 70 90 72 C99 74 98 88 88 93 C85 95 81 96 78 94 Z" }, fill("oklch(0.6 0.12 55)")));
-    mk("path", { d: "M84 78 Q89 76 92 80", fill: "none", stroke: "oklch(0.78 0.09 70)", "stroke-width": 1.6, "stroke-linecap": "round" });
-    mk("circle", Object.assign({ cx: 70, cy: 106, r: 6 }, fill(SKIN)));
-  }
+  path(id === "leodagan" ? "M50 56 Q55 64 48 65" : "M50 57 Q54 63 49 64", stroke());
+  path({
+    neutral: id === "karadoc" ? "M44 71 Q50 73 56 71" : "M45 71 H55",
+    happy: "M42 69 Q50 77 58 69",
+    angry: "M44 72 L56 69.5",
+    sad: "M44 73 Q50 68 56 73",
+  }[mood], stroke(2));
+  post();
   return svg;
 }
 
