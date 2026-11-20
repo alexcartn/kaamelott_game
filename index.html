@@ -508,6 +508,29 @@
   .section-title .lv-svg { width: 1.75rem; height: 1.75rem; vertical-align: -0.3em; margin-right: var(--space-sm); }
   .rowhead { display: flex; align-items: center; gap: var(--space-sm); }
   .rowhead .lv-svg { flex: none; width: 1.5rem; height: 1.5rem; overflow: visible; }
+  /* Ressenti de jeu : retours tactiles et animations courtes (transform et opacité seulement) */
+  button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  .key-btn, .wkey { user-select: none; -webkit-user-select: none; }
+  .key-btn, .wkey, .choice { transition: background-color 0.2s var(--ease), border-color 0.2s var(--ease), color 0.2s var(--ease), opacity 0.2s var(--ease), transform 0.08s var(--ease); }
+  .key-btn:active:not(:disabled), .wkey:active { transform: scale(0.92); }
+  .choice:active:not(:disabled) { transform: scale(0.985); }
+  .key-btn.pop, .choice.pop { animation: pop 0.26s var(--ease); }
+  .key-btn.nope, .choice.nope { animation: nope 0.3s var(--ease); }
+  .tile.pop { animation: pop 0.12s var(--ease); }
+  .tile.jump { animation: wave 0.55s var(--ease) both; }
+  .slot.pop { animation: slotpop 0.35s var(--ease) both; animation-delay: var(--d, 0ms); }
+  .slot.wave { animation: wave 0.5s var(--ease) both; animation-delay: var(--d, 0ms); }
+  .lives.hit .gibbet { animation: nope 0.32s var(--ease); }
+  .tally span { display: inline-block; }
+  .tally .bump { animation: bump 0.45s var(--ease); }
+  @keyframes pop { 40% { transform: scale(1.14); } }
+  @keyframes nope { 20%, 60% { transform: translateX(-3px); } 40%, 80% { transform: translateX(3px); } }
+  @keyframes wave { 40% { transform: translateY(-9px); } }
+  @keyframes slotpop { from { opacity: 0; transform: translateY(8px) scale(0.8); } }
+  @keyframes bump { 40% { transform: scale(1.3); color: var(--rubric); } }
+  .back.feel { min-width: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 0; text-decoration: none; }
+  .back.feel svg { width: 1.375rem; height: 1.375rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .back.feel[aria-pressed="true"] { color: var(--rubric); }
   .dpips { display: inline-flex; gap: 5px; margin: 0 var(--space-sm); padding: 2px; vertical-align: middle; }
   .dpips i { display: block; width: 7px; height: 7px; background: var(--gilt); transform: rotate(45deg); }
   .dpips i.off { background: transparent; box-shadow: inset 0 0 0 1px var(--hair); }
@@ -1296,6 +1319,77 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* ignoré */ } },
 };
 
+/* ===== Ressenti de jeu : sons synthétisés (aucun fichier audio) =====
+   Le son est désactivé par défaut ; le bouton haut-parleur de la barre de jeu l'active. */
+const feel = {
+  sound: store.get("kmt-sound") === "1",
+  ctx: null,
+  setSound(on) { this.sound = on; store.set("kmt-sound", on ? "1" : "0"); },
+  tone(freq, dur, o) {
+    o = o || {};
+    try {
+      if (!this.ctx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return;
+        this.ctx = new AC();
+      }
+      const ctx = this.ctx;
+      if (ctx.state === "suspended") ctx.resume();
+      const t0 = ctx.currentTime + (o.delay || 0);
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = o.type || "sine";
+      osc.frequency.setValueAtTime(freq, t0);
+      if (o.slide) osc.frequency.exponentialRampToValueAtTime(Math.max(40, freq + o.slide), t0 + dur);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(o.gain || 0.05, t0 + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      osc.connect(g);
+      g.connect(ctx.destination);
+      osc.start(t0);
+      osc.stop(t0 + dur + 0.02);
+    } catch (e) { /* ignoré */ }
+  },
+  sfx(name, arg) {
+    if (!this.sound) return;
+    if (name === "tap") this.tone(520, 0.04, { type: "triangle", gain: 0.03 });
+    else if (name === "ok") { this.tone(660, 0.09, { type: "triangle" }); this.tone(880, 0.14, { type: "triangle", delay: 0.07 }); }
+    else if (name === "miss") this.tone(200, 0.2, { type: "sawtooth", gain: 0.035, slide: -90 });
+    else if (name === "flip") this.tone(arg, 0.08, { type: "triangle", gain: 0.03 });
+    else if (name === "win") [523, 659, 784, 1047].forEach((f, k) => this.tone(f, 0.16, { type: "triangle", delay: k * 0.09 }));
+    else if (name === "lose") [330, 262, 196].forEach((f, k) => this.tone(f, 0.22, { type: "sawtooth", gain: 0.03, delay: k * 0.14 }));
+  },
+};
+
+// Petite animation de compteur quand la série augmente
+function bump(node) {
+  node.classList.remove("bump");
+  void node.offsetWidth;
+  node.classList.add("bump");
+}
+
+// Bouton haut-parleur de la barre de jeu : active ou coupe le son
+function feelToggle() {
+  const NS = "http://www.w3.org/2000/svg";
+  const b = el("button", "back feel");
+  b.type = "button";
+  const paint = () => {
+    const svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("aria-hidden", "true");
+    const path = (d) => { const n = document.createElementNS(NS, "path"); n.setAttribute("d", d); svg.appendChild(n); };
+    path("M4 9 H8 L13 5 V19 L8 15 H4 Z");
+    if (feel.sound) { path("M16 9.5 Q18 12 16 14.5"); path("M18.5 6.5 Q22.5 12 18.5 17.5"); }
+    else path("M17 9.5 L22 14.5 M22 9.5 L17 14.5");
+    b.replaceChildren(svg);
+    b.setAttribute("aria-label", feel.sound ? "Couper le son" : "Activer le son");
+    b.setAttribute("aria-pressed", String(feel.sound));
+  };
+  b.onclick = () => { feel.setSound(!feel.sound); if (feel.sound) feel.sfx("ok"); paint(); };
+  paint();
+  return b;
+}
+
 /* ===== Onglets ===== */
 const TABS = ["play", "quote", "search", "records"];
 let gamesReady = false;
@@ -1413,7 +1507,7 @@ function buildQuestions(level, n, rnd, avoid) {
 /* ===== Moteur d'une manche ===== */
 function playRound(root, src, onFinish, onQuit) {
   const questions = src.first.slice();
-  let i = 0, score = 0, answered = false, lost = false;
+  let i = 0, score = 0, answered = false, lost = false, lastScore = -1;
   let quoteEl = null;
 
   root.innerHTML = "";
@@ -1423,7 +1517,7 @@ function playRound(root, src, onFinish, onQuit) {
   const quit = el("button", "back", "Arrêter");
   quit.type = "button";
   quit.onclick = () => onQuit({ score });
-  tally.append(num, sc, quit);
+  tally.append(num, sc, feelToggle(), quit);
   const stage = el("div");
   const feedback = el("div", "feedback");
   feedback.setAttribute("aria-live", "polite");
@@ -1436,6 +1530,8 @@ function playRound(root, src, onFinish, onQuit) {
   function paintTally() {
     num.textContent = "Série : " + score;
     sc.textContent = "Record : " + (Math.max(src.best, score) || "–");
+    if (lastScore >= 0 && score > lastScore) bump(num);
+    lastScore = score;
   }
 
   function show() {
@@ -1476,6 +1572,8 @@ function playRound(root, src, onFinish, onQuit) {
     const qn = questions[i];
     const good = name === qn.answer;
     if (good) score++; else lost = true;
+    btn.classList.add(good ? "pop" : "nope");
+    feel.sfx(good ? "ok" : "miss");
 
     stage.querySelectorAll(".choice").forEach((b) => {
       b.disabled = true;
@@ -1662,11 +1760,12 @@ function buildGibbet() {
 function playHangman(root, src, onFinish, onQuit) {
   const questions = src.first.slice();
   const ALPHA = "abcdefghijklmnopqrstuvwxyz".split("");
-  let i = 0, score = 0, over = true, wrong = 0;
+  let i = 0, score = 0, over = true, wrong = 0, lastScore = -1;
   let tried = new Set();
   let needed = new Set();
   let qn = null;
   let slotsOf = [];
+  let lastHit = null;
   const keyBtns = {};
 
   root.innerHTML = "";
@@ -1676,7 +1775,7 @@ function playHangman(root, src, onFinish, onQuit) {
   const quit = el("button", "back", "Arrêter");
   quit.type = "button";
   quit.onclick = () => onQuit({ score });
-  tally.append(num, sc, quit);
+  tally.append(num, sc, feelToggle(), quit);
 
   const stage = el("div");
   const speaker = el("p", "speaker");
@@ -1714,6 +1813,7 @@ function playHangman(root, src, onFinish, onQuit) {
     quoteEl.textContent = "";
     slotsOf = [];
     let pos = 0;
+    let si = 0, popIdx = 0;
     qn.gaps.forEach((g) => {
       quoteEl.appendChild(document.createTextNode(qn.text.slice(pos, g.start)));
       const wrapEl = el("span", "gap");
@@ -1722,12 +1822,14 @@ function playHangman(root, src, onFinish, onQuit) {
         const slot = el("span", "slot");
         if (known || end) {
           slot.textContent = g.core[k];
-          if (end === "won") slot.classList.add("won");
+          if (end === "won") { slot.classList.add("won", "wave"); slot.style.setProperty("--d", si * 45 + "ms"); }
           else if (end === "lost" && !known) slot.classList.add("miss");
+          else if (!end && g.word[k] === lastHit) { slot.classList.add("pop"); slot.style.setProperty("--d", popIdx++ * 70 + "ms"); }
         } else {
           slot.textContent = " ";
         }
         wrapEl.appendChild(slot);
+        si++;
       }
       if (!end) {
         wrapEl.setAttribute("role", "img");
@@ -1743,6 +1845,8 @@ function playHangman(root, src, onFinish, onQuit) {
   function paintTally() {
     num.textContent = "Série : " + score;
     sc.textContent = "Record : " + (Math.max(src.best, score) || "–");
+    if (lastScore >= 0 && score > lastScore) bump(num);
+    lastScore = score;
   }
 
   function paintGibbet() {
@@ -1760,6 +1864,7 @@ function playHangman(root, src, onFinish, onQuit) {
     wrong = 0;
     tried = new Set();
     needed = new Set(qn.word.split(""));
+    lastHit = null;
     if (qn.hint) tried.add(qn.word[0]);
 
     next.hidden = true;
@@ -1790,7 +1895,9 @@ function playHangman(root, src, onFinish, onQuit) {
     const hit = needed.has(c);
     const b = keyBtns[c];
     b.disabled = true;
-    b.classList.add(hit ? "hit" : "miss");
+    b.classList.add(hit ? "hit" : "miss", hit ? "pop" : "nope");
+    lastHit = hit ? c : null;
+    feel.sfx(hit ? "ok" : "miss");
     const label = c.toUpperCase();
     feedback.textContent = "";
     if (hit) {
@@ -1800,6 +1907,9 @@ function playHangman(root, src, onFinish, onQuit) {
       wrong++;
       feedback.appendChild(el("span", "verdict ko", "Pas de « " + label + " »."));
       paintGibbet();
+      lives.classList.remove("hit");
+      void lives.offsetWidth;
+      lives.classList.add("hit");
     }
     const won = [...needed].every((x) => tried.has(x));
     if (won || wrong >= qn.lives) finishWord(won);
@@ -1810,6 +1920,7 @@ function playHangman(root, src, onFinish, onQuit) {
     over = true;
     qn.won = won;
     if (won) score++;
+    feel.sfx(won ? "win" : "lose");
     paintQuote(won ? "won" : "lost");
     keys.hidden = true;
     feedback.textContent = "";
@@ -1975,7 +2086,7 @@ function playWordle(root, src, onFinish, onQuit) {
   const answers = src.first.slice();
   const MAX_TRIES = 6;
   const KEYROWS = ["azertyuiop", "qsdfghjklm", "wxcvbn"];
-  let i = 0, score = 0, over = true, busy = false, hintLevel = 0;
+  let i = 0, score = 0, over = true, busy = false, hintLevel = 0, lastScore = -1;
   let ans = null, L = 0, row = 0, cur = "";
   let lines = [];
   const keyBtns = {};
@@ -1987,7 +2098,7 @@ function playWordle(root, src, onFinish, onQuit) {
   const quit = el("button", "back", "Arrêter");
   quit.type = "button";
   quit.onclick = () => onQuit({ score });
-  tally.append(num, sc, quit);
+  tally.append(num, sc, feelToggle(), quit);
 
   const stage = el("div");
   const grid = el("div", "wgrid");
@@ -2030,6 +2141,8 @@ function playWordle(root, src, onFinish, onQuit) {
   function paintTally() {
     num.textContent = "Série : " + score;
     sc.textContent = "Record : " + (Math.max(src.best, score) || "–");
+    if (lastScore >= 0 && score > lastScore) bump(num);
+    lastScore = score;
   }
 
   function show() {
@@ -2074,6 +2187,11 @@ function playWordle(root, src, onFinish, onQuit) {
     if (over || busy || cur.length >= L) return;
     cur += c;
     paintRow();
+    const t = lines[row].children[cur.length - 1];
+    t.classList.remove("pop");
+    void t.offsetWidth;
+    t.classList.add("pop");
+    feel.sfx("tap");
   }
   function backspace() {
     if (over || busy || !cur.length) return;
@@ -2102,6 +2220,7 @@ function playWordle(root, src, onFinish, onQuit) {
       lines[row].classList.remove("shake");
       void lines[row].offsetWidth;
       lines[row].classList.add("shake");
+      feel.sfx("miss");
       return;
     }
     if (!isValidGuess(cur)) {
@@ -2109,6 +2228,7 @@ function playWordle(root, src, onFinish, onQuit) {
       lines[row].classList.remove("shake");
       void lines[row].offsetWidth;
       lines[row].classList.add("shake");
+      feel.sfx("miss");
       return;
     }
     const guess = cur;
@@ -2122,6 +2242,7 @@ function playWordle(root, src, onFinish, onQuit) {
       t.classList.add("flip");
       setTimeout(() => {
         t.classList.add(res[k]);
+        feel.sfx("flip", res[k] === "ok" ? 740 : res[k] === "present" ? 560 : 300);
         t.setAttribute("aria-label", guess[k].toUpperCase() + ", " + words[res[k]]);
       }, k * 120 + 220);
     });
@@ -2136,7 +2257,15 @@ function playWordle(root, src, onFinish, onQuit) {
         }
       });
       busy = false;
-      if (guess === ans.word) { finishWord(true); return; }
+      if (guess === ans.word) {
+        [...line.children].forEach((t, k) => {
+          t.classList.remove("flip");
+          t.style.animationDelay = k * 70 + "ms";
+          t.classList.add("jump");
+        });
+        finishWord(true);
+        return;
+      }
       if (row + 1 >= MAX_TRIES) { finishWord(false); return; }
       row++; cur = "";
       if (row >= 2 && hintLevel < 2) hintBtn.hidden = false;
@@ -2175,6 +2304,7 @@ function playWordle(root, src, onFinish, onQuit) {
     const tries = row + 1;
     ans.won = won;
     if (won) score++;
+    feel.sfx(won ? "win" : "lose");
     keys.hidden = true;
     hintBtn.hidden = true;
     context.hidden = true;
