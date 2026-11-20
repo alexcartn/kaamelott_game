@@ -1104,6 +1104,17 @@
   .cdc-table .rank { width: 1.75rem; font-family: var(--font-gothique); font-weight: 700; font-size: 1.25rem; color: var(--ink-soft); }
   .cdc-table tr.first .rank { color: var(--rubric); }
   .cdc-legend { font-size: var(--t-sm); font-style: italic; }
+  /* Règles avancées : grelottine et paris */
+  .gr { display: inline-block; margin-left: 0.5em; padding: 0 0.35em; font-family: var(--font-text); font-size: 0.7rem; font-style: italic; line-height: 1.5; vertical-align: 0.15em; color: var(--rubric); border: 1px solid var(--rubric); border-radius: 2px; }
+  .grelot .seg-label:first-of-type { margin-top: var(--space-md); }
+  .grelot .seg button { min-height: 52px; }
+  .grelot-range { width: 100%; max-width: 26rem; accent-color: var(--rubric); }
+  .die.kept { outline: 3px solid var(--gilt); outline-offset: 4px; }
+  .bets { margin-top: var(--space-lg); padding-top: var(--space-md); border-top: 1px solid var(--hair); }
+  .bet-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm) var(--space-md); margin-top: var(--space-sm); }
+  .bet-row > span { font-family: var(--font-display); font-size: var(--t-md); }
+  .bet-row select { flex: 1 1 12rem; min-height: 44px; padding: 0 var(--space-md); font: inherit; color: var(--ink); background: var(--parchment); border: 1px solid var(--ink-soft); border-radius: 2px; }
+  .cdc-play .actions .grelot-btn { flex: 1 1 100%; border-color: var(--rubric); color: var(--rubric); }
   .cdc-play .actions { margin-top: var(--space-xl); align-items: center; }
   .cdc-final { margin-top: var(--space-xl); }
   .help-fold ul { margin: var(--space-sm) 0 0; padding-left: 1.2em; }
@@ -3071,6 +3082,17 @@ function cdcHelp(target) {
   });
   box.appendChild(ul);
   box.appendChild(el("p", "", "Le premier à " + (target || 343) + " points l'emporte. Vous jouez avec de vrais dés ? Touche « J'ai lancé de vrais dés » et saisis-les. Ce sont les règles de base, d'après la règle publiée sur Wikibooks : la grelottine, la bévue, le civet, l'artichette, la soufflette et les paris du sirotage ne sont pas gérés."));
+  box.appendChild(el("p", "tag", "Règles avancées (au choix avant la partie)"));
+  const adv = el("ul");
+  [
+    ["Grelottine", "un néant donne une grelottine (une seule à la fois). Entre deux tours, un joueur qui en a une peut défier un autre joueur qui en a une aussi, si tous deux ont plus de 0 point : il impose une combinaison et une mise. Le défié a deux lancers, et peut garder des dés entre les deux. Réussi, il gagne la mise et les points de sa combinaison, et le grelottin perd la mise ; raté, c'est l'inverse. Mise maximale : un pourcentage du plus petit des deux scores (chouette 33 %, velute 25 %, cul de chouette 12 %, chouette velute 6 %)."],
+    ["Paris sur le sirotage", "avant que le dé ne roule, chaque autre joueur peut parier 5 points sur une face, désignée par son oiseau : linotte (1), alouette (2), fauvette (3), mouette (4), bergeronnette (5), chouette (6). « Beau sirop ! » parie sur la réussite. Pari gagné : 25 points (la mise est gardée) ; perdu : la mise de 5 points. « Couche-sirop ! » : pas de pari."],
+  ].forEach(([a, b]) => {
+    const li = el("li");
+    li.append(el("span", "tag", a + " : "), document.createTextNode(b));
+    adv.appendChild(li);
+  });
+  box.appendChild(adv);
   box.appendChild(el("p", "", "Seul ou pas assez nombreux ? Ajoute une IA : Léodagan, Perceval ou Karadoc, chacun avec sa façon de jouer. Avec des IA, les courses (« Pas mou le caillou ! », « Grelotte, ça picote ! ») se jouent au bouton : le plus rapide à le toucher gagne, et Léodagan apprend tes réflexes."));
   return box;
 }
@@ -3264,6 +3286,72 @@ function cdcFoe() {
   };
 }
 
+/* Règles avancées : grelottine et paris sur le sirotage (d'après la règle publiée sur Wikibooks) */
+const CDC_BIRDS = ["", "linotte", "alouette", "fauvette", "mouette", "bergeronnette", "chouette"];
+// Combinaisons d'un défi de grelottine : part maximale de la mise (du plus petit des deux scores)
+const CDC_GRELOT = {
+  chouette: { label: "une chouette", pct: 0.33 },
+  velute: { label: "une velute", pct: 0.25 },
+  cul: { label: "un cul de chouette", pct: 0.12 },
+  "chouette-velute": { label: "une chouette velute", pct: 0.06 },
+};
+function cdcGrelotMax(combo, a, b) { return Math.max(1, Math.ceil(CDC_GRELOT[combo].pct * Math.min(a, b))); }
+// Le lancer réussit-il la combinaison imposée ?
+function cdcGrelotOk(combo, r) {
+  if (combo === "chouette") return r.kind === "chouette" || r.kind === "chouette-velute";
+  if (combo === "velute") return r.kind === "velute" || r.kind === "chouette-velute" || r.kind === "suite-velute";
+  return r.kind === combo;
+}
+
+// Une IA qui tient une grelottine la lance-t-elle, et contre qui ?
+function cdcBotGrelot(id, state, me, holders) {
+  const mine = state.players[me].score;
+  const targets = holders.filter((k) => k !== me);
+  if (!targets.length || mine <= 0) return null;
+  const top = targets.slice().sort((a, b) => state.players[b].score - state.players[a].score)[0];
+  if (id === "leodagan") {
+    // Le cul de chouette en deux lancers réussit rarement : c'est le défi le plus rentable pour le grelottin
+    return { g: me, t: top, combo: "cul", mise: cdcGrelotMax("cul", mine, state.players[top].score),
+      why: "Grelottine ! " + state.players[top].name + ", un cul de chouette en deux lancers. Mise maximale, évidemment." };
+  }
+  if (id === "perceval") {
+    if (Math.random() < 0.5) return null;
+    const t = pick(targets);
+    const combo = pick(Object.keys(CDC_GRELOT));
+    const max = cdcGrelotMax(combo, mine, state.players[t].score);
+    return { g: me, t, combo, mise: 1 + Math.floor(Math.random() * max),
+      why: "Grelottine ! Euh… " + state.players[t].name + ", vous me faites " + CDC_GRELOT[combo].label + ". Je crois que c'est comme ça qu'on dit." };
+  }
+  const leader = Math.max(...state.players.map((p) => p.score));
+  if (mine >= leader || Math.random() < 0.6) return null;
+  const max = cdcGrelotMax("velute", mine, state.players[top].score);
+  return { g: me, t: top, combo: "velute", mise: Math.ceil(max / 2),
+    why: "Grelottine, " + state.players[top].name + ". Une velute. On mise raisonnable, faut garder de quoi manger." };
+}
+
+// Second lancer d'un défi : quels dés une IA garde-t-elle ?
+function cdcBotKeep(d, combo) {
+  const count = {};
+  d.forEach((v) => { count[v] = (count[v] || 0) + 1; });
+  const best = Object.keys(count).map(Number).sort((a, b) => count[b] - count[a] || b - a)[0];
+  if (combo === "cul" || combo === "chouette") return count[best] >= 2 ? d.map((v, i) => (v === best ? i : -1)).filter((i) => i >= 0) : [d.indexOf(best)];
+  if (combo === "chouette-velute") {
+    const pair = Object.keys(count).map(Number).find((v) => count[v] >= 2 && v <= 3);
+    return pair ? d.map((v, i) => (v === pair ? i : -1)).filter((i) => i >= 0).slice(0, 2) : [];
+  }
+  return [];
+}
+
+// Pari d'une IA sur un sirotage : "beau" (la réussite), une face de 1 à 6, ou 0 (couche-sirop)
+function cdcBotBet(id, r) {
+  if (id === "leodagan") return { bet: 0, why: "Une chance sur six de gagner 25, cinq de perdre 5 : espérance nulle. Couche-sirop." };
+  if (id === "perceval") {
+    const f = 1 + Math.floor(Math.random() * 6);
+    return f === r.v ? { bet: "beau", why: "Beau sirop ! Enfin… je crois." } : { bet: f, why: CDC_BIRDS[f].charAt(0).toUpperCase() + CDC_BIRDS[f].slice(1) + " ! C'est joli, comme oiseau." };
+  }
+  return Math.random() < 0.6 ? { bet: "beau", why: "Beau sirop ! Par solidarité de table." } : { bet: 0, why: "Couche-sirop. Je garde mes sous pour le dessert." };
+}
+
 /* Préparation : joueurs, score à atteindre, reprise d'une partie en cours */
 function cdcSetup() {
   document.body.classList.remove("playing");
@@ -3385,6 +3473,23 @@ function cdcSetup() {
   function paintTarget() { tBtns.forEach((t) => t.b.setAttribute("aria-pressed", String(t.v === target))); }
   paintTarget();
 
+  let advRules = store.get("kmt-cdc-adv") === "1";
+  const rLabel = el("p", "seg-label", "Règles");
+  rLabel.id = "cdc-rules";
+  const rSeg = el("div", "seg two");
+  rSeg.setAttribute("role", "group");
+  rSeg.setAttribute("aria-labelledby", "cdc-rules");
+  const rBtns = [[false, "De base", "pour découvrir"], [true, "Avancées", "grelottine, paris sur le sirop"]].map(([v, a, b]) => {
+    const bt = el("button");
+    bt.type = "button";
+    bt.append(el("span", "", a), el("span", "seg-note", b));
+    bt.onclick = () => { advRules = v; paintRules(); };
+    rSeg.appendChild(bt);
+    return { bt, v };
+  });
+  function paintRules() { rBtns.forEach((x) => x.bt.setAttribute("aria-pressed", String(x.v === advRules))); }
+  paintRules();
+
   const msg = el("p", "publish-msg");
   msg.setAttribute("aria-live", "polite");
   const actions = el("div", "actions cdc-setup-go");
@@ -3405,7 +3510,8 @@ function cdcSetup() {
     }
     store.set(CDC_NAMES, JSON.stringify(names.map((n) => (n.bot ? { bot: n.bot } : { name: n.name.trim() }))));
     store.set("kmt-cdc-target", String(target));
-    const state = { players, target, turn: 0 };
+    store.set("kmt-cdc-adv", advRules ? "1" : "0");
+    const state = { players, target, turn: 0, adv: advRules };
     cdcStore.save(state);
     cdcGame(state);
   }
@@ -3414,7 +3520,7 @@ function cdcSetup() {
   const fold = el("details", "help-fold");
   fold.appendChild(el("summary", "", "Les règles"));
   fold.appendChild(cdcHelp(target));
-  root.append(plLabel, list, add, botsLabel, bots, tLabel, seg, msg, actions, fold);
+  root.append(plLabel, list, add, botsLabel, bots, tLabel, seg, rLabel, rSeg, msg, actions, fold);
   replay(root);
 }
 
@@ -3558,7 +3664,8 @@ function cdcGame(state) {
   if (!Array.isArray(state.reflex)) state.reflex = [];
 
   const tally = el("div", "tally");
-  const goal = el("span", "", "Partie en " + state.target + " points");
+  const ADV = Boolean(state.adv);
+  const goal = el("span", "", "Partie en " + state.target + " points" + (ADV ? " · règles avancées" : ""));
   const quit = el("button", "back", "Arrêter");
   quit.type = "button";
   quit.onclick = () => { cdcStore.save(state); cdcSetup(); };
@@ -3626,6 +3733,7 @@ function cdcGame(state) {
       r.li.classList.toggle("close", isClose(p));
       r.nm.textContent = p.name;
       if (p.bot) r.nm.appendChild(el("span", "ia", "IA"));
+      if (ADV && p.gr) r.nm.appendChild(el("span", "gr", "grelottine"));
       r.nm.dataset.now = p.bot ? "joue…" : "à toi";
       r.pts.textContent = String(p.score);
       r.pts.classList.toggle("neg", p.score < 0);
@@ -3771,16 +3879,41 @@ function cdcGame(state) {
     }
   }
 
-  function startTurn() {
+  // Grelottine : il faut au moins deux joueurs qui en tiennent une, avec plus de 0 point
+  const grelotHolders = () => state.players.map((p, k) => (p.gr && p.score > 0 ? k : -1)).filter((k) => k >= 0);
+  function startTurn(noGrelot) {
     manual = false;
     paintBoard();
     turnTitle.textContent = "À " + cur().name + " de lancer";
     paintTension();
     diceRow.classList.remove("sirop", "shaking");
-    dice.forEach((d) => { d.set(null); d.node.classList.remove("lit", "solo", "suspense", "flop", "throw"); d.node.parentNode.classList.remove("dim"); });
+    dice.forEach((d) => { d.set(null); d.node.classList.remove("lit", "solo", "suspense", "flop", "throw", "kept"); d.node.parentNode.classList.remove("dim"); });
     setDiceTappable([]);
     hint.textContent = "";
     verdict.replaceChildren();
+    const holders = ADV && !noGrelot ? grelotHolders() : [];
+    const humanHolders = holders.filter((k) => !state.players[k].bot);
+    if (holders.length >= 2) {
+      // Une IA qui tient une grelottine décide avant de lancer
+      if (cur().bot && holders.includes(state.turn)) {
+        const plan = cdcBotGrelot(cur().bot, state, state.turn, holders);
+        if (plan) {
+          actions.replaceChildren();
+          if (foe) foe.show(cur().bot, plan.why, "happy");
+          later(() => runGrelot(plan), reduce ? 300 : 1400);
+          return;
+        }
+      }
+      // Un humain qui en tient une peut la lancer ; pendant le tour d'une IA, on l'attend
+      if (humanHolders.length && cur().bot) {
+        hint.textContent = "Une grelottine peut être lancée avant ce tour.";
+        actions.replaceChildren(
+          btn("Grelottine !", "btn primary", () => grelotPanel(humanHolders, holders)),
+          btn("Laisser jouer " + cur().name, "btn", () => startTurn(true))
+        );
+        return;
+      }
+    }
     if (cur().bot) {
       actions.replaceChildren();
       hint.textContent = cur().name + " prend les dés…";
@@ -3804,7 +3937,154 @@ function cdcGame(state) {
     shakeBtn.oncontextmenu = (e) => e.preventDefault();
     actions.replaceChildren(roll, shakeBtn, btn("J'ai lancé de vrais dés", "linklike", () => { stopShake(); canRoll = false; enterDice([0, 1, 2], resolve); }));
     hint.textContent = "Ou garde le doigt sur « Secouer » et lâche pour jeter" + (motionOk ? ", ou secoue ton téléphone." : ".");
+    if (holders.length >= 2 && humanHolders.length) actions.appendChild(btn("Grelottine !", "btn grelot-btn", () => { canRoll = false; stopShake(); grelotPanel(humanHolders, holders); }));
     roll.focus({ preventScroll: true });
+  }
+
+  // Préparer un défi de grelottine : qui lance, qui est défié, quelle combinaison, quelle mise
+  function grelotPanel(humanHolders, holders) {
+    canRoll = false;
+    hint.textContent = "";
+    let g = humanHolders[0];
+    let t = holders.find((k) => k !== g);
+    let combo = "cul";
+    let mise = 1;
+    const panel = el("div", "grelot");
+    panel.appendChild(el("h3", "cdc-combo", "Grelottine !"));
+    const segOf = (title, items, get, set) => {
+      const id = "gr-" + Math.random().toString(36).slice(2, 7);
+      const lab = el("p", "seg-label", title);
+      lab.id = id;
+      const sg = el("div", "seg");
+      sg.style.gridTemplateColumns = "repeat(" + Math.min(items.length, 2) + ", 1fr)";
+      sg.setAttribute("role", "group");
+      sg.setAttribute("aria-labelledby", id);
+      const bs = items.map(([v, a, b]) => {
+        const bt = el("button");
+        bt.type = "button";
+        bt.appendChild(el("span", "", a));
+        if (b) bt.appendChild(el("span", "seg-note", b));
+        bt.onclick = () => { set(v); paint(); };
+        sg.appendChild(bt);
+        return { bt, v };
+      });
+      const paintSeg = () => bs.forEach((x) => x.bt.setAttribute("aria-pressed", String(x.v === get())));
+      return { nodes: [lab, sg], paintSeg };
+    };
+    const gSeg = humanHolders.length > 1 ? segOf("Qui lance la grelottine ?", humanHolders.map((k) => [k, state.players[k].name]), () => g, (v) => { g = v; if (t === g) t = holders.find((k) => k !== g); }) : null;
+    const tChoices = () => holders.filter((k) => k !== g);
+    const tWrap = el("div");
+    let tSeg = null;
+    const buildT = () => {
+      tSeg = segOf("Qui est défié ?", tChoices().map((k) => [k, state.players[k].name, state.players[k].score + " points"]), () => t, (v) => { t = v; });
+      tWrap.replaceChildren(...tSeg.nodes);
+    };
+    const cSeg = segOf("Combinaison à réussir en deux lancers", Object.keys(CDC_GRELOT).map((c) => [c, CDC_GRELOT[c].label.replace(/^une? /, ""), "mise jusqu'à " + Math.round(CDC_GRELOT[c].pct * 100) + " %"]), () => combo, (v) => { combo = v; mise = Infinity; });
+    const mLab = el("p", "seg-label");
+    const range = el("input", "grelot-range");
+    range.type = "range";
+    range.min = "1";
+    range.oninput = () => { mise = Number(range.value); paintMise(); };
+    const max = () => cdcGrelotMax(combo, state.players[g].score, state.players[t].score);
+    const paintMise = () => {
+      range.max = String(max());
+      if (mise > max()) mise = max();
+      range.value = String(mise);
+      mLab.textContent = "Mise : " + mise + (mise > 1 ? " points" : " point") + " (au plus " + max() + ")";
+      range.setAttribute("aria-label", "Mise, de 1 à " + max() + " points");
+    };
+    function paint() {
+      if (gSeg) gSeg.paintSeg();
+      if (!tChoices().includes(t)) t = tChoices()[0];
+      buildT();
+      tSeg.paintSeg();
+      cSeg.paintSeg();
+      paintMise();
+    }
+    const intro = el("p", "", gSeg ? "Choisis qui lance la grelottine, qui est défié, la combinaison et la mise." : state.players[g].name + " lance sa grelottine : choisis qui est défié, la combinaison et la mise.");
+    panel.append(intro, ...(gSeg ? gSeg.nodes : []), tWrap, ...cSeg.nodes, mLab, range);
+    paint();
+    mise = max();
+    paintMise();
+    verdict.replaceChildren(panel);
+    actions.replaceChildren(
+      btn("Lancer le défi", "btn primary", () => runGrelot({ g, t, combo, mise })),
+      btn("Annuler", "linklike", () => startTurn(true))
+    );
+  }
+
+  // Le défi : le défié a deux lancers, il peut garder des dés entre les deux
+  function runGrelot(plan) {
+    const { g, t, combo, mise } = plan;
+    const G = state.players[g];
+    const T = state.players[t];
+    canRoll = false;
+    stopShake();
+    G.gr = false;
+    T.gr = false;
+    paintBoard();
+    turnTitle.textContent = "Grelottine : " + G.name + " défie " + T.name;
+    closeLine.hidden = true;
+    dice.forEach((d) => { d.set(null); d.node.classList.remove("lit", "kept", "flop", "throw"); });
+    const info = el("p", "", T.name + " doit faire " + CDC_GRELOT[combo].label + " en deux lancers. Mise : " + mise + (mise > 1 ? " points." : " point."));
+    verdict.replaceChildren(el("h3", "cdc-combo", "Grelottine !"), info);
+    cdcStamp(diceRow, "Grelottine !", mise);
+    const status = el("p", "cdc-ai");
+    verdict.appendChild(status);
+    const finish = () => {
+      const d = dice.map((x) => x.value);
+      const r = cdcEval(d);
+      const ok = cdcGrelotOk(combo, r);
+      dice.forEach((x) => x.node.classList.remove("kept"));
+      setDiceTappable([]);
+      const pts = ok ? r.pts || 0 : 0;
+      if (ok) {
+        light([0, 1, 2]);
+        cdcSfx("fanfare");
+        status.textContent = T.name + " réussit " + CDC_GRELOT[combo].label + " : la mise est pour lui" + (pts ? ", plus " + pts + " points de combinaison." : ".");
+        if (T.bot) talk(T.bot, "good"); else if (G.bot) talk(G.bot, "raceLose");
+        apply([[t, mise + pts], [g, -mise]], "Grelottine réussie", true);
+      } else {
+        cdcSfx("fall");
+        status.textContent = T.name + " échoue : " + G.name + " empoche la mise.";
+        if (G.bot) talk(G.bot, "raceWin"); else if (T.bot) talk(T.bot, "bad");
+        apply([[t, -mise], [g, mise]], null, true);
+      }
+    };
+    const second = () => {
+      const d = dice.map((x) => x.value);
+      if (cdcGrelotOk(combo, cdcEval(d))) return finish();
+      if (T.bot) {
+        const keep = cdcBotKeep(d, combo);
+        keep.forEach((k) => dice[k].node.classList.add("kept"));
+        status.textContent = "Raté au premier lancer. " + T.name + (keep.length ? " garde " + keep.map((k) => d[k]).join(" et ") + " et relance le reste." : " relance tout.");
+        later(() => rollDice([0, 1, 2].filter((k) => !keep.includes(k)), finish), 1300);
+        return;
+      }
+      status.textContent = "Raté au premier lancer. Touche les dés à garder, puis relance les autres.";
+      const kept = new Set();
+      const again = btn("Relancer", "btn primary", () => {
+        dice.forEach((x) => { x.node.disabled = true; x.node.onclick = null; x.node.classList.remove("pick"); });
+        const rest = [0, 1, 2].filter((k) => !kept.has(k));
+        actions.replaceChildren();
+        if (rest.length) rollDice(rest, finish); else finish();
+      });
+      dice.forEach((x, k) => {
+        x.node.disabled = false;
+        x.node.classList.add("pick");
+        x.node.onclick = () => {
+          if (kept.has(k)) kept.delete(k); else kept.add(k);
+          x.node.classList.toggle("kept", kept.has(k));
+          feel.sfx("tap");
+          again.textContent = kept.size === 3 ? "Garder les trois" : "Relancer " + (3 - kept.size) + (3 - kept.size > 1 ? " dés" : " dé");
+        };
+      });
+      again.textContent = "Relancer les 3 dés";
+      actions.replaceChildren(again);
+    };
+    const first = () => { actions.replaceChildren(); rollDice([0, 1, 2], second); };
+    if (T.bot) { actions.replaceChildren(); later(first, reduce ? 300 : 1200); }
+    else actions.replaceChildren(btn(T.name + " lance", "btn primary", first));
   }
 
   // Lancer physique : bouton maintenu ou téléphone secoué
@@ -3898,6 +4178,7 @@ function cdcGame(state) {
     if (r.kind === "neant") {
       feel.sfx("miss");
       verdict.replaceChildren(head("Néant", true), p("Ni chouette ni velute. Zéro point, au suivant."));
+      if (ADV && !cur().gr) { cur().gr = true; verdict.appendChild(p(cur().name + " gagne une grelottine.")); }
       if (cur().bot) talk(cur().bot, "bad"); else react("humanBad", 0.5);
       return apply([]);
     }
@@ -4059,8 +4340,19 @@ function cdcGame(state) {
 
   function sirote(r, auto) {
     const me = state.turn;
+    let bets = [];
+    // Paris des autres joueurs : 5 points sur une face, 25 si elle sort (la mise est gardée)
+    const settleBets = (v) => bets.filter((b) => b.bet).map((b) => {
+      const face = b.bet === "beau" ? r.v : b.bet;
+      return [b.k, face === v ? 25 : -5, b];
+    });
+    const betLine = (res) => {
+      if (!res.length) return null;
+      return el("p", "", "Paris : " + res.map(([k, n, b]) => state.players[k].name + " (" + (b.bet === "beau" ? "beau sirop" : CDC_BIRDS[b.bet]) + ") " + (n > 0 ? "+" : "−") + Math.abs(n)).join(", ") + ".");
+    };
     const after = () => {
       const v = dice[r.odd].value;
+      const betRes = settleBets(v);
       dice.forEach((d) => d.node.parentNode.classList.remove("dim"));
       diceRow.classList.remove("sirop");
       if (v === r.v) {
@@ -4070,24 +4362,68 @@ function cdcGame(state) {
         cdcStamp(diceRow, "Cul de chouette !", cdcCul(r.v));
         cdcFeathers(18);
         verdict.replaceChildren(el("h3", "cdc-combo", "Sirop réussi : cul de chouette de " + r.v + " !"), el("p", "", cdcCul(r.v) + " points."));
+        if (betRes.length) verdict.appendChild(betLine(betRes));
         if (cur().bot) talk(cur().bot, "good"); else react("humanGood", 0.9);
-        apply([[me, cdcCul(r.v)]], "Sirop réussi, cul de chouette de " + r.v);
+        apply([[me, cdcCul(r.v)]].concat(betRes.map(([k, n]) => [k, n])), "Sirop réussi, cul de chouette de " + r.v);
       } else {
         state.stats[me].sirKo++;
         cdcSfx("fall");
         dice[r.odd].node.classList.add("flop");
-        verdict.replaceChildren(el("h3", "cdc-combo flat", "Sirop raté"), el("p", "", "Le dé fait " + v + " : la chouette est perdue, " + r.pts + " points en moins."));
+        verdict.replaceChildren(el("h3", "cdc-combo flat", "Sirop raté"), el("p", "", "Le dé fait " + v + " (" + CDC_BIRDS[v] + ") : la chouette est perdue, " + r.pts + " points en moins."));
+        if (betRes.length) verdict.appendChild(betLine(betRes));
         if (cur().bot) talk(cur().bot, "bad"); else react("humanBad", 0.7);
-        apply([[me, -r.pts]]);
+        apply([[me, -r.pts]].concat(betRes.map(([k, n]) => [k, n])));
       }
     };
-    verdict.replaceChildren(el("h3", "cdc-combo", "On sirote…"), el("p", "", "Il faut un " + r.v + "."));
-    if (manual && !auto) enterDice([r.odd], after);
-    else { actions.replaceChildren(); rollDice([r.odd], after, { suspense: true, target: r.v }); }
+    const go = () => {
+      const head = [el("h3", "cdc-combo", "On sirote…"), el("p", "", "Il faut un " + r.v + " (" + CDC_BIRDS[r.v] + ").")];
+      const placed = bets.filter((b) => b.bet);
+      if (placed.length) head.push(el("p", "", "Paris : " + placed.map((b) => state.players[b.k].name + " (" + (b.bet === "beau" ? "beau sirop" : CDC_BIRDS[b.bet]) + ")").join(", ") + "."));
+      verdict.replaceChildren(...head);
+      if (manual && !auto) enterDice([r.odd], after);
+      else { actions.replaceChildren(); rollDice([r.odd], after, { suspense: true, target: r.v }); }
+    };
+    if (!ADV) return go();
+    openBets(r, me, (list) => { bets = list; go(); });
+  }
+
+  // Les paris sont ouverts : les IA annoncent, les humains choisissent
+  function openBets(r, me, done) {
+    const others = state.players.map((p, k) => k).filter((k) => k !== me);
+    const list = [];
+    const panel = el("div", "bets");
+    panel.append(el("h3", "cdc-combo", "Les paris sont ouverts"), el("p", "", "Mise 5 points, gain 25 si la face sort (la mise est gardée). « Beau sirop » : pari sur la réussite, le " + r.v + "."));
+    const humansHere = [];
+    others.forEach((k) => {
+      const pl = state.players[k];
+      if (pl.bot) {
+        const b = cdcBotBet(pl.bot, r);
+        list.push({ k, bet: b.bet });
+        const line = el("p", "cdc-ai", pl.name + " : " + (b.bet === "beau" ? "« Beau sirop ! »" : b.bet ? "« " + CDC_BIRDS[b.bet].charAt(0).toUpperCase() + CDC_BIRDS[b.bet].slice(1) + " ! »" : "« Couche-sirop ! »"));
+        panel.appendChild(line);
+        if (foe && Math.random() < 0.6) foe.show(pl.bot, b.why, b.bet ? "happy" : "neutral");
+        return;
+      }
+      const entry = { k, bet: 0 };
+      list.push(entry);
+      humansHere.push(k);
+      const row = el("label", "bet-row");
+      row.appendChild(el("span", "", pl.name));
+      const sel = el("select");
+      sel.appendChild(new Option("Couche-sirop (pas de pari)", "0"));
+      sel.appendChild(new Option("Beau sirop ! (le " + r.v + ")", "beau"));
+      for (let f = 1; f <= 6; f++) if (f !== r.v) sel.appendChild(new Option(CDC_BIRDS[f].charAt(0).toUpperCase() + CDC_BIRDS[f].slice(1) + " (" + f + ")", String(f)));
+      sel.onchange = () => { entry.bet = sel.value === "beau" ? "beau" : Number(sel.value); };
+      row.appendChild(sel);
+      panel.appendChild(row);
+    });
+    verdict.appendChild(panel);
+    if (!humansHere.length) { actions.replaceChildren(); later(() => done(list), reduce ? 300 : 1800); return; }
+    actions.replaceChildren(btn("Paris faits : on sirote", "btn primary", () => done(list)));
   }
 
   // Applique les points, vérifie la victoire, puis propose le joueur suivant
-  function apply(deltas, label) {
+  function apply(deltas, label, keepTurn) {
     actions.replaceChildren();
     const changed = new Set();
     const sum = {};
@@ -4109,13 +4445,13 @@ function cdcGame(state) {
       if (--pending > 0 || !wrap.isConnected) return;
       paintBoard(changed);
       keys.forEach((k) => cdcCount(rows[k].pts, old[k], state.players[k].score));
-      after();
+      after(keepTurn);
     };
-    if (!keys.length) { paintBoard(changed); after(); return; }
+    if (!keys.length) { paintBoard(changed); after(keepTurn); return; }
     keys.forEach((k) => cdcFly(diceRow, rows[k].pts, (sum[k] >= 0 ? "+" : "−") + Math.abs(sum[k]), sum[k] < 0, landed));
   }
 
-  function after() {
+  function after(keepTurn) {
     const winners = state.players.filter((pl) => pl.score >= state.target);
     if (winners.length) {
       cdcStore.clear();
@@ -4124,6 +4460,14 @@ function cdcGame(state) {
       cdcFeathers(24);
       actions.replaceChildren(btn("Voir le vainqueur", "btn primary", () => cdcEnd(state, best)));
       actions.firstChild.focus({ preventScroll: true });
+      return;
+    }
+    // Après une grelottine, le tour en cours reprend
+    if (keepTurn) {
+      cdcStore.save(state);
+      const resume = btn("Reprendre : à " + cur().name + " de lancer", "btn primary", () => startTurn(true));
+      actions.replaceChildren(resume);
+      resume.focus({ preventScroll: true });
       return;
     }
     const wasBot = Boolean(cur().bot);
@@ -4216,7 +4560,7 @@ function cdcEnd(state, best) {
   const actions = el("div", "actions");
   const again = el("button", "btn primary", "Revanche");
   again.onclick = () => {
-    const s = { players: state.players.map((p) => (p.bot ? { name: p.name, score: 0, bot: p.bot } : { name: p.name, score: 0 })), target: state.target, turn: 0 };
+    const s = { players: state.players.map((p) => (p.bot ? { name: p.name, score: 0, bot: p.bot } : { name: p.name, score: 0 })), target: state.target, turn: 0, adv: Boolean(state.adv) };
     cdcStore.save(s);
     cdcGame(s);
   };
