@@ -501,6 +501,16 @@
   .lv-svg .gilt { fill: var(--gilt); stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; }
   .lv-svg .rub { fill: var(--rubric); stroke: none; }
   .lv-svg .rubline { fill: none; stroke: var(--rubric); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+  .lv-svg .tl { stroke: var(--ink); stroke-width: 1.8; stroke-linejoin: round; }
+  .lv-svg .tl.ok { fill: oklch(0.8 0.1 150); }
+  .lv-svg .tl.pre { fill: oklch(0.88 0.09 85); }
+  .lv-svg .tl.abs { fill: oklch(0.86 0.02 70); }
+  .section-title .lv-svg { width: 1.75rem; height: 1.75rem; vertical-align: -0.3em; margin-right: var(--space-sm); }
+  .rowhead { display: flex; align-items: center; gap: var(--space-sm); }
+  .rowhead .lv-svg { flex: none; width: 1.5rem; height: 1.5rem; overflow: visible; }
+  .chip[aria-pressed="true"] .lv-svg .tl { stroke: var(--parchment); }
+  .chip[aria-pressed="true"] .lv-svg .rubline { stroke: oklch(0.92 0.05 80); }
+  .chip[aria-pressed="true"] .lv-svg .rub { fill: oklch(0.92 0.05 80); }
   .dpips { display: inline-flex; gap: 5px; margin: 0 var(--space-sm); padding: 2px; vertical-align: middle; }
   .dpips i { display: block; width: 7px; height: 7px; background: var(--gilt); transform: rotate(45deg); }
   .dpips i.off { background: transparent; box-shadow: inset 0 0 0 1px var(--hair); }
@@ -655,7 +665,7 @@
 
   /* Page Records : tableau (aussi sélecteur) puis classement */
   .matrix { width: calc(100% + 12px); max-width: 38rem; margin: var(--space-sm) -6px 0; border-collapse: separate; border-spacing: 6px; table-layout: fixed; }
-  .matrix thead td, .matrix tbody th { width: 34%; }
+  .matrix thead td, .matrix tbody th { width: 38%; }
   .matrix th { font-weight: 400; text-align: left; }
   .matrix thead th {
     padding: 0 0 var(--space-xs);
@@ -2212,7 +2222,9 @@ function renderPlay() {
     b.style.setProperty("--i", k);
     const left = el("span", "name");
     left.append(el("span", "level-name", m.name), el("span", "level-desc", m.blurb));
-    b.appendChild(left);
+    const icon = el("span", "lv-icon");
+    icon.appendChild(gameIcon(m.id));
+    b.append(icon, left);
     b.onclick = () => renderLevels(m);
     list.appendChild(b);
   });
@@ -2249,6 +2261,38 @@ function levelIcon(id) {
   }
   return svg;
 }
+// Emblème d'un jeu : bulle de dialogue (Qui a dit ça ?), potence (Le pendu), tuiles (Le mot juste)
+function gameIcon(id) {
+  const NS = "http://www.w3.org/2000/svg";
+  const mk = (tag, attrs, parent) => {
+    const n = document.createElementNS(NS, tag);
+    Object.keys(attrs).forEach((k) => n.setAttribute(k, attrs[k]));
+    parent.appendChild(n);
+    return n;
+  };
+  const svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("viewBox", "0 0 48 48");
+  svg.setAttribute("class", "lv-svg");
+  svg.setAttribute("aria-hidden", "true");
+  if (id === "qui") {
+    mk("path", { d: "M8 7 H40 Q42 7 42 9 V31 Q42 33 40 33 H27 L17 42 V33 H8 Q6 33 6 31 V9 Q6 7 8 7 Z", class: "ink" }, svg);
+    mk("path", { d: "M19 18 C19 11 29 11 29 18 C29 23 24 22.5 24 26", class: "rubline" }, svg);
+    mk("circle", { cx: 24, cy: 30, r: 1.9, class: "rub" }, svg);
+  } else if (id === "pendu") {
+    mk("path", { d: "M5 43 H29 M14 43 V9 M14 9 H35", class: "ink" }, svg);
+    mk("path", { d: "M14 19 Q22 16 25 9", class: "ink thin" }, svg);
+    mk("path", { d: "M14 3 L17.5 7 L14 11 L10.5 7 Z", class: "gilt" }, svg);
+    mk("path", { d: "M35 9 V15", class: "ink thin" }, svg);
+    mk("circle", { cx: 35, cy: 19, r: 4, class: "rubline" }, svg);
+    mk("path", { d: "M35 23 V32 M35 26 L30 30 M35 26 L40 30 M35 32 L31 39 M35 32 L39 39", class: "rubline" }, svg);
+  } else {
+    const grid = [["abs", "pre", "ok"], ["ok", "ok", "pre"], ["ok", "ok", "ok"]];
+    grid.forEach((row, r) => row.forEach((st, c) => {
+      mk("rect", { x: 7 + c * 12, y: 6 + r * 13, width: 11, height: 11, rx: 1.5, class: "tl " + st }, svg);
+    }));
+  }
+  return svg;
+}
 const LEVEL_RANK = { facile: 1, moyen: 2, difficile: 3 };
 const LEVEL_WORD = { facile: "facile", moyen: "moyen", difficile: "difficile" };
 function difficultyPips(id) {
@@ -2266,7 +2310,8 @@ function renderLevels(mode) {
   root.innerHTML = "";
   const back = el("button", "back", "← Changer de jeu");
   back.onclick = renderPlay;
-  const title = el("h2", "section-title", mode.name);
+  const title = el("h2", "section-title");
+  title.append(gameIcon(mode.id), document.createTextNode(mode.name));
   const intro = el("div", "state");
   intro.appendChild(el("p", "", mode.intro));
   const list = el("div", "levels");
@@ -2444,7 +2489,8 @@ function buildBoard() {
   modes.setAttribute("role", "group");
   modes.setAttribute("aria-label", "Jeu");
   Object.values(MODES).forEach((m) => {
-    const b = el("button", "chip", m.name);
+    const b = el("button", "chip");
+    b.append(gameIcon(m.id), document.createTextNode(m.name));
     b.type = "button";
     b.onclick = () => selectBoard(m.id + "-" + boardParts(rankBoard).lv.id);
     modeBtns[m.id] = b;
@@ -2497,8 +2543,11 @@ function buildMine(on) {
   const body = el("tbody");
   Object.values(MODES).forEach((m) => {
     const tr = el("tr");
-    const th = el("th", "", m.name);
+    const th = el("th");
     th.scope = "row";
+    const rowhead = el("span", "rowhead");
+    rowhead.append(gameIcon(m.id), document.createTextNode(m.name));
+    th.appendChild(rowhead);
     tr.appendChild(th);
     Object.values(levels).forEach((lv) => {
       const id = m.id + "-" + lv.id;
