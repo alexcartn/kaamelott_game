@@ -111,7 +111,7 @@
   }
 
   /* Navigation : trois grands panneaux encadrés, comme des titres de chapitre */
-  .tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-md); margin-top: var(--space-xl); }
+  .tabs { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-md); margin-top: var(--space-xl); }
   .tab {
     min-height: 80px;
     display: flex;
@@ -128,6 +128,7 @@
     cursor: pointer;
     transition: background-color 0.25s var(--ease), color 0.25s var(--ease), border-color 0.25s var(--ease), box-shadow 0.25s var(--ease), transform 0.1s var(--ease);
   }
+  @media (min-width: 36rem) { .tabs { grid-template-columns: repeat(4, 1fr); } }
   .tab-name {
     font-family: var(--font-gothique);
     font-weight: 700;
@@ -413,6 +414,43 @@
   }
   .note { max-width: 34em; margin: var(--space-xl) 0 0; color: var(--ink-soft); }
 
+  /* Recherche */
+  .search-label { display: block; font-size: var(--t-sm); font-style: italic; color: var(--ink-soft); }
+  .search-input {
+    display: block;
+    width: 100%;
+    min-height: 56px;
+    margin-top: var(--space-sm);
+    padding: var(--space-sm) 0;
+    font-family: var(--font-display);
+    font-size: var(--t-lg);
+    color: var(--ink);
+    background: transparent;
+    border: 0;
+    border-bottom: 2px solid var(--ink);
+    border-radius: 0;
+    appearance: none;
+  }
+  .search-input::placeholder { font-style: italic; color: var(--ink-soft); opacity: 0.6; }
+  .search-input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+  .search-input:focus { border-bottom-color: var(--rubric); }
+  .search-count { margin: var(--space-xl) 0 0; font-size: var(--t-sm); color: var(--ink-soft); }
+  .hits { margin-top: var(--space-sm); }
+  .hit { padding: var(--space-xl) 0; border-bottom: 1px solid var(--hair); }
+  .hit-text {
+    margin: 0;
+    max-width: 34em;
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 1.1rem + 0.8vw, 1.5rem);
+    line-height: 1.4;
+    white-space: pre-line;
+    text-wrap: pretty;
+  }
+  .hit mark { padding: 0 0.1em; color: var(--ink); background: oklch(0.86 0.1 85); border-radius: 1px; }
+  .hit-colo { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-xs) var(--space-md); margin: var(--space-md) 0 0; }
+  .hit-colo .linklike { margin-left: auto; padding: var(--space-sm) 0; }
+  .search-more { margin-top: var(--space-xl); }
+
   /* Le pendu */
   .gap { white-space: nowrap; }
   .slot {
@@ -508,6 +546,7 @@
 
   <div class="tabs" role="tablist" aria-label="Sections">
     <button class="tab" role="tab" id="tab-quote" aria-selected="true" aria-controls="view-quote" tabindex="0"><span class="tab-name">Citation</span><span class="tab-note">au hasard</span></button>
+    <button class="tab" role="tab" id="tab-search" aria-selected="false" aria-controls="view-search" tabindex="-1"><span class="tab-name">Recherche</span><span class="tab-note">par mots</span></button>
     <button class="tab" role="tab" id="tab-play" aria-selected="false" aria-controls="view-play" tabindex="-1"><span class="tab-name">Jouer</span><span class="tab-note">deux jeux</span></button>
     <button class="tab" role="tab" id="tab-records" aria-selected="false" aria-controls="view-records" tabindex="-1"><span class="tab-name">Records</span><span class="tab-note">mes scores</span></button>
   </div>
@@ -526,6 +565,12 @@
       <button class="btn primary" id="btn-next" disabled>Une autre</button>
       <button class="btn" id="btn-copy" disabled>Copier</button>
     </div>
+  </section>
+
+  <section class="panel" id="view-search" role="tabpanel" aria-labelledby="tab-search" hidden>
+    <label class="search-label" for="search-input">Un mot, une expression, un bout de réplique</label>
+    <input class="search-input" id="search-input" type="search" placeholder="par exemple : gousse, c'est pas faux…" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
+    <div id="search-out" aria-live="polite"></div>
   </section>
 
   <section class="panel" id="view-play" role="tabpanel" aria-labelledby="tab-play" hidden>
@@ -699,6 +744,8 @@ function init() {
   fl.onchange = nextQuote;
   $("btn-next").disabled = false;
   $("btn-copy").disabled = false;
+  buildSearchIndex();
+  paintSearch();
   nextQuote();
   initGames();
 }
@@ -774,6 +821,122 @@ $("btn-copy").onclick = async () => {
   setTimeout(() => { btn.textContent = "Copier"; }, 1500);
 };
 
+/* ===== Recherche ===== */
+// Minuscules, sans accents, apostrophes et espaces unifiés. Garde la même longueur que l'original,
+// ce qui permet de surligner les mots trouvés dans le texte d'origine.
+function fold(str) {
+  let out = "";
+  for (let i = 0; i < str.length; i++) {
+    const c = str[i];
+    if (/\s/.test(c)) { out += " "; continue; }
+    if (c === "’" || c === "‘" || c === "`") { out += "'"; continue; }
+    const p = plain(c);
+    out += p.length === 1 ? p : (c.toLowerCase().slice(0, 1) || c);
+  }
+  return out;
+}
+
+let searchIndex = [];
+let searchShown = 15;
+const SEARCH_STEP = 15;
+
+function buildSearchIndex() {
+  searchIndex = quotes.map((q) => ({ q, hay: fold(q.text) }));
+}
+
+function runSearch(raw) {
+  const folded = fold(raw).trim();
+  if (folded.length < 2) return null;
+  const terms = folded.split(/\s+/);
+  const phrase = terms.join(" ");
+  const hits = [];
+  searchIndex.forEach((e) => {
+    if (terms.every((t) => e.hay.indexOf(t) !== -1)) {
+      hits.push({ q: e.q, hay: e.hay, exact: terms.length > 1 && e.hay.indexOf(phrase) !== -1 });
+    }
+  });
+  hits.sort((a, b) => (b.exact - a.exact) || (livreRank(a.q.livre) - livreRank(b.q.livre)));
+  return { terms, hits };
+}
+
+function markedText(text, hay, terms) {
+  const ranges = [];
+  terms.forEach((t) => {
+    let i = hay.indexOf(t);
+    while (i !== -1) { ranges.push([i, i + t.length]); i = hay.indexOf(t, i + t.length); }
+  });
+  ranges.sort((a, b) => a[0] - b[0]);
+  const merged = [];
+  ranges.forEach((r) => {
+    const last = merged[merged.length - 1];
+    if (last && r[0] <= last[1]) last[1] = Math.max(last[1], r[1]);
+    else merged.push(r.slice());
+  });
+  const frag = document.createDocumentFragment();
+  let pos = 0;
+  merged.forEach(([a, b]) => {
+    if (a > pos) frag.appendChild(document.createTextNode(text.slice(pos, a)));
+    frag.appendChild(el("mark", "", text.slice(a, b)));
+    pos = b;
+  });
+  if (pos < text.length) frag.appendChild(document.createTextNode(text.slice(pos)));
+  return frag;
+}
+
+function hitNode(h, terms) {
+  const art = el("article", "hit");
+  const txt = el("p", "hit-text");
+  txt.appendChild(markedText(h.q.text, h.hay, h.exact ? [terms.join(" ")] : terms));
+  const colo = el("p", "hit-colo");
+  const copy = el("button", "linklike", "Copier");
+  copy.type = "button";
+  copy.onclick = async () => {
+    try {
+      await navigator.clipboard.writeText("« " + h.q.text + " »\n" + h.q.perso + ", Kaamelott");
+      copy.textContent = "Copié";
+    } catch (e) {
+      copy.textContent = "Copie impossible";
+    }
+    setTimeout(() => { copy.textContent = "Copier"; }, 1500);
+  };
+  colo.append(
+    el("span", "who", h.q.perso + (h.q.acteur ? " · " + h.q.acteur : "")),
+    el("span", "where", [h.q.livre, h.q.episode].filter(Boolean).join(" · ")),
+    copy
+  );
+  art.append(txt, colo);
+  return art;
+}
+
+function paintSearch() {
+  const out = $("search-out");
+  const raw = $("search-input").value;
+  const r = runSearch(raw);
+  out.replaceChildren();
+  if (!r) {
+    out.appendChild(el("p", "note", "Tape un mot ou une expression, la réplique s'affiche dès que tu écris. Les accents et les majuscules ne comptent pas. Avec plusieurs mots, la réplique doit tous les contenir."));
+    return;
+  }
+  if (!r.hits.length) {
+    out.appendChild(el("p", "note", "Aucune réplique ne contient « " + raw.trim() + " ». Essaie avec moins de mots, ou une autre orthographe."));
+    return;
+  }
+  const n = r.hits.length;
+  out.appendChild(el("p", "search-count", n + (n > 1 ? " répliques trouvées" : " réplique trouvée")));
+  const list = el("div", "hits");
+  r.hits.slice(0, searchShown).forEach((h) => list.appendChild(hitNode(h, r.terms)));
+  out.appendChild(list);
+  if (n > searchShown) {
+    const more = el("button", "btn", "Voir la suite (" + (n - searchShown) + " de plus)");
+    more.onclick = () => { searchShown += SEARCH_STEP; paintSearch(); };
+    const actions = el("div", "actions search-more");
+    actions.appendChild(more);
+    out.appendChild(actions);
+  }
+}
+$("search-input").addEventListener("input", () => { searchShown = SEARCH_STEP; paintSearch(); });
+paintSearch();
+
 /* ===== Stockage local ===== */
 const store = {
   get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
@@ -781,7 +944,7 @@ const store = {
 };
 
 /* ===== Onglets ===== */
-const TABS = ["quote", "play", "records"];
+const TABS = ["quote", "search", "play", "records"];
 let gamesReady = false;
 
 function showTab(name) {
@@ -792,6 +955,7 @@ function showTab(name) {
     $("tab-" + t).tabIndex = on ? 0 : -1;
   });
   if (name === "records" && gamesReady) renderRecords();
+  if (name === "search" && window.matchMedia("(hover: hover)").matches) $("search-input").focus();
 }
 TABS.forEach((name, idx) => {
   $("tab-" + name).onclick = () => showTab(name);

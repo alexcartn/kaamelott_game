@@ -3,6 +3,7 @@
 Petit recueil de répliques de Kaamelott et jeux de quiz, en une seule page HTML, sans dépendance.
 
 - Citation : une réplique au hasard, filtrable par personnage et par livre.
+- Recherche : tape un ou plusieurs mots, les répliques qui les contiennent s'affichent avec les mots surlignés (accents et majuscules ignorés).
 - Jouer : deux jeux, trois niveaux (Écuyer, Chevalier, Roi), manches de 10 répliques.
   - Qui a dit ça ? : retrouver le personnage.
   - Le pendu : deviner, lettre par lettre, un mot caché de la réplique (le clavier de l'ordinateur marche aussi).
