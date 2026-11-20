@@ -7,7 +7,7 @@
  */
 const SHEET_NAME = "scores";
 const MAX_ROWS = 20;
-const BOARD_RE = /^(daily-\d{4}-\d{2}-\d{2}|(qui|complete)-(facile|moyen|difficile))$/;
+const BOARD_RE = /^(qui|complete)-(facile|moyen|difficile)$/;
 
 function sheet_() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -57,7 +57,7 @@ function doPost(e) {
       .slice(0, 20);
     const score = Number(d.score);
     const n = Number(d.n);
-    const expectedN = board.indexOf("daily-") === 0 ? 5 : 10;
+    const expectedN = 10;
     if (!BOARD_RE.test(board) || !name || n !== expectedN || !Number.isInteger(score) || score < 0 || score > n) {
       return json_({ ok: false, error: "données invalides" });
     }

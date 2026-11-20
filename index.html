@@ -435,7 +435,6 @@
   <div class="tabs" role="tablist" aria-label="Sections">
     <button class="tab" role="tab" id="tab-quote" aria-selected="true" aria-controls="view-quote" tabindex="0">Citation</button>
     <button class="tab" role="tab" id="tab-play" aria-selected="false" aria-controls="view-play" tabindex="-1">Jouer</button>
-    <button class="tab" role="tab" id="tab-daily" aria-selected="false" aria-controls="view-daily" tabindex="-1">Défi du jour</button>
     <button class="tab" role="tab" id="tab-scores" aria-selected="false" aria-controls="view-scores" tabindex="-1">Scores</button>
   </div>
 
@@ -457,10 +456,6 @@
 
   <section class="panel" id="view-play" role="tabpanel" aria-labelledby="tab-play" hidden>
     <div id="play-root"></div>
-  </section>
-
-  <section class="panel" id="view-daily" role="tabpanel" aria-labelledby="tab-daily" hidden>
-    <div id="daily-root"></div>
   </section>
 
   <section class="panel" id="view-scores" role="tabpanel" aria-labelledby="tab-scores" hidden>
@@ -736,9 +731,8 @@ const board = {
 };
 
 /* ===== Onglets ===== */
-const TABS = ["quote", "play", "daily", "scores"];
+const TABS = ["quote", "play", "scores"];
 let gamesReady = false;
-let dailyRenderedKey = "";
 let scoresBuilt = false;
 let pendingBoard = null;
 let scoresReq = 0;
@@ -750,7 +744,6 @@ function showTab(name) {
     $("tab-" + t).setAttribute("aria-selected", String(on));
     $("tab-" + t).tabIndex = on ? 0 : -1;
   });
-  if (name === "daily" && gamesReady && dayKey(new Date()) !== dailyRenderedKey) renderDaily();
   if (name === "scores" && gamesReady) onScoresShown();
 }
 TABS.forEach((name, idx) => {
@@ -763,20 +756,6 @@ TABS.forEach((name, idx) => {
   });
 });
 
-/* ===== Hasard déterministe (défi du jour) ===== */
-function hashStr(s) {
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
-  return h >>> 0;
-}
-function mulberry32(a) {
-  return function () {
-    a |= 0; a = (a + 0x6D2B79F5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
 function cmp(a, b) { return a < b ? -1 : a > b ? 1 : 0; }
 
 /* ===== Niveaux, jeux et questions ===== */
@@ -824,7 +803,6 @@ function initGames() {
   };
   gamesReady = true;
   renderPlay();
-  renderDaily();
   if (!$("view-scores").hidden) onScoresShown();
 }
 
@@ -1167,122 +1145,9 @@ function finishRound(mode, lv, r) {
   title.focus({ preventScroll: true });
 }
 
-/* ===== Défi du jour ===== */
-const DAILY_EPOCH = Date.UTC(2026, 10, 20);
-
-function dayKey(d) {
-  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-}
-function dayNumber(d) {
-  return Math.round((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - DAILY_EPOCH) / 86400000) + 1;
-}
-function dailyStored(key) {
-  try { return JSON.parse(store.get("kmt-daily-" + key)); } catch (e) { return null; }
-}
-function dailyStreak() {
-  const d = new Date();
-  if (!dailyStored(dayKey(d))) d.setDate(d.getDate() - 1);
-  let n = 0;
-  while (dailyStored(dayKey(d))) { n++; d.setDate(d.getDate() - 1); }
-  return n;
-}
-function dailyQuestions(key) {
-  const rnd = mulberry32(hashStr("kaamelott-" + key));
-  const names = buildQuestions(levels.moyen, 3, rnd);
-  const endings = buildCompleteQuestions(levels.moyen, 2, rnd, new Set(names.map((x) => x.quote)));
-  return names.concat(endings);
-}
-
-function renderDaily() {
-  const root = $("daily-root");
-  const now = new Date();
-  const key = dayKey(now);
-  dailyRenderedKey = key;
-
-  const stored = dailyStored(key);
-  if (stored) { renderDailyResult(root, stored, now); return; }
-
-  root.innerHTML = "";
-  const date = now.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
-  const intro = el("div", "state");
-  intro.append(
-    el("p", "", "Défi n°" + dayNumber(now) + ", " + date + "."),
-    el("p", "", "Cinq répliques, les mêmes pour tout le monde aujourd'hui : trois noms à retrouver, deux fins à compléter. Une tentative par jour, et un score à partager sans rien dévoiler.")
-  );
-  const streak = dailyStreak();
-  if (streak > 0) intro.appendChild(el("p", "", "Série en cours : " + streak + (streak > 1 ? " jours" : " jour") + "."));
-  const actions = el("div", "actions");
-  const go = el("button", "btn primary", "Relever le défi");
-  go.onclick = () => {
-    const t = new Date();
-    const k = dayKey(t);
-    playRound(root, dailyQuestions(k), (r) => {
-      const res = { score: r.score, marks: r.marks.map(Number) };
-      store.set("kmt-daily-" + k, JSON.stringify(res));
-      renderDailyResult(root, res, t);
-    });
-  };
-  actions.appendChild(go);
-  intro.appendChild(actions);
-  root.appendChild(intro);
-  replay(root);
-}
-
-function renderDailyResult(root, res, now) {
-  root.innerHTML = "";
-  const n = res.marks.length;
-  const key = dayKey(now);
-  const text = "Kaamelott, défi n°" + dayNumber(now) + " : " + res.score + "/" + n + "\n" + res.marks.map((m) => (m ? "🟩" : "🟥")).join("");
-
-  const wrap = el("div", "result");
-  const title = el("h2", "result-title", sentenceScore(res.score, n));
-  title.tabIndex = -1;
-  wrap.append(title, el("p", "", verdictLine(res.score, n)), marksRow(res.marks.map(Boolean)));
-
-  const streak = dailyStreak();
-  if (streak > 1) wrap.appendChild(el("p", "", streak + " jours d'affilée."));
-  wrap.appendChild(el("p", "", "Prochain défi demain. Voici de quoi le partager, sans spoiler :"));
-  wrap.appendChild(el("pre", "share", text));
-
-  const actions = el("div", "actions");
-  const copy = el("button", "btn primary", "Copier le résultat");
-  copy.onclick = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      copy.textContent = "Copié";
-    } catch (e) {
-      copy.textContent = "Copie impossible : sélectionne le texte";
-    }
-    setTimeout(() => { copy.textContent = "Copier le résultat"; }, 2000);
-  };
-  actions.appendChild(copy);
-  wrap.appendChild(actions);
-
-  if (board.enabled()) {
-    if (res.published) {
-      const done = el("p", "publish-msg", "Score publié. ");
-      const go = el("button", "linklike", "Voir le classement");
-      go.onclick = () => openScores("daily-" + key);
-      done.appendChild(go);
-      const box = el("div", "publish");
-      box.appendChild(done);
-      wrap.appendChild(box);
-    } else {
-      wrap.appendChild(publishBox("daily-" + key, res.score, n, () => {
-        res.published = true;
-        store.set("kmt-daily-" + key, JSON.stringify(res));
-      }));
-    }
-  }
-
-  root.appendChild(wrap);
-  replay(root);
-  title.focus({ preventScroll: true });
-}
-
 /* ===== Onglet Scores ===== */
 function openScores(id) {
-  pendingBoard = id.indexOf("daily-") === 0 ? "daily" : id;
+  pendingBoard = id;
   showTab("scores");
 }
 
@@ -1303,7 +1168,6 @@ function renderScores() {
   const sel = el("select");
   sel.id = "score-select";
   sel.setAttribute("aria-label", "Classement");
-  sel.appendChild(new Option("Défi du jour (aujourd'hui)", "daily"));
   Object.values(MODES).forEach((m) => {
     Object.values(levels).forEach((lv) => sel.appendChild(new Option(m.name + " · " + lv.name, m.id + "-" + lv.id)));
   });
@@ -1335,7 +1199,7 @@ async function loadScores() {
     return;
   }
   const req = ++scoresReq;
-  const id = sel.value === "daily" ? "daily-" + dayKey(new Date()) : sel.value;
+  const id = sel.value;
   box.replaceChildren(el("p", "note", "Le scribe consulte le registre…"));
   try {
     const rows = await board.rows(id);

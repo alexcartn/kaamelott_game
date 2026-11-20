@@ -6,7 +6,6 @@ Petit recueil de répliques de Kaamelott et jeux de quiz, en une seule page HTML
 - Jouer : deux jeux, trois niveaux (Écuyer, Chevalier, Roi), manches de 10 questions, records gardés sur l'appareil.
   - Qui a dit ça ? : retrouver le personnage.
   - Complète la réplique : retrouver la fin de la phrase parmi quatre.
-- Défi du jour : 5 questions identiques pour tout le monde chaque jour (3 noms, 2 fins à compléter), résultat copiable sans spoiler.
 - Scores : classement commun, sans compte, avec seulement un nom à saisir (optionnel, voir plus bas).
 
 Les 765 citations viennent de l'API https://kaamelott.chaudie.re/api (projet sin0light/api-kaamelott) et sont embarquées dans `index.html` : la page fonctionne hors ligne et sans appel réseau.
