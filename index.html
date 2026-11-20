@@ -1155,6 +1155,16 @@
   .rules-close { position: sticky; top: 0; float: right; z-index: 2; padding: 0 var(--space-sm); background: var(--parchment); }
   .cdc-play .actions { margin-top: var(--space-xl); align-items: center; }
   .cdc-final { margin-top: var(--space-xl); }
+  /* Historique des coups et annulation */
+  .cdc-undo { flex-basis: 100%; }
+  .cdc-log { margin-top: var(--space-xl); border-top: 1px solid var(--hair); padding-top: var(--space-sm); }
+  .cdc-log summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-size: var(--t-sm); color: var(--ink-soft); }
+  .cdc-log ol { margin: 0; padding: 0; list-style: none; max-height: 18rem; overflow-y: auto; }
+  .cdc-log li { display: flex; flex-wrap: wrap; gap: 0 0.6em; padding: var(--space-xs) 0; border-bottom: 1px solid var(--hair); font-size: var(--t-sm); }
+  .cdc-log .who { font-family: var(--font-display); color: var(--ink); }
+  .cdc-log .dd { font-variant-numeric: tabular-nums; letter-spacing: 0.1em; color: var(--ink-soft); }
+  .cdc-log .what { font-style: italic; }
+  .cdc-log .pts { margin-left: auto; font-variant-numeric: tabular-nums; }
   .help-fold ul { margin: var(--space-sm) 0 0; padding-left: 1.2em; }
   .help-fold li { margin-top: var(--space-sm); }
 
@@ -2956,7 +2966,8 @@ function finishRound(mode, lv, r, partial) {
 
 /* ===== Le cul de chouette : le jeu de dés de la taverne, entre amis sur un seul téléphone =====
    Règles de base : chouette, velute, chouette velute, cul de chouette, suite, néant, sirotage simplifié.
-   Pas de bévue, de civet ni de paris sur le sirotage. La partie en cours est gardée sur l'appareil. */
+   En option : grelottine et paris sur le sirotage. Pas de bévue ni de civet.
+   La partie en cours est gardée sur l'appareil, avec l'historique des coups et de quoi annuler un tour. */
 const CDC_KEY = "kmt-cdc";
 const CDC_NAMES = "kmt-cdc-names";
 const CDC_MAX = 8;
@@ -3839,6 +3850,8 @@ function cdcGame(state) {
     state.stats = state.players.map(() => ({ best: 0, bestLabel: "", sirOk: 0, sirKo: 0, raceWin: 0, raceLose: 0 }));
   }
   if (!Array.isArray(state.reflex)) state.reflex = [];
+  if (!Array.isArray(state.log)) state.log = [];
+  if (!Array.isArray(state.undo)) state.undo = [];
 
   const tally = el("div", "tally");
   const ADV = Boolean(state.adv);
@@ -3901,8 +3914,57 @@ function cdcGame(state) {
   if (foe) wrap.appendChild(foe.node);
   const closeLine = el("p", "cdc-close");
   closeLine.hidden = true;
-  wrap.append(turnTitle, closeLine, diceRow, hint, verdict, actions);
+  // Historique des coups, le plus récent en haut
+  const logBox = el("details", "cdc-log");
+  const logSum = el("summary");
+  const logList = el("ol");
+  logBox.append(logSum, logList);
+  const signed = (n) => (n >= 0 ? "+" : "−") + Math.abs(n);
+  function paintLog() {
+    const n = state.log.length;
+    logBox.hidden = !n;
+    logSum.textContent = "Historique (" + n + (n > 1 ? " coups)" : " coup)");
+    logList.replaceChildren(...state.log.slice().reverse().map((e) => {
+      const li = el("li");
+      if (e.who) li.appendChild(el("span", "who", e.who));
+      if (e.d && e.d.every((v) => v)) li.appendChild(el("span", "dd", e.d.join(" ")));
+      li.appendChild(el("span", "what", e.what || "Coup"));
+      const pts = e.deltas.length ? e.deltas.map(([k, v]) => state.players[k].name + " " + signed(v)).join(", ") : "aucun point";
+      li.appendChild(el("span", "pts", pts));
+      return li;
+    }));
+  }
+  wrap.append(turnTitle, closeLine, diceRow, hint, verdict, actions, logBox);
   root.appendChild(wrap);
+  paintLog();
+
+  // Annuler : on revient au début du dernier tour d'un humain (les tours des IA d'après sont annulés aussi)
+  const clone = (o) => JSON.parse(JSON.stringify(o));
+  let snap = null;
+  const takeSnap = () => { snap = clone({ players: state.players, stats: state.stats, turn: state.turn, log: state.log.length }); };
+  function undoTarget() {
+    for (let i = state.undo.length - 1; i >= 0; i--) {
+      const s = state.undo[i];
+      if (!s.players[s.turn].bot || i === 0) return { i, s };
+    }
+    return null;
+  }
+  function undoBtn() {
+    const u = undoTarget();
+    if (!u) return null;
+    const name = u.s.players[u.s.turn].name;
+    return btn("Annuler : rejouer le tour de " + name, "linklike cdc-undo", () => {
+      state.undo.length = u.i;
+      state.players = u.s.players;
+      state.stats = u.s.stats;
+      state.turn = u.s.turn;
+      state.log.length = Math.min(state.log.length, u.s.log);
+      cdcStore.save(state);
+      feel.sfx("tap");
+      cdcGame(state);
+    });
+  }
+  const withUndo = (...nodes) => { const u = undoBtn(); actions.replaceChildren(...nodes, ...(u ? [u] : [])); };
 
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   let busy = false;
@@ -4076,6 +4138,7 @@ function cdcGame(state) {
   const grelotHolders = () => state.players.map((p, k) => (p.gr && p.score > 0 ? k : -1)).filter((k) => k >= 0);
   function startTurn(noGrelot) {
     manual = false;
+    takeSnap();
     paintBoard();
     turnTitle.textContent = "À " + cur().name + " de lancer";
     paintTension();
@@ -4128,7 +4191,7 @@ function cdcGame(state) {
     shakeBtn.onpointerup = () => { if (shaking) throwNow(); };
     shakeBtn.onpointercancel = () => { if (shaking) throwNow(); };
     shakeBtn.oncontextmenu = (e) => e.preventDefault();
-    actions.replaceChildren(roll, shakeBtn, btn("J'ai lancé de vrais dés", "linklike", () => { stopShake(); canRoll = false; enterDice([0, 1, 2], resolve); }));
+    withUndo(roll, shakeBtn, btn("J'ai lancé de vrais dés", "linklike", () => { stopShake(); canRoll = false; enterDice([0, 1, 2], resolve); }));
     hint.textContent = "Ou garde le doigt sur « Secouer » et lâche pour jeter" + (motionOk ? ", ou secoue ton téléphone." : ".");
     if (holders.length >= 2 && humanHolders.length) actions.appendChild(btn("Grelottine !", "btn grelot-btn", () => { canRoll = false; stopShake(); grelotPanel(humanHolders, holders); }));
     roll.focus({ preventScroll: true });
@@ -4622,6 +4685,16 @@ function cdcGame(state) {
     const sum = {};
     const old = state.players.map((p) => p.score);
     deltas.forEach(([k, n]) => { sum[k] = (sum[k] || 0) + n; });
+    if (snap) { state.undo.push(snap); if (state.undo.length > 30) state.undo.shift(); snap = null; }
+    const headEl = verdict.querySelector(".cdc-combo");
+    state.log.push({
+      who: keepTurn ? "" : cur().name,
+      d: dice.map((x) => x.value),
+      what: keepTurn ? turnTitle.textContent + (label ? " : réussie" : " : ratée") : headEl ? headEl.textContent : "",
+      deltas: Object.keys(sum).map((k) => [Number(k), sum[k]]),
+    });
+    if (state.log.length > 300) state.log.splice(0, state.log.length - 300);
+    paintLog();
     const list = el("ul", "cdc-delta");
     Object.keys(sum).forEach((k) => {
       const n = sum[k];
@@ -4651,7 +4724,7 @@ function cdcGame(state) {
       const best = winners.sort((a, b) => b.score - a.score)[0];
       cdcSfx("fanfare");
       cdcFeathers(24);
-      actions.replaceChildren(btn("Voir le vainqueur", "btn primary", () => cdcEnd(state, best)));
+      withUndo(btn("Voir le vainqueur", "btn primary", () => cdcEnd(state, best)));
       actions.firstChild.focus({ preventScroll: true });
       return;
     }
@@ -4659,7 +4732,7 @@ function cdcGame(state) {
     if (keepTurn) {
       cdcStore.save(state);
       const resume = btn("Reprendre : à " + cur().name + " de lancer", "btn primary", () => startTurn(true));
-      actions.replaceChildren(resume);
+      withUndo(resume);
       resume.focus({ preventScroll: true });
       return;
     }
@@ -4669,7 +4742,7 @@ function cdcGame(state) {
     let go = false;
     const nextTurn = () => { if (go) return; go = true; startTurn(); };
     const next = btn("Au tour de " + cur().name, "btn primary", nextTurn);
-    actions.replaceChildren(next);
+    withUndo(next);
     next.focus({ preventScroll: true });
     // Deux IA de suite : on enchaîne seul, le temps de lire le résultat
     if (wasBot && cur().bot) later(nextTurn, reduce ? 1200 : 2600);
