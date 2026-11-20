@@ -147,6 +147,9 @@
   .tab[aria-selected="true"]:hover { background: var(--rubric-deep); }
   .tab[aria-selected="true"] .tab-note { color: oklch(0.9 0.05 80); }
 
+  /* Pendant une manche, on libère l'écran : l'en-tête revient à la fin ou avec Arrêter */
+  body.playing header, body.playing .rule, body.playing .tabs { display: none; }
+  body.playing .panel { margin-top: 0; }
   .panel { margin-top: var(--space-2xl); }
 
   /* Phrase de filtres */
@@ -446,10 +449,101 @@
     white-space: pre-line;
     text-wrap: pretty;
   }
-  .hit mark { padding: 0 0.1em; color: var(--ink); background: oklch(0.86 0.1 85); border-radius: 1px; }
+  mark { padding: 0 0.1em; color: var(--ink); background: oklch(0.86 0.1 85); border-radius: 1px; }
   .hit-colo { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-xs) var(--space-md); margin: var(--space-md) 0 0; }
   .hit-colo .linklike { margin-left: auto; padding: var(--space-sm) 0; }
   .search-more { margin-top: var(--space-xl); }
+
+  /* Classement commun */
+  .publish { margin-top: var(--space-2xl); padding-top: var(--space-xl); border-top: 1px solid var(--hair); }
+  .publish label { display: block; font-size: var(--t-sm); color: var(--ink-soft); }
+  .publish .row { display: flex; flex-wrap: wrap; gap: var(--space-md); margin-top: var(--space-sm); }
+  .publish input {
+    flex: 1 1 12rem;
+    max-width: 18rem;
+    min-height: 48px;
+    padding: var(--space-sm) var(--space-md);
+    font: inherit;
+    color: var(--ink);
+    background: var(--parchment);
+    border: 1px solid var(--ink-soft);
+    border-radius: 2px;
+  }
+  .publish .btn { flex: none; }
+  .publish-msg { margin: var(--space-md) 0 0; min-height: 1.5em; color: var(--ink-soft); }
+  .note.error { color: var(--rubric); font-style: italic; }
+  .ranking { margin: var(--space-md) 0 0; padding: 0; list-style: none; }
+  .ranking li {
+    display: grid;
+    grid-template-columns: 2.25rem 1fr auto;
+    align-items: baseline;
+    gap: var(--space-md);
+    padding: var(--space-md) 0;
+    border-bottom: 1px solid var(--hair);
+  }
+  .ranking .rank { font-family: var(--font-gothique); font-weight: 700; font-size: var(--t-lg); color: var(--ink-soft); }
+  .ranking li:first-child .rank { color: var(--rubric); }
+  .ranking .pts { font-variant-numeric: tabular-nums; color: var(--ink-soft); }
+
+  /* Le mot juste */
+  .wgrid { display: grid; gap: 6px; max-width: calc(var(--cols) * 3.5rem + (var(--cols) - 1) * 6px); margin-top: var(--space-md); }
+  .wline { display: grid; grid-template-columns: repeat(var(--cols), 1fr); gap: 6px; }
+  .wline.shake { animation: shake 0.3s var(--ease); }
+  @keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+  .tile {
+    position: relative;
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(1.25rem, 5.5vw, 1.75rem);
+    text-transform: uppercase;
+    color: var(--ink);
+    border: 1px solid var(--hair);
+    border-radius: 2px;
+  }
+  .tile.filled { border-color: var(--ink-soft); }
+  .tile.flip { animation: flip 0.5s var(--ease) both; }
+  @keyframes flip { 50% { transform: rotateX(90deg); } }
+  .tile.ok { background: oklch(0.8 0.1 150); border-color: var(--ok); }
+  .tile.present { background: oklch(0.88 0.09 85); border-color: var(--gilt); }
+  .tile.present::after {
+    content: "";
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 6px;
+    height: 6px;
+    background: var(--gilt);
+    transform: rotate(45deg);
+  }
+  .tile.absent { color: var(--ink-soft); background: oklch(0.86 0.02 70); border-color: var(--hair); }
+  .wtools { min-height: 44px; display: flex; align-items: center; }
+  .whint { max-width: 34em; }
+  .whint .tag { margin: 0 0 var(--space-xs); font-size: var(--t-sm); font-style: italic; color: var(--ink-soft); }
+  .wkeys { display: grid; gap: 6px; max-width: 34rem; margin-top: var(--space-lg); }
+  .wkrow { display: flex; gap: 5px; }
+  .wkey {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 48px;
+    padding: 0;
+    font-family: var(--font-display);
+    font-size: var(--t-md);
+    text-transform: uppercase;
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid var(--hair);
+    border-radius: 2px;
+    cursor: pointer;
+    transition: background-color 0.2s var(--ease), border-color 0.2s var(--ease);
+  }
+  .wkey.wide { flex: 1.7 1 0; font-size: 0.8125rem; text-transform: none; letter-spacing: 0.02em; }
+  .wkey:hover { background: var(--parchment-deep); border-color: var(--ink-soft); }
+  .wkey.ok { background: oklch(0.8 0.1 150); border-color: var(--ok); }
+  .wkey.present { background: oklch(0.88 0.09 85); border-color: var(--gilt); }
+  .wkey.absent { opacity: 0.4; }
 
   /* Le pendu */
   .gap { white-space: nowrap; }
@@ -547,8 +641,8 @@
   <div class="tabs" role="tablist" aria-label="Sections">
     <button class="tab" role="tab" id="tab-quote" aria-selected="true" aria-controls="view-quote" tabindex="0"><span class="tab-name">Citation</span><span class="tab-note">au hasard</span></button>
     <button class="tab" role="tab" id="tab-search" aria-selected="false" aria-controls="view-search" tabindex="-1"><span class="tab-name">Recherche</span><span class="tab-note">par mots</span></button>
-    <button class="tab" role="tab" id="tab-play" aria-selected="false" aria-controls="view-play" tabindex="-1"><span class="tab-name">Jouer</span><span class="tab-note">deux jeux</span></button>
-    <button class="tab" role="tab" id="tab-records" aria-selected="false" aria-controls="view-records" tabindex="-1"><span class="tab-name">Records</span><span class="tab-note">mes scores</span></button>
+    <button class="tab" role="tab" id="tab-play" aria-selected="false" aria-controls="view-play" tabindex="-1"><span class="tab-name">Jouer</span><span class="tab-note">trois jeux</span></button>
+    <button class="tab" role="tab" id="tab-records" aria-selected="false" aria-controls="view-records" tabindex="-1"><span class="tab-name">Records</span><span class="tab-note">et classement</span></button>
   </div>
 
   <section class="panel" id="view-quote" role="tabpanel" aria-labelledby="tab-quote">
@@ -821,6 +915,32 @@ $("btn-copy").onclick = async () => {
   setTimeout(() => { btn.textContent = "Copier"; }, 1500);
 };
 
+/* ===== Classement commun (Supabase) =====
+   Renseigne l'URL du projet (Project Settings, API) pour l'activer. La clé publishable est publique
+   par conception : la sécurité repose sur les règles de la base (voir supabase/schema.sql).
+   URL vide : pas de classement commun, seuls les records de l'appareil sont affichés. */
+const SUPABASE_URL = "";
+const SUPABASE_KEY = "sb_publishable_XpHKk326SLvWJ78bHr4sYg_y0k8H1OM";
+
+const board = {
+  enabled() { return Boolean(SUPABASE_URL && SUPABASE_KEY); },
+  base() { return SUPABASE_URL.replace(/\/+$/, "") + "/rest/v1/"; },
+  async rows(id) {
+    const q = "best_scores?select=name,score,n&board=eq." + encodeURIComponent(id) + "&order=score.desc,created_at.asc&limit=20";
+    const r = await fetch(this.base() + q, { headers: { apikey: SUPABASE_KEY } });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    return r.json();
+  },
+  async post(id, name, score, n) {
+    const r = await fetch(this.base() + "scores", {
+      method: "POST",
+      headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json", Prefer: "return=minimal" },
+      body: JSON.stringify({ board: id, name, score, n }),
+    });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+  },
+};
+
 /* ===== Recherche ===== */
 // Minuscules, sans accents, apostrophes et espaces unifiés. Garde la même longueur que l'original,
 // ce qui permet de surligner les mots trouvés dans le texte d'origine.
@@ -859,9 +979,23 @@ function runSearch(raw) {
   return { terms, hits };
 }
 
-function markedText(text, hay, terms) {
+const isAz = (ch) => ch >= "a" && ch <= "z";
+// Positions d'un mot entier (pas au milieu d'un autre) dans un texte déjà passé par fold()
+function findWord(hay, word) {
+  const out = [];
+  let i = hay.indexOf(word);
+  while (i !== -1) {
+    const end = i + word.length;
+    if (!(i > 0 && isAz(hay[i - 1])) && !(end < hay.length && isAz(hay[end]))) out.push(i);
+    i = hay.indexOf(word, end);
+  }
+  return out;
+}
+
+function markedText(text, hay, terms, whole) {
   const ranges = [];
   terms.forEach((t) => {
+    if (whole) { findWord(hay, t).forEach((a) => ranges.push([a, a + t.length])); return; }
     let i = hay.indexOf(t);
     while (i !== -1) { ranges.push([i, i + t.length]); i = hay.indexOf(t, i + t.length); }
   });
@@ -989,6 +1123,17 @@ const MODES = {
     intro: "Dix répliques dont un mot est caché. Propose des lettres : chaque erreur te coûte un point de vie. Choisis ton niveau.",
     desc: (lv) => HANG_DESC[lv.id],
     build: (lv, n, rnd) => buildHangman(lv, n, rnd),
+  },
+  wordle: {
+    id: "wordle",
+    kind: "wordle",
+    name: "Le mot juste",
+    blurb: "Trouve le mot en six essais, lettre après lettre.",
+    intro: "Trois mots tirés des répliques, six essais chacun. Une lettre verte est bien placée, une dorée est dans le mot mais ailleurs. Plus tu trouves vite, plus tu gagnes de points. Choisis ton niveau.",
+    desc: (lv) => WORD_DESC[lv.id],
+    build: (lv, n, rnd) => buildWordle(lv, n, rnd),
+    rounds: 3,
+    max: 18,
   },
 };
 
@@ -1159,16 +1304,21 @@ const STOPWORDS = new Set(("alors aussi avait avant avez avons ainsi apres cette
 
 function plain(s) { return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(); }
 
-function hangTokens(text) {
+// Tous les mots d'une réplique faits uniquement de lettres a-z (accents ignorés), avec leur position
+function wordTokens(text) {
   const out = [];
   for (const m of text.matchAll(/\S+/g)) {
     const lead = m[0].match(/^[^\p{L}]*/u)[0].length;
     const core = m[0].slice(lead).replace(/[^\p{L}]+$/u, "");
-    if (/^\p{L}{5,12}$/u.test(core) && /^[a-z]+$/.test(plain(core)) && plain(core).length === core.length && !STOPWORDS.has(plain(core))) {
+    if (/^\p{L}+$/u.test(core) && /^[a-z]+$/.test(plain(core)) && plain(core).length === core.length) {
       out.push({ start: m.index + lead, end: m.index + lead + core.length, core, word: plain(core) });
     }
   }
   return out;
+}
+
+function hangTokens(text) {
+  return wordTokens(text).filter((t) => t.core.length >= 5 && t.core.length <= 12 && !STOPWORDS.has(t.word));
 }
 
 function buildHangman(level, n, rnd) {
@@ -1434,6 +1584,284 @@ function playHangman(root, questions, onFinish, onQuit) {
   show();
 }
 
+/* ===== Le mot juste : un mot à trouver en six essais ===== */
+const WORD_RULES = {
+  facile: (e) => e.word.length === 5 && e.count >= 3 && !STOPWORDS.has(e.word),
+  moyen: (e) => (e.word.length === 6 || e.word.length === 7) && e.count >= 3 && !STOPWORDS.has(e.word),
+  difficile: (e) => e.word.length >= 7 && e.word.length <= 9 && e.count <= 2,
+};
+const WORD_DESC = {
+  facile: "Mots courants de 5 lettres",
+  moyen: "Mots de 6 ou 7 lettres",
+  difficile: "Noms de personnages et mots rares",
+};
+let wordBank = null;
+
+function buildWordBank() {
+  const map = new Map();
+  quotes.forEach((q) => {
+    const seen = new Set();
+    wordTokens(q.text).forEach((t) => {
+      let e = map.get(t.word);
+      if (!e) { e = { word: t.word, count: 0, forms: {}, quotes: [] }; map.set(t.word, e); }
+      const f = t.core.toLowerCase();
+      e.forms[f] = (e.forms[f] || 0) + 1;
+      if (!seen.has(t.word)) { seen.add(t.word); e.count++; e.quotes.push(q); }
+    });
+  });
+  map.forEach((e) => { e.shown = Object.keys(e.forms).sort((a, b) => e.forms[b] - e.forms[a])[0]; });
+  const names = new Map();
+  quotes.forEach((q) => {
+    if (!/^\p{L}+$/u.test(q.perso)) return;
+    const w = fold(q.perso);
+    if (!/^[a-z]{4,10}$/.test(w) || w.length !== q.perso.length) return;
+    if (!names.has(w)) names.set(w, { word: w, shown: q.perso, quotes: [], isName: true });
+    names.get(w).quotes.push(q);
+  });
+  return { words: [...map.values()], names: [...names.values()] };
+}
+
+function buildWordle(level, n, rnd) {
+  if (!wordBank) wordBank = buildWordBank();
+  const words = wordBank.words.filter(WORD_RULES[level.id]);
+  const used = new Set();
+  const out = [];
+  let guard = 0;
+  while (out.length < n && guard++ < 300) {
+    const fromNames = level.id === "difficile" && rnd() < 0.5;
+    const src = fromNames ? wordBank.names : words;
+    const e = src[Math.floor(rnd() * src.length)];
+    if (used.has(e.word)) continue;
+    used.add(e.word);
+    const short = e.quotes.filter((q) => q.text.length <= 200);
+    const list = short.length ? short : e.quotes;
+    out.push({ word: e.word, shown: e.shown, isName: Boolean(e.isName), quote: list[Math.floor(rnd() * list.length)] });
+  }
+  return out;
+}
+
+// Réplique dont le mot est remplacé par des cases vides
+function maskedQuote(text, word) {
+  const frag = document.createDocumentFragment();
+  let pos = 0;
+  findWord(fold(text), word).forEach((a) => {
+    frag.appendChild(document.createTextNode(text.slice(pos, a)));
+    const g = el("span", "gap");
+    for (let k = 0; k < word.length; k++) g.appendChild(el("span", "slot", " "));
+    frag.appendChild(g);
+    pos = a + word.length;
+  });
+  frag.appendChild(document.createTextNode(text.slice(pos)));
+  return frag;
+}
+
+function playWordle(root, answers, onFinish, onQuit) {
+  const MAX_TRIES = 6;
+  const KEYROWS = ["azertyuiop", "qsdfghjklm", "wxcvbn"];
+  let i = 0, total = 0, over = true, busy = false, hinted = false;
+  let ans = null, L = 0, row = 0, cur = "";
+  let lines = [];
+  const results = [];
+  const keyBtns = {};
+
+  root.innerHTML = "";
+  const tally = el("div", "tally");
+  const num = el("span");
+  const sc = el("span");
+  const quit = el("button", "back", "Arrêter");
+  quit.type = "button";
+  quit.onclick = () => { document.removeEventListener("keydown", onKey); onQuit(); };
+  tally.append(num, sc, quit);
+
+  const stage = el("div");
+  const grid = el("div", "wgrid");
+  grid.setAttribute("role", "group");
+  grid.setAttribute("aria-label", "Essais");
+  const feedback = el("div", "feedback");
+  feedback.setAttribute("aria-live", "polite");
+  const tools = el("div", "wtools");
+  const hintBtn = el("button", "linklike", "Un indice (moins un point)");
+  hintBtn.type = "button";
+  tools.appendChild(hintBtn);
+  const hint = el("div", "whint");
+  stage.append(grid, feedback, tools, hint);
+
+  const keys = el("div", "wkeys");
+  KEYROWS.forEach((letters, r) => {
+    const line = el("div", "wkrow");
+    if (r === 2) line.appendChild(mkKey("Entrée", "Valider", submit, true));
+    letters.split("").forEach((c) => line.appendChild(mkKey(c, c.toUpperCase(), () => typeLetter(c), false, c)));
+    if (r === 2) line.appendChild(mkKey("⌫", "Effacer", backspace, true));
+    keys.appendChild(line);
+  });
+  function mkKey(label, aria, fn, wide, letter) {
+    const b = el("button", "wkey" + (wide ? " wide" : ""), label);
+    b.type = "button";
+    b.setAttribute("aria-label", aria);
+    b.onmousedown = (e) => e.preventDefault();
+    b.onclick = fn;
+    if (letter) keyBtns[letter] = b;
+    return b;
+  }
+
+  const actions = el("div", "actions");
+  const next = el("button", "btn primary");
+  next.hidden = true;
+  actions.appendChild(next);
+  root.append(tally, stage, keys, actions);
+
+  function show() {
+    ans = answers[i];
+    L = ans.word.length;
+    row = 0; cur = ""; over = false; busy = false; hinted = false;
+    grid.textContent = "";
+    grid.style.setProperty("--cols", L);
+    lines = [];
+    for (let r = 0; r < MAX_TRIES; r++) {
+      const line = el("div", "wline");
+      for (let c = 0; c < L; c++) line.appendChild(el("span", "tile"));
+      grid.appendChild(line);
+      lines.push(line);
+    }
+    Object.keys(keyBtns).forEach((c) => { keyBtns[c].className = "wkey"; });
+    hint.replaceChildren();
+    hintBtn.hidden = true;
+    keys.hidden = false;
+    next.hidden = true;
+    num.textContent = "Mot " + (i + 1) + " sur " + answers.length;
+    sc.textContent = total + (total > 1 ? " points" : " point");
+    feedback.textContent = L + " lettres, six essais.";
+    replay(stage);
+  }
+
+  function paintRow() {
+    [...lines[row].children].forEach((t, c) => {
+      t.textContent = cur[c] ? cur[c].toUpperCase() : "";
+      t.classList.toggle("filled", Boolean(cur[c]));
+    });
+  }
+  function typeLetter(c) {
+    if (over || busy || cur.length >= L) return;
+    cur += c;
+    paintRow();
+  }
+  function backspace() {
+    if (over || busy || !cur.length) return;
+    cur = cur.slice(0, -1);
+    paintRow();
+  }
+
+  function rate(guess) {
+    const res = Array(L).fill("absent");
+    const left = {};
+    for (let k = 0; k < L; k++) {
+      if (guess[k] === ans.word[k]) res[k] = "ok";
+      else left[ans.word[k]] = (left[ans.word[k]] || 0) + 1;
+    }
+    for (let k = 0; k < L; k++) {
+      if (res[k] !== "ok" && left[guess[k]] > 0) { res[k] = "present"; left[guess[k]]--; }
+    }
+    return res;
+  }
+
+  function submit() {
+    if (over || busy) return;
+    if (cur.length < L) {
+      const miss = L - cur.length;
+      feedback.textContent = "Il manque " + miss + (miss > 1 ? " lettres." : " lettre.");
+      lines[row].classList.remove("shake");
+      void lines[row].offsetWidth;
+      lines[row].classList.add("shake");
+      return;
+    }
+    const guess = cur;
+    const res = rate(guess);
+    const line = lines[row];
+    busy = true;
+    feedback.textContent = "";
+    const words = { ok: "bien placée", present: "dans le mot, mal placée", absent: "absente" };
+    [...line.children].forEach((t, k) => {
+      t.style.animationDelay = k * 120 + "ms";
+      t.classList.add("flip");
+      setTimeout(() => {
+        t.classList.add(res[k]);
+        t.setAttribute("aria-label", guess[k].toUpperCase() + ", " + words[res[k]]);
+      }, k * 120 + 220);
+    });
+    setTimeout(() => {
+      const rank = { absent: 0, present: 1, ok: 2 };
+      guess.split("").forEach((c, k) => {
+        const b = keyBtns[c];
+        const have = b.classList.contains("ok") ? "ok" : b.classList.contains("present") ? "present" : b.classList.contains("absent") ? "absent" : null;
+        if (have === null || rank[res[k]] > rank[have]) {
+          b.classList.remove("ok", "present", "absent");
+          b.classList.add(res[k]);
+        }
+      });
+      busy = false;
+      if (guess === ans.word) { finishWord(true); return; }
+      if (row + 1 >= MAX_TRIES) { finishWord(false); return; }
+      row++; cur = "";
+      if (row >= 2 && !hinted) hintBtn.hidden = false;
+    }, L * 120 + 450);
+  }
+
+  hintBtn.onclick = () => {
+    if (over || hinted) return;
+    hinted = true;
+    hintBtn.hidden = true;
+    hint.replaceChildren(
+      el("p", "tag", ans.isName ? "Indice : une réplique de ce personnage, son nom est caché." : "Indice : la réplique d'où vient le mot, avec " + ans.quote.perso + " qui parle."),
+      (() => { const p = el("p", "hit-text"); p.appendChild(maskedQuote(ans.quote.text, ans.word)); return p; })()
+    );
+  };
+
+  function finishWord(won) {
+    over = true;
+    const tries = row + 1;
+    const pts = won ? Math.max(0, 7 - tries - (hinted ? 1 : 0)) : 0;
+    total += pts;
+    results.push(won ? tries : 0);
+    keys.hidden = true;
+    hintBtn.hidden = true;
+    feedback.textContent = "";
+    feedback.appendChild(el("span", "verdict " + (won ? "ok" : "ko"),
+      won ? "Trouvé en " + tries + (tries > 1 ? " essais" : " essai") + ", " + pts + (pts > 1 ? " points." : " point.")
+          : "Raté : c'était « " + ans.shown + " »."));
+    const quoteP = el("p", "hit-text");
+    quoteP.appendChild(markedText(ans.quote.text, fold(ans.quote.text), [ans.word], true));
+    const colo = el("p", "hit-colo");
+    colo.append(
+      el("span", "who", ans.quote.perso + (ans.quote.acteur ? " · " + ans.quote.acteur : "")),
+      el("span", "where", [ans.quote.livre, ans.quote.episode].filter(Boolean).join(" · "))
+    );
+    hint.replaceChildren(el("p", "tag", "Le mot vient de cette réplique :"), quoteP, colo);
+    sc.textContent = total + (total > 1 ? " points" : " point");
+    next.textContent = i + 1 < answers.length ? "Mot suivant" : "Voir le résultat";
+    next.hidden = false;
+    next.focus({ preventScroll: true });
+  }
+
+  function onKey(e) {
+    if (!stage.isConnected) { document.removeEventListener("keydown", onKey); return; }
+    if ($("view-play").hidden || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.target && e.target.tagName === "BUTTON" && (e.key === "Enter" || e.key === " ")) return;
+    if (e.key === "Enter") { e.preventDefault(); submit(); return; }
+    if (e.key === "Backspace") { e.preventDefault(); backspace(); return; }
+    if (e.key.length === 1) {
+      const c = plain(e.key);
+      if (/^[a-z]$/.test(c)) typeLetter(c);
+    }
+  }
+  document.addEventListener("keydown", onKey);
+
+  next.onclick = () => {
+    if (i + 1 < answers.length) { i++; show(); }
+    else { document.removeEventListener("keydown", onKey); onFinish({ score: total, marks: results }); }
+  };
+  show();
+}
+
 /* ===== Éléments de résultat ===== */
 const NUM = ["aucune", "une", "deux", "trois", "quatre", "cinq", "six", "sept", "huit", "neuf", "dix"];
 
@@ -1457,12 +1885,62 @@ function marksRow(marks) {
   return row;
 }
 
+// Résultat du mot juste : une case par mot, avec le nombre d'essais (✗ si raté)
+function triesRow(tries) {
+  const row = el("div", "marks");
+  row.setAttribute("role", "img");
+  row.setAttribute("aria-label", tries.map((t) => (t ? "trouvé en " + t : "raté")).join(", "));
+  tries.forEach((t) => row.appendChild(el("span", "cell " + (t ? "ok" : "ko"), t ? String(t) : "✗")));
+  return row;
+}
+
+/* Publication du score dans le classement commun (si activé) */
+function publishBox(boardId, score, n) {
+  if (!board.enabled()) return null;
+  const wrap = el("div", "publish");
+  const input = el("input");
+  input.type = "text";
+  input.maxLength = 20;
+  input.autocomplete = "nickname";
+  input.value = store.get("kmt-name") || "";
+  input.id = "pub-" + Math.random().toString(36).slice(2, 8);
+  const label = el("label", "", "Ton nom pour le classement");
+  label.htmlFor = input.id;
+  const btn = el("button", "btn", "Publier mon score");
+  const row = el("div", "row");
+  row.append(input, btn);
+  const msg = el("p", "publish-msg");
+  msg.setAttribute("aria-live", "polite");
+
+  btn.onclick = async () => {
+    const name = input.value.trim().slice(0, 20);
+    if (!name) { msg.textContent = "Écris un nom d'abord."; input.focus(); return; }
+    btn.disabled = true;
+    msg.textContent = "Envoi en cours…";
+    try {
+      await board.post(boardId, name, score, n);
+      store.set("kmt-name", name);
+      input.disabled = true;
+      msg.textContent = "Score publié. ";
+      const go = el("button", "linklike", "Voir le classement");
+      go.onclick = () => openRecords(boardId);
+      msg.appendChild(go);
+    } catch (e) {
+      btn.disabled = false;
+      msg.textContent = "Publication impossible (" + e.message + ").";
+    }
+  };
+  wrap.append(label, row, msg);
+  return wrap;
+}
+
 /* ===== Onglet Jouer : jeu, niveau, manche, résultat ===== */
 function renderPlay() {
+  document.body.classList.remove("playing");
   const root = $("play-root");
   root.innerHTML = "";
   const intro = el("div", "state");
-  intro.appendChild(el("p", "", "Deux jeux, trois niveaux, dix répliques par manche."));
+  intro.appendChild(el("p", "", "Trois jeux, trois niveaux."));
   const list = el("div", "levels");
   Object.values(MODES).forEach((m, k) => {
     const b = el("button", "choice level rise");
@@ -1478,6 +1956,7 @@ function renderPlay() {
 }
 
 function renderLevels(mode) {
+  document.body.classList.remove("playing");
   const root = $("play-root");
   root.innerHTML = "";
   const back = el("button", "back", "← Changer de jeu");
@@ -1492,7 +1971,7 @@ function renderLevels(mode) {
     const left = el("span", "name");
     left.append(el("span", "level-name", lv.name + " · " + lv.id), el("span", "level-desc", mode.desc(lv)));
     const best = store.get("kmt-best-" + mode.id + "-" + lv.id);
-    b.append(left, el("span", "level-best", best !== null ? "Record " + best + "/10" : ""));
+    b.append(left, el("span", "level-best", best !== null ? "Record " + best + "/" + (mode.max || 10) : ""));
     b.onclick = () => startRound(mode, lv);
     list.appendChild(b);
   });
@@ -1501,11 +1980,13 @@ function renderLevels(mode) {
 }
 
 function startRound(mode, lv) {
-  const play = mode.kind === "hangman" ? playHangman : playRound;
-  play($("play-root"), mode.build(lv, 10, Math.random), (r) => finishRound(mode, lv, r), () => renderLevels(mode));
+  document.body.classList.add("playing");
+  const play = { hangman: playHangman, wordle: playWordle }[mode.kind] || playRound;
+  play($("play-root"), mode.build(lv, mode.rounds || 10, Math.random), (r) => finishRound(mode, lv, r), () => renderLevels(mode));
 }
 
 function finishRound(mode, lv, r) {
+  document.body.classList.remove("playing");
   const root = $("play-root");
   const key = "kmt-best-" + mode.id + "-" + lv.id;
   const prev = parseInt(store.get(key), 10);
@@ -1514,17 +1995,22 @@ function finishRound(mode, lv, r) {
   const saved = store.get(key) === String(isBest ? r.score : prev);
 
   root.innerHTML = "";
+  const total = mode.max || 10;
+  const wordle = mode.kind === "wordle";
   const wrap = el("div", "result");
-  const title = el("h2", "result-title", sentenceScore(r.score, 10));
+  const title = el("h2", "result-title", wordle ? r.score + (r.score > 1 ? " points" : " point") + " sur " + total + "." : sentenceScore(r.score, total));
   title.tabIndex = -1;
-  wrap.append(title, el("p", "", verdictLine(r.score, 10)), marksRow(r.marks));
+  wrap.append(title, el("p", "", verdictLine(r.score, total)), wordle ? triesRow(r.marks) : marksRow(r.marks));
   if (saved) {
     const where = mode.name + ", niveau " + lv.name;
     const line = isBest
       ? (isNaN(prev) ? "Premier score enregistré : " + where + "." : "Nouveau record : " + where + " !")
-      : "Record : " + where + ", " + prev + " sur 10.";
+      : "Record : " + where + ", " + prev + " sur " + total + ".";
     wrap.appendChild(el("p", "", line));
   }
+
+  const pub = publishBox(mode.id + "-" + lv.id, r.score, total);
+  if (pub) wrap.appendChild(pub);
 
   const actions = el("div", "actions");
   const again = el("button", "btn primary", "Rejouer");
@@ -1539,22 +2025,83 @@ function finishRound(mode, lv, r) {
 }
 
 /* ===== Onglet Records ===== */
+let pendingBoard = null;
+let rankReq = 0;
+
+function openRecords(id) {
+  pendingBoard = id;
+  showTab("records");
+}
+
 function renderRecords() {
   const root = $("records-root");
   root.innerHTML = "";
   Object.values(MODES).forEach((m) => {
     const group = el("section", "records-group");
     group.appendChild(el("h2", "section-title", m.name));
+    const max = m.max || 10;
     Object.values(levels).forEach((lv) => {
       const v = store.get("kmt-best-" + m.id + "-" + lv.id);
       const row = el("div", "record");
-      const val = el("span", "val" + (v === null ? " none" : v === "10" ? " top" : ""), v === null ? "pas encore joué" : v + " sur 10");
+      const val = el("span", "val" + (v === null ? " none" : v === String(max) ? " top" : ""), v === null ? "pas encore joué" : v + " sur " + max);
       row.append(el("span", "", lv.name), el("span", "dots"), val);
       group.appendChild(row);
     });
     root.appendChild(group);
   });
+
+  if (board.enabled()) {
+    const sec = el("section", "records-group");
+    sec.appendChild(el("h2", "section-title", "Classement commun"));
+    const lede = el("p", "lede");
+    const sel = el("select");
+    sel.id = "rank-select";
+    sel.setAttribute("aria-label", "Classement");
+    Object.values(MODES).forEach((m) => {
+      Object.values(levels).forEach((lv) => sel.appendChild(new Option(m.name + " · " + lv.name, m.id + "-" + lv.id)));
+    });
+    sel.onchange = loadRanking;
+    lede.append(el("span", "", "Voir :"), sel);
+    const box = el("div");
+    box.id = "ranking";
+    box.setAttribute("aria-live", "polite");
+    sec.append(lede, box);
+    root.appendChild(sec);
+    if (pendingBoard) { sel.value = pendingBoard; pendingBoard = null; }
+    loadRanking();
+  }
   replay(root);
+}
+
+async function loadRanking() {
+  const box = $("ranking");
+  const id = $("rank-select").value;
+  const req = ++rankReq;
+  box.replaceChildren(el("p", "note", "Le scribe consulte le registre…"));
+  try {
+    const rows = await board.rows(id);
+    if (req !== rankReq) return;
+    if (!rows.length) {
+      box.replaceChildren(el("p", "note", "Personne n'a encore publié ici. Sois le premier."));
+      return;
+    }
+    const me = (store.get("kmt-name") || "").trim().toLowerCase();
+    const list = el("ol", "ranking");
+    rows.forEach((r, k) => {
+      const li = el("li");
+      const isMe = me && String(r.name).toLowerCase() === me;
+      li.append(
+        el("span", "rank", String(k + 1)),
+        el("span", "", String(r.name) + (isMe ? " · toi" : "")),
+        el("span", "pts", r.score + "/" + r.n)
+      );
+      list.appendChild(li);
+    });
+    box.replaceChildren(list);
+  } catch (e) {
+    if (req !== rankReq) return;
+    box.replaceChildren(el("p", "note error", "Le registre est injoignable (" + e.message + ")."));
+  }
 }
 
 load();
