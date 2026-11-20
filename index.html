@@ -370,39 +370,71 @@
     font-weight: 400;
     line-height: 1.2;
   }
-  .publish { margin-top: var(--space-2xl); padding-top: var(--space-xl); border-top: 1px solid var(--hair); }
-  .publish label { display: block; font-size: var(--t-sm); color: var(--ink-soft); }
-  .publish .row { display: flex; flex-wrap: wrap; gap: var(--space-md); margin-top: var(--space-sm); }
-  .publish input {
-    flex: 1 1 12rem;
-    max-width: 18rem;
-    min-height: 48px;
-    padding: var(--space-sm) var(--space-md);
-    font: inherit;
-    color: var(--ink);
-    background: var(--parchment);
-    border: 1px solid var(--ink-soft);
-    border-radius: 2px;
-  }
-  .publish .btn { flex: none; }
-  .publish-msg { margin: var(--space-md) 0 0; min-height: 1.5em; color: var(--ink-soft); }
   .note { max-width: 34em; margin: var(--space-xl) 0 0; color: var(--ink-soft); }
-  .note.error { color: var(--rubric); font-style: italic; }
-  .ranking { margin: var(--space-xl) 0 0; padding: 0; list-style: none; max-width: 34em; }
-  .ranking li {
-    display: grid;
-    grid-template-columns: 2.25rem 1fr auto;
-    align-items: baseline;
-    gap: var(--space-md);
-    padding: var(--space-md) 0;
-    border-bottom: 1px solid var(--hair);
+
+  /* Le pendu */
+  .gap { white-space: nowrap; }
+  .slot {
+    display: inline-block;
+    min-width: 0.72em;
+    margin-inline: 0.04em;
+    line-height: 1.1;
+    text-align: center;
+    color: var(--rubric);
+    border-bottom: 1px solid var(--rubric);
   }
-  .ranking .rank { font-family: var(--font-display); font-size: var(--t-lg); color: var(--ink-soft); }
-  .ranking li:first-child .rank { color: var(--rubric); }
-  .ranking .pts { font-variant-numeric: tabular-nums; color: var(--ink-soft); }
-  .mine { margin-top: var(--space-3xl); }
-  .records { margin: 0; padding: 0; list-style: none; color: var(--ink-soft); }
-  .records li { padding: var(--space-xs) 0; }
+  .slot.miss { color: var(--ink); background: var(--ko-tint); }
+  .slot.won { color: var(--ok); border-bottom-color: var(--ok); }
+  .lives {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin-top: var(--space-xl);
+    font-size: var(--t-sm);
+    color: var(--ink-soft);
+  }
+  .pips { display: flex; gap: var(--space-sm); padding: 2px; }
+  .pip {
+    width: 10px;
+    height: 10px;
+    background: var(--gilt);
+    transform: rotate(45deg);
+    transition: transform 0.3s var(--ease), background-color 0.3s var(--ease), box-shadow 0.3s var(--ease);
+  }
+  .pip.lost { background: transparent; box-shadow: inset 0 0 0 1px var(--hair); transform: rotate(45deg) scale(0.7); }
+  .keys {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(2.75rem, 1fr));
+    gap: 6px;
+    max-width: 34rem;
+    margin-top: var(--space-xl);
+  }
+  .key-btn {
+    min-height: 48px;
+    padding: 0;
+    font-family: var(--font-display);
+    font-size: var(--t-md);
+    text-transform: uppercase;
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid var(--hair);
+    border-radius: 2px;
+    cursor: pointer;
+    transition: background-color 0.2s var(--ease), border-color 0.2s var(--ease), color 0.2s var(--ease);
+  }
+  .key-btn:hover:not(:disabled) { background: var(--parchment-deep); border-color: var(--ink-soft); }
+  .key-btn:disabled { cursor: default; }
+  .key-btn.hit { color: var(--ok); background: var(--ok-tint); border-color: var(--ok); }
+  .key-btn.miss { color: var(--rubric); background: var(--ko-tint); border-color: var(--rubric); opacity: 0.7; }
+
+  /* Records */
+  .records-group { max-width: 30rem; margin-top: var(--space-2xl); }
+  .records-group:first-child { margin-top: 0; }
+  .record { display: flex; align-items: baseline; gap: var(--space-md); padding: var(--space-xs) 0; }
+  .record .dots { flex: 1; align-self: end; margin-bottom: 0.35em; border-bottom: 1px dotted var(--hair); }
+  .record .val { font-variant-numeric: tabular-nums; color: var(--ink-soft); }
+  .record .val.top { color: var(--rubric); }
+  .record .val.none { opacity: 0.5; }
 
   /* Signature discrète */
   .credit {
@@ -435,7 +467,7 @@
   <div class="tabs" role="tablist" aria-label="Sections">
     <button class="tab" role="tab" id="tab-quote" aria-selected="true" aria-controls="view-quote" tabindex="0">Citation</button>
     <button class="tab" role="tab" id="tab-play" aria-selected="false" aria-controls="view-play" tabindex="-1">Jouer</button>
-    <button class="tab" role="tab" id="tab-scores" aria-selected="false" aria-controls="view-scores" tabindex="-1">Scores</button>
+    <button class="tab" role="tab" id="tab-records" aria-selected="false" aria-controls="view-records" tabindex="-1">Records</button>
   </div>
 
   <section class="panel" id="view-quote" role="tabpanel" aria-labelledby="tab-quote">
@@ -458,8 +490,8 @@
     <div id="play-root"></div>
   </section>
 
-  <section class="panel" id="view-scores" role="tabpanel" aria-labelledby="tab-scores" hidden>
-    <div id="scores-root"></div>
+  <section class="panel" id="view-records" role="tabpanel" aria-labelledby="tab-records" hidden>
+    <div id="records-root"></div>
   </section>
 
   <footer class="credit">made by A.CARTON</footer>
@@ -700,42 +732,15 @@ $("btn-copy").onclick = async () => {
   setTimeout(() => { btn.textContent = "Copier"; }, 1500);
 };
 
-/* ===== Stockage local (facultatif) ===== */
+/* ===== Stockage local ===== */
 const store = {
   get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
   set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* ignoré */ } },
 };
 
-/* ===== Classement partagé (facultatif) =====
-   Colle ici l'URL du déploiement Apps Script (voir README, dossier apps-script).
-   Vide : pas de classement commun, seuls les records de l'appareil sont affichés. */
-const SCORES_URL = "";
-
-const board = {
-  enabled() { return Boolean(SCORES_URL); },
-  async rows(id) {
-    const r = await fetch(SCORES_URL + "?board=" + encodeURIComponent(id));
-    const j = await r.json();
-    if (!j.ok) throw new Error(j.error || "erreur");
-    return j.rows;
-  },
-  async post(id, name, score, n) {
-    const r = await fetch(SCORES_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ board: id, name, score, n }),
-    });
-    const j = await r.json();
-    if (!j.ok) throw new Error(j.error || "erreur");
-  },
-};
-
 /* ===== Onglets ===== */
-const TABS = ["quote", "play", "scores"];
+const TABS = ["quote", "play", "records"];
 let gamesReady = false;
-let scoresBuilt = false;
-let pendingBoard = null;
-let scoresReq = 0;
 
 function showTab(name) {
   TABS.forEach((t) => {
@@ -744,7 +749,7 @@ function showTab(name) {
     $("tab-" + t).setAttribute("aria-selected", String(on));
     $("tab-" + t).tabIndex = on ? 0 : -1;
   });
-  if (name === "scores" && gamesReady) onScoresShown();
+  if (name === "records" && gamesReady) renderRecords();
 }
 TABS.forEach((name, idx) => {
   $("tab-" + name).onclick = () => showTab(name);
@@ -789,6 +794,15 @@ const MODES = {
     desc: (lv) => COMPLETE_DESC[lv.id],
     build: (lv, n, rnd) => buildCompleteQuestions(lv, n, rnd),
   },
+  pendu: {
+    id: "pendu",
+    kind: "hangman",
+    name: "Le pendu",
+    blurb: "Retrouve le mot caché de la réplique, lettre par lettre.",
+    intro: "Dix répliques dont un mot est caché. Propose des lettres : chaque erreur te coûte un point de vie. Choisis ton niveau.",
+    desc: (lv) => HANG_DESC[lv.id],
+    build: (lv, n, rnd) => buildHangman(lv, n, rnd),
+  },
 };
 
 function initGames() {
@@ -803,7 +817,7 @@ function initGames() {
   };
   gamesReady = true;
   renderPlay();
-  if (!$("view-scores").hidden) onScoresShown();
+  if (!$("view-records").hidden) renderRecords();
 }
 
 function pickQuotes(level, n, rnd, ok, avoid) {
@@ -999,6 +1013,229 @@ function playRound(root, questions, onFinish) {
   show();
 }
 
+/* Le pendu : un mot de la réplique est caché, on le devine lettre par lettre */
+const HANG_RULES = {
+  facile: { lives: 8, hint: true, showSpeaker: true },
+  moyen: { lives: 6, hint: false, showSpeaker: true },
+  difficile: { lives: 5, hint: false, showSpeaker: false },
+};
+const HANG_DESC = {
+  facile: "8 erreurs permises, première lettre offerte",
+  moyen: "6 erreurs permises, personnage affiché",
+  difficile: "5 erreurs permises, personnage caché",
+};
+const STOPWORDS = new Set(("alors aussi avait avant avez avons ainsi apres cette comme encore entre etaient etes faire leurs " +
+  "meme memes moins notre votre parce pourquoi quand quelle quelles quels sans toute toutes voila peut peux plus rien donc " +
+  "ceux celle celui cela cecil chaque autre autres comment depuis alors puis mais voici etre avoir sont sera seront serait").split(" "));
+
+function plain(s) { return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(); }
+
+function hangTokens(text) {
+  const out = [];
+  for (const m of text.matchAll(/\S+/g)) {
+    const lead = m[0].match(/^[^\p{L}]*/u)[0].length;
+    const core = m[0].slice(lead).replace(/[^\p{L}]+$/u, "");
+    if (/^\p{L}{5,12}$/u.test(core) && /^[a-z]+$/.test(plain(core)) && plain(core).length === core.length && !STOPWORDS.has(plain(core))) {
+      out.push({ start: m.index + lead, end: m.index + lead + core.length, core, word: plain(core) });
+    }
+  }
+  return out;
+}
+
+function buildHangman(level, n, rnd) {
+  const rule = HANG_RULES[level.id];
+  const found = new Map();
+  const chosen = pickQuotes(level, n, rnd, (q) => {
+    if (q.text.length > 200) return false;
+    const t = hangTokens(q.text);
+    if (!t.length) return false;
+    found.set(q, t);
+    return true;
+  });
+  return chosen.map((q) => {
+    const toks = found.get(q);
+    const target = toks[Math.floor(rnd() * toks.length)];
+    return {
+      quote: q,
+      text: q.text,
+      word: target.word,
+      shown: target.core,
+      gaps: toks.filter((t) => t.word === target.word),
+      speaker: rule.showSpeaker ? q.perso : "",
+      lives: rule.lives,
+      hint: rule.hint,
+    };
+  });
+}
+
+function playHangman(root, questions, onFinish) {
+  const ALPHA = "abcdefghijklmnopqrstuvwxyz".split("");
+  let i = 0, score = 0, over = true, wrong = 0;
+  let tried = new Set();
+  let needed = new Set();
+  let qn = null;
+  let slotsOf = [];
+  const marks = [];
+  const keyBtns = {};
+
+  root.innerHTML = "";
+  const tally = el("div", "tally");
+  const num = el("span");
+  const sc = el("span");
+  tally.append(num, sc);
+
+  const stage = el("div");
+  const speaker = el("p", "speaker");
+  const quoteEl = el("p", "quote");
+  const lives = el("div", "lives");
+  const livesLabel = el("span", "", "Droit à l'erreur");
+  const pips = el("span", "pips");
+  pips.setAttribute("role", "img");
+  lives.append(livesLabel, pips);
+  const feedback = el("div", "feedback");
+  feedback.setAttribute("aria-live", "polite");
+  stage.append(speaker, quoteEl, lives, feedback);
+
+  const keys = el("div", "keys");
+  keys.setAttribute("role", "group");
+  keys.setAttribute("aria-label", "Lettres");
+  ALPHA.forEach((c) => {
+    const b = el("button", "key-btn", c);
+    b.type = "button";
+    b.setAttribute("aria-label", c.toUpperCase());
+    b.onclick = () => guess(c);
+    keyBtns[c] = b;
+    keys.appendChild(b);
+  });
+
+  const actions = el("div", "actions");
+  const next = el("button", "btn primary");
+  next.hidden = true;
+  actions.appendChild(next);
+  root.append(tally, stage, keys, actions);
+
+  function paintQuote(end) {
+    // end : null en cours de partie, "won" ou "lost" une fois le mot terminé
+    quoteEl.textContent = "";
+    slotsOf = [];
+    let pos = 0;
+    qn.gaps.forEach((g) => {
+      quoteEl.appendChild(document.createTextNode(qn.text.slice(pos, g.start)));
+      const wrapEl = el("span", "gap");
+      for (let k = 0; k < g.core.length; k++) {
+        const known = tried.has(g.word[k]);
+        const slot = el("span", "slot");
+        if (known || end) {
+          slot.textContent = g.core[k];
+          if (end === "won") slot.classList.add("won");
+          else if (end === "lost" && !known) slot.classList.add("miss");
+        } else {
+          slot.textContent = " ";
+        }
+        wrapEl.appendChild(slot);
+      }
+      if (!end) {
+        wrapEl.setAttribute("role", "img");
+        wrapEl.setAttribute("aria-label", "mot de " + g.core.length + " lettres : " +
+          g.word.split("").map((c) => (tried.has(c) ? c : "blanc")).join(", "));
+      }
+      quoteEl.appendChild(wrapEl);
+      pos = g.end;
+    });
+    quoteEl.appendChild(document.createTextNode(qn.text.slice(pos)));
+  }
+
+  function paintPips() {
+    pips.innerHTML = "";
+    for (let k = 0; k < qn.lives; k++) pips.appendChild(el("span", "pip" + (k < wrong ? " lost" : "")));
+    pips.setAttribute("aria-label", "Erreurs restantes : " + (qn.lives - wrong) + " sur " + qn.lives);
+  }
+
+  function show() {
+    qn = questions[i];
+    over = false;
+    wrong = 0;
+    tried = new Set();
+    needed = new Set(qn.word.split(""));
+    if (qn.hint) tried.add(qn.word[0]);
+
+    next.hidden = true;
+    keys.hidden = false;
+    feedback.textContent = "";
+    num.textContent = "Mot " + (i + 1) + " sur " + questions.length;
+    sc.textContent = score + " sur " + i;
+    speaker.hidden = !qn.speaker;
+    speaker.textContent = qn.speaker ? qn.speaker + " :" : "";
+    ALPHA.forEach((c) => {
+      const b = keyBtns[c];
+      b.disabled = false;
+      b.className = "key-btn";
+    });
+    if (qn.hint) {
+      keyBtns[qn.word[0]].disabled = true;
+      keyBtns[qn.word[0]].classList.add("hit");
+    }
+    paintQuote(null);
+    paintPips();
+    [speaker, quoteEl, lives, keys].forEach((n, k) => { n.classList.add("rise"); n.style.setProperty("--i", k); });
+    replay(stage);
+    replay(keys);
+  }
+
+  function guess(c) {
+    if (over || tried.has(c)) return;
+    tried.add(c);
+    const hit = needed.has(c);
+    const b = keyBtns[c];
+    b.disabled = true;
+    b.classList.add(hit ? "hit" : "miss");
+    const label = c.toUpperCase();
+    feedback.textContent = "";
+    if (hit) {
+      const n = qn.word.split("").filter((x) => x === c).length;
+      feedback.appendChild(el("span", "verdict ok", n > 1 ? n + " « " + label + " »." : "Un « " + label + " »."));
+    } else {
+      wrong++;
+      feedback.appendChild(el("span", "verdict ko", "Pas de « " + label + " »."));
+      paintPips();
+    }
+    const won = [...needed].every((x) => tried.has(x));
+    if (won || wrong >= qn.lives) finishWord(won);
+    else paintQuote(null);
+  }
+
+  function finishWord(won) {
+    over = true;
+    marks.push(won);
+    if (won) score++;
+    paintQuote(won ? "won" : "lost");
+    keys.hidden = true;
+    feedback.textContent = "";
+    feedback.append(
+      el("span", "verdict " + (won ? "ok" : "ko"), won ? "Bien vu." : "Pendu : c'était « " + qn.shown + " »."),
+      document.createTextNode(" " + [qn.quote.livre, qn.quote.episode].filter(Boolean).join(" · "))
+    );
+    sc.textContent = score + " sur " + (i + 1);
+    next.textContent = i + 1 < questions.length ? "Mot suivant" : "Voir le résultat";
+    next.hidden = false;
+    next.focus({ preventScroll: true });
+  }
+
+  function onKey(e) {
+    if (!stage.isConnected) { document.removeEventListener("keydown", onKey); return; }
+    if ($("view-play").hidden || e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1) return;
+    const c = plain(e.key);
+    if (/^[a-z]$/.test(c)) guess(c);
+  }
+  document.addEventListener("keydown", onKey);
+
+  next.onclick = () => {
+    if (i + 1 < questions.length) { i++; show(); }
+    else { document.removeEventListener("keydown", onKey); onFinish({ score, marks }); }
+  };
+  show();
+}
+
 /* ===== Éléments de résultat ===== */
 const NUM = ["aucune", "une", "deux", "trois", "quatre", "cinq", "six", "sept", "huit", "neuf", "dix"];
 
@@ -1022,53 +1259,12 @@ function marksRow(marks) {
   return row;
 }
 
-/* Publication du score dans le classement commun (si activé) */
-function publishBox(boardId, score, n, onPublished) {
-  if (!board.enabled()) return null;
-  const wrap = el("div", "publish");
-  const input = el("input");
-  input.type = "text";
-  input.maxLength = 20;
-  input.autocomplete = "nickname";
-  input.value = store.get("kmt-name") || "";
-  input.id = "pub-" + Math.random().toString(36).slice(2, 8);
-  const label = el("label", "", "Ton nom pour le classement");
-  label.htmlFor = input.id;
-  const btn = el("button", "btn", "Publier mon score");
-  const row = el("div", "row");
-  row.append(input, btn);
-  const msg = el("p", "publish-msg");
-  msg.setAttribute("aria-live", "polite");
-
-  btn.onclick = async () => {
-    const name = input.value.trim();
-    if (!name) { msg.textContent = "Écris un nom d'abord."; input.focus(); return; }
-    btn.disabled = true;
-    msg.textContent = "Envoi en cours…";
-    try {
-      await board.post(boardId, name, score, n);
-      store.set("kmt-name", name);
-      input.disabled = true;
-      msg.textContent = "Score publié. ";
-      const go = el("button", "linklike", "Voir le classement");
-      go.onclick = () => openScores(boardId);
-      msg.appendChild(go);
-      if (onPublished) onPublished();
-    } catch (e) {
-      btn.disabled = false;
-      msg.textContent = "Publication impossible (" + e.message + ").";
-    }
-  };
-  wrap.append(label, row, msg);
-  return wrap;
-}
-
 /* ===== Onglet Jouer : jeu, niveau, manche, résultat ===== */
 function renderPlay() {
   const root = $("play-root");
   root.innerHTML = "";
   const intro = el("div", "state");
-  intro.appendChild(el("p", "", "Deux jeux, trois niveaux, dix questions par manche."));
+  intro.appendChild(el("p", "", "Trois jeux, trois niveaux, dix répliques par manche."));
   const list = el("div", "levels");
   Object.values(MODES).forEach((m, k) => {
     const b = el("button", "choice level rise");
@@ -1107,7 +1303,8 @@ function renderLevels(mode) {
 }
 
 function startRound(mode, lv) {
-  playRound($("play-root"), mode.build(lv, 10, Math.random), (r) => finishRound(mode, lv, r));
+  const play = mode.kind === "hangman" ? playHangman : playRound;
+  play($("play-root"), mode.build(lv, 10, Math.random), (r) => finishRound(mode, lv, r));
 }
 
 function finishRound(mode, lv, r) {
@@ -1130,8 +1327,6 @@ function finishRound(mode, lv, r) {
       : "Record : " + where + ", " + prev + " sur 10.";
     wrap.appendChild(el("p", "", line));
   }
-  const pub = publishBox(mode.id + "-" + lv.id, r.score, 10);
-  if (pub) wrap.appendChild(pub);
 
   const actions = el("div", "actions");
   const again = el("button", "btn primary", "Rejouer");
@@ -1145,106 +1340,23 @@ function finishRound(mode, lv, r) {
   title.focus({ preventScroll: true });
 }
 
-/* ===== Onglet Scores ===== */
-function openScores(id) {
-  pendingBoard = id;
-  showTab("scores");
-}
-
-function onScoresShown() {
-  if (!scoresBuilt) renderScores();
-  const sel = $("score-select");
-  if (pendingBoard) { sel.value = pendingBoard; pendingBoard = null; }
-  renderLocalRecords();
-  loadScores();
-}
-
-function renderScores() {
-  scoresBuilt = true;
-  const root = $("scores-root");
+/* ===== Onglet Records ===== */
+function renderRecords() {
+  const root = $("records-root");
   root.innerHTML = "";
-
-  const lede = el("p", "lede");
-  const sel = el("select");
-  sel.id = "score-select";
-  sel.setAttribute("aria-label", "Classement");
   Object.values(MODES).forEach((m) => {
-    Object.values(levels).forEach((lv) => sel.appendChild(new Option(m.name + " · " + lv.name, m.id + "-" + lv.id)));
-  });
-  sel.onchange = loadScores;
-  lede.append(el("span", "", "Classement :"), sel);
-
-  const ranking = el("div", "ranking-box");
-  ranking.id = "ranking";
-  ranking.setAttribute("aria-live", "polite");
-
-  const refresh = el("button", "btn", "Actualiser");
-  refresh.onclick = loadScores;
-  const actions = el("div", "actions");
-  actions.appendChild(refresh);
-  actions.id = "scores-actions";
-
-  const mine = el("div", "mine");
-  mine.id = "local-records";
-
-  root.append(lede, ranking, actions, mine);
-}
-
-async function loadScores() {
-  const box = $("ranking");
-  const sel = $("score-select");
-  $("scores-actions").hidden = !board.enabled();
-  if (!board.enabled()) {
-    box.replaceChildren(el("p", "note", "Le classement commun n'est pas encore activé. Tes records sur cet appareil sont affichés plus bas."));
-    return;
-  }
-  const req = ++scoresReq;
-  const id = sel.value;
-  box.replaceChildren(el("p", "note", "Le scribe consulte le registre…"));
-  try {
-    const rows = await board.rows(id);
-    if (req !== scoresReq) return;
-    if (!rows.length) {
-      box.replaceChildren(el("p", "note", "Personne n'a encore publié ici. Sois le premier."));
-      return;
-    }
-    const me = (store.get("kmt-name") || "").trim().toLowerCase();
-    const list = el("ol", "ranking");
-    rows.forEach((r, k) => {
-      const li = el("li");
-      const isMe = me && String(r.name).toLowerCase() === me;
-      li.append(
-        el("span", "rank", String(k + 1)),
-        el("span", "nick", String(r.name) + (isMe ? " · toi" : "")),
-        el("span", "pts", r.score + "/" + r.n)
-      );
-      list.appendChild(li);
-    });
-    box.replaceChildren(list);
-  } catch (e) {
-    if (req !== scoresReq) return;
-    box.replaceChildren(el("p", "note error", "Le registre est injoignable (" + e.message + ")."));
-  }
-}
-
-function renderLocalRecords() {
-  const mine = $("local-records");
-  mine.innerHTML = "";
-  const lines = [];
-  Object.values(MODES).forEach((m) => {
+    const group = el("section", "records-group");
+    group.appendChild(el("h2", "section-title", m.name));
     Object.values(levels).forEach((lv) => {
       const v = store.get("kmt-best-" + m.id + "-" + lv.id);
-      if (v !== null) lines.push(m.name + " · " + lv.name + " : " + v + "/10");
+      const row = el("div", "record");
+      const val = el("span", "val" + (v === null ? " none" : v === "10" ? " top" : ""), v === null ? "pas encore joué" : v + " sur 10");
+      row.append(el("span", "", lv.name), el("span", "dots"), val);
+      group.appendChild(row);
     });
+    root.appendChild(group);
   });
-  mine.appendChild(el("h2", "section-title", "Mes records"));
-  if (!lines.length) {
-    mine.appendChild(el("p", "note", "Aucun record pour l'instant. Joue une manche depuis l'onglet Jouer."));
-    return;
-  }
-  const ul = el("ul", "records");
-  lines.forEach((l) => ul.appendChild(el("li", "", l)));
-  mine.appendChild(ul);
+  replay(root);
 }
 
 load();
