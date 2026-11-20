@@ -7,7 +7,7 @@ Petit recueil de répliques de Kaamelott et jeux de quiz, en une seule page HTML
 - Jouer : trois jeux en mort subite, trois niveaux (Écuyer, Chevalier, Roi). On enchaîne jusqu'à la première erreur et on peut s'arrêter quand on veut : le score est la plus longue série.
   - Qui a dit ça ? : retrouver le personnage. Une erreur et c'est fini.
   - Le pendu : deviner un mot caché de la réplique avant que la potence soit achevée. Mot trouvé, mot suivant ; la série s'arrête à la première pendaison.
-  - Le mot juste : trouver un mot tiré des répliques en six essais (lettres vertes et dorées), un indice possible. La série s'arrête au premier échec.
+  - Le mot juste : trouver un mot tiré des répliques en six essais (lettres vertes et dorées). Les mots inventés sont refusés, et deux indices progressifs sont possibles (qui parle, puis la réplique). La série s'arrête au premier échec.
 - Records : meilleure série par jeu et par niveau, gardée sur l'appareil, et classement commun optionnel (voir plus bas).
 
 Les 765 citations viennent de l'API https://kaamelott.chaudie.re/api (projet sin0light/api-kaamelott) et sont embarquées dans `index.html` : la page fonctionne hors ligne et sans appel réseau.
@@ -27,3 +27,9 @@ Sans configuration, seuls les records de l'appareil sont affichés. Pour un clas
 - La clé publishable est publique par conception : ne jamais mettre la clé `secret` ou `service_role` dans la page.
 - Un seul score par nom et par classement : le meilleur est gardé. Les scores sont envoyés par le navigateur, donc un classement de bureau, pas anti-triche.
 - Le plan gratuit met le projet en pause après une semaine sans activité : il se réveille depuis le tableau de bord Supabase.
+
+## Liste de mots du Mot juste
+
+Pour refuser les mots inventés et ne garder comme réponses que des mots naturels, la page embarque une liste compressée (environ 43 Ko, dans la balise `<script id="mots">`) : les mots courants et moins courants du français, plus les mots de 5 lettres du dictionnaire. Les mots prononcés dans la série sont toujours acceptés, même argotiques. Pour la régénérer : `node tools/build-mots.js <dossier node_modules>` (voir l'en-tête du script).
+
+Sources : [an-array-of-french-words](https://www.npmjs.com/package/an-array-of-french-words) (MIT) et [most-common-words-by-language](https://www.npmjs.com/package/most-common-words-by-language) (MIT), dont les fréquences viennent des [listes de fréquence de Wiktionnaire](https://en.wiktionary.org/wiki/Wiktionary:French_frequency_lists) (CC BY-SA).
