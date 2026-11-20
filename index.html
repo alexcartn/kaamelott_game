@@ -508,9 +508,6 @@
   .section-title .lv-svg { width: 1.75rem; height: 1.75rem; vertical-align: -0.3em; margin-right: var(--space-sm); }
   .rowhead { display: flex; align-items: center; gap: var(--space-sm); }
   .rowhead .lv-svg { flex: none; width: 1.5rem; height: 1.5rem; overflow: visible; }
-  .chip[aria-pressed="true"] .lv-svg .tl { stroke: var(--parchment); }
-  .chip[aria-pressed="true"] .lv-svg .rubline { stroke: oklch(0.92 0.05 80); }
-  .chip[aria-pressed="true"] .lv-svg .rub { fill: oklch(0.92 0.05 80); }
   .dpips { display: inline-flex; gap: 5px; margin: 0 var(--space-sm); padding: 2px; vertical-align: middle; }
   .dpips i { display: block; width: 7px; height: 7px; background: var(--gilt); transform: rotate(45deg); }
   .dpips i.off { background: transparent; box-shadow: inset 0 0 0 1px var(--hair); }
@@ -749,27 +746,58 @@
   .ranking li.me .pts { color: var(--rubric); }
   .ranking .tag { margin-left: 0.5em; font-size: var(--t-sm); font-style: italic; color: var(--rubric); }
   .board .actions { margin-top: var(--space-xl); }
-  .picker { display: flex; flex-wrap: wrap; gap: var(--space-sm); margin-top: var(--space-md); }
-  .chip {
+  .seg-label {
+    margin: var(--space-lg) 0 var(--space-xs);
+    font-size: var(--t-sm);
+    font-variant: small-caps;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+  }
+  .seg-label + .seg { margin-top: 0; }
+  .seg { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--hair); border-radius: 2px; }
+  .seg button {
+    min-width: 0;
     min-height: 44px;
-    display: inline-flex;
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: var(--space-sm);
-    padding: var(--space-sm) var(--space-md);
+    justify-content: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-xs);
     font-family: var(--font-display);
     font-size: var(--t-md);
+    line-height: 1.15;
+    text-align: center;
     color: var(--ink);
     background: transparent;
-    border: 1px solid var(--hair);
-    border-radius: 2px;
+    border: 0;
+    border-left: 1px solid var(--hair);
     cursor: pointer;
-    transition: background-color 0.2s var(--ease), color 0.2s var(--ease), border-color 0.2s var(--ease);
+    transition: background-color 0.2s var(--ease), color 0.2s var(--ease);
   }
-  .chip:hover:not([aria-pressed="true"]) { background: var(--parchment-deep); border-color: var(--ink-soft); }
-  .chip[aria-pressed="true"] { color: var(--parchment); background: var(--rubric); border-color: var(--rubric-deep); }
-  .chip .lv-svg { width: 1.5rem; height: 1.5rem; flex: none; }
-  .chip[aria-pressed="true"] .lv-svg .ink { stroke: var(--parchment); }
-  .board-me { margin: var(--space-lg) 0 0; font-style: italic; color: var(--rubric); }
+  .seg button:first-child { border-left: 0; }
+  .seg button:hover:not([aria-pressed="true"]) { background: var(--parchment-deep); }
+  .seg button[aria-pressed="true"] { color: var(--parchment); background: var(--rubric); }
+  .seg .lv-svg { width: 1.5rem; height: 1.5rem; flex: none; }
+  .seg.games button { min-height: 4.5rem; }
+  .seg.games .lv-svg { width: 1.75rem; height: 1.75rem; overflow: visible; }
+  .seg.lvls button { flex-direction: row; gap: var(--space-sm); font-size: 1rem; }
+  .seg button[aria-pressed="true"] .lv-svg .ink { stroke: var(--parchment); }
+  .seg button[aria-pressed="true"] .lv-svg .tl { stroke: var(--parchment); }
+  .seg button[aria-pressed="true"] .lv-svg .rubline { stroke: oklch(0.92 0.05 80); }
+  .seg button[aria-pressed="true"] .lv-svg .rub { fill: oklch(0.92 0.05 80); }
+  .board-now {
+    margin: var(--space-xl) 0 0;
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--hair);
+    font-family: var(--font-gothique);
+    font-weight: 700;
+    font-size: 1.375rem;
+    line-height: 1.2;
+  }
+  .board-now .sep { margin: 0 0.35em; color: var(--gilt); }
+  .board-you { margin: var(--space-xs) 0 0; color: var(--ink-soft); }
+  .board-me { font-style: italic; color: var(--rubric); }
   .podium { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-sm); align-items: end; margin-top: var(--space-lg); }
   .pod {
     min-width: 0;
@@ -1300,7 +1328,7 @@ let levels = {};
 const MODES = {
   qui: {
     id: "qui",
-    name: "Qui a dit ça ?",
+    name: "Qui a dit ça\u00a0?",
     blurb: "Retrouve le personnage derrière la réplique. Une erreur et c'est fini.",
     intro: "Une réplique, quatre noms, un seul bon. Tu enchaînes jusqu'à la première erreur : vise la plus longue série.",
     desc: (lv) => lv.desc,
@@ -2525,34 +2553,43 @@ function buildBoard() {
   refresh.onclick = () => loadRanking(true);
   head.appendChild(refresh);
 
-  const modes = el("div", "picker");
+  const modesLabel = el("p", "seg-label", "Jeu");
+  modesLabel.id = "seg-jeu";
+  const modes = el("div", "seg games");
   modes.setAttribute("role", "group");
-  modes.setAttribute("aria-label", "Jeu");
+  modes.setAttribute("aria-labelledby", "seg-jeu");
   Object.values(MODES).forEach((m) => {
-    const b = el("button", "chip");
-    b.append(gameIcon(m.id), document.createTextNode(m.name));
+    const b = el("button");
+    b.append(gameIcon(m.id), el("span", "", m.name));
     b.type = "button";
     b.onclick = () => selectBoard(m.id + "-" + boardParts(rankBoard).lv.id);
     modeBtns[m.id] = b;
     modes.appendChild(b);
   });
-  const lvls = el("div", "picker");
+  const lvlsLabel = el("p", "seg-label", "Niveau");
+  lvlsLabel.id = "seg-niveau";
+  const lvls = el("div", "seg lvls");
   lvls.setAttribute("role", "group");
-  lvls.setAttribute("aria-label", "Niveau");
+  lvls.setAttribute("aria-labelledby", "seg-niveau");
   Object.values(levels).forEach((lv) => {
-    const b = el("button", "chip");
+    const b = el("button");
     b.type = "button";
-    b.append(levelIcon(lv.id), document.createTextNode(lv.name));
+    b.append(levelIcon(lv.id), el("span", "", lv.name));
     b.onclick = () => selectBoard(boardParts(rankBoard).mode.id + "-" + lv.id);
     levelBtns[lv.id] = b;
     lvls.appendChild(b);
   });
 
-  const sub = el("p", "board-sub");
+  // Le classement affiché, puis une seule ligne pour toi : record et place
+  const now = el("h3", "board-now");
+  now.id = "board-now";
+  const you = el("p", "board-you");
+  const sub = el("span");
   sub.id = "board-sub";
-  const me = el("p", "board-me");
+  const me = el("span", "board-me");
   me.id = "board-me";
   me.hidden = true;
+  you.append(sub, me);
   const box = el("div");
   box.id = "ranking";
   box.setAttribute("aria-live", "polite");
@@ -2560,7 +2597,7 @@ function buildBoard() {
   const play = el("button", "btn primary", "Jouer ce niveau");
   play.onclick = () => { const b = boardParts(rankBoard); showTab("play"); startRound(b.mode, b.lv); };
   actions.appendChild(play);
-  sec.append(head, modes, lvls, sub, me, box, actions);
+  sec.append(head, modesLabel, modes, lvlsLabel, lvls, now, you, box, actions);
   return sec;
 }
 
@@ -2629,9 +2666,10 @@ function paintBoardHead() {
   Object.keys(modeBtns).forEach((k) => modeBtns[k].setAttribute("aria-pressed", String(k === b.mode.id)));
   Object.keys(levelBtns).forEach((k) => levelBtns[k].setAttribute("aria-pressed", String(k === b.lv.id)));
   Object.keys(cellBtns).forEach((k) => cellBtns[k].setAttribute("aria-pressed", String(k === rankBoard)));
+  const now = $("board-now");
+  now.replaceChildren(document.createTextNode(b.mode.name), el("span", "sep", "·"), document.createTextNode(b.lv.name));
   const v = store.get("kmt-run-" + rankBoard);
-  const sub = $("board-sub");
-  sub.textContent = v !== null ? "Ton record : " + v + "." : "Tu n'y as pas encore joué.";
+  $("board-sub").textContent = v !== null ? "Ton record : " + v + ". " : "Tu n'y as pas encore joué. ";
 }
 
 async function loadRanking(force) {
