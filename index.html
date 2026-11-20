@@ -506,6 +506,16 @@
     transform: rotate(45deg);
   }
   .tile.absent { color: var(--ink-soft); background: oklch(0.86 0.02 70); border-color: var(--hair); }
+  .help { max-width: 34em; }
+  .help p { margin: 0 0 var(--space-md); color: var(--ink-soft); }
+  .help .help-grid { --cols: 5; display: block; max-width: 14rem; margin: var(--space-lg) 0; }
+  .help .tile { font-size: 1.25rem; }
+  .help-legend { margin: 0 0 var(--space-lg); padding: 0; list-style: none; color: var(--ink-soft); }
+  .help-legend li { display: flex; gap: var(--space-md); align-items: baseline; padding: var(--space-xs) 0; }
+  .help-legend .tag { flex: none; min-width: 3.25rem; font-family: var(--font-display); font-weight: 700; color: var(--ink); }
+  details.help-fold { margin-top: var(--space-xl); }
+  details.help-fold summary { min-height: 44px; display: flex; align-items: center; color: var(--rubric); text-decoration: underline; cursor: pointer; }
+  details.help-fold[open] summary { margin-bottom: var(--space-sm); }
   .wtools { min-height: 44px; display: flex; align-items: center; }
   .whint { max-width: 34em; }
   .whint .tag { margin: 0 0 var(--space-xs); font-size: var(--t-sm); font-style: italic; color: var(--ink-soft); }
@@ -1723,6 +1733,27 @@ function maskedQuote(text, word) {
   return frag;
 }
 
+// Explication du jeu : exemple en tuiles, puis les règles en trois lignes
+function wordleHelp() {
+  const box = el("div", "help");
+  box.appendChild(el("p", "", "Un mot est caché, tiré d'une réplique. Tu as six essais pour le trouver : tape un mot de la même longueur, puis valide. Chaque lettre prend une couleur."));
+  const grid = el("div", "wgrid help-grid");
+  const line = el("div", "wline");
+  [["t", "present"], ["o", "ok"], ["m", "absent"], ["b", "absent"], ["e", "ok"]].forEach(([c, st]) => line.appendChild(el("span", "tile filled " + st, c)));
+  grid.appendChild(line);
+  box.appendChild(el("p", "", "Exemple : le mot est PORTE et tu essaies TOMBE."));
+  box.appendChild(grid);
+  const legend = el("ul", "help-legend");
+  [["O, E", "vertes : bien placées."], ["T", "dorée : dans le mot, mais ailleurs."], ["M, B", "grises : absentes du mot."]].forEach(([a, b]) => {
+    const li = el("li");
+    li.append(el("span", "tag", a), el("span", "", b));
+    legend.appendChild(li);
+  });
+  box.appendChild(legend);
+  box.appendChild(el("p", "", "Mot trouvé, mot suivant : la série s'arrête au premier échec. Après deux essais ratés, un indice est possible. Les accents ne comptent pas : é, è et ê s'écrivent e."));
+  return box;
+}
+
 function playWordle(root, src, onFinish, onQuit) {
   const answers = src.first.slice();
   const MAX_TRIES = 6;
@@ -2036,6 +2067,12 @@ function renderLevels(mode) {
     list.appendChild(b);
   });
   root.append(back, title, intro, list);
+  if (mode.kind === "wordle") {
+    const fold = el("details", "help-fold");
+    fold.appendChild(el("summary", "", "Comment jouer ?"));
+    fold.appendChild(wordleHelp());
+    root.appendChild(fold);
+  }
   replay(root);
 }
 
@@ -2076,6 +2113,20 @@ function stopRound(mode, lv, st) {
 }
 
 function startRound(mode, lv) {
+  if (mode.kind === "wordle" && !store.get("kmt-aide-wordle")) {
+    const root = $("play-root");
+    root.innerHTML = "";
+    const back = el("button", "back", "← Retour");
+    back.onclick = () => renderLevels(mode);
+    const title = el("h2", "section-title", "Comment jouer");
+    const go = el("button", "btn primary", "Compris, je joue");
+    go.onclick = () => { store.set("kmt-aide-wordle", "1"); startRound(mode, lv); };
+    const actions = el("div", "actions");
+    actions.appendChild(go);
+    root.append(back, title, wordleHelp(), actions);
+    replay(root);
+    return;
+  }
   document.body.classList.add("playing");
   const play = { hangman: playHangman, wordle: playWordle }[mode.kind] || playRound;
   const asked = new Set();
